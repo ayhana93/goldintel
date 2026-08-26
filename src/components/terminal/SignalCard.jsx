@@ -11,7 +11,7 @@ export default function SignalCard({ analysis }) {
       </div>
     );
   }
-  const { direction, confidence, setup, conflict, regime, reasonsFor, reasonsAgainst, longScore, shortScore } = analysis;
+  const { direction, confidence, setup, conflict, regime, reasonsFor, reasonsAgainst, longScore, shortScore, scalp } = analysis;
   const isLong = direction === "LONG", isShort = direction === "SHORT";
   const color = isLong ? "text-emerald-400" : isShort ? "text-red-400" : "text-slate-300";
   const border = isLong ? "border-emerald-500/40" : isShort ? "border-red-500/40" : "border-[#2a3348]";
@@ -51,6 +51,26 @@ export default function SignalCard({ analysis }) {
 
       {setup && (
         <div className="border-t border-[#1c2230] px-5 py-2.5 font-mono text-xs text-amber-300">{setup.invalidation}</div>
+      )}
+
+      {scalp?.setup && (
+        <div className="border-t border-[#1c2230] bg-[#0d121c] px-5 py-3">
+          <div className="mb-2 flex items-center gap-2">
+            <span className="border border-sky-500/40 px-2 py-0.5 font-mono text-[11px] uppercase tracking-wider text-sky-400">⚡ Quick Trade (M15)</span>
+            <span className={`font-mono text-sm font-bold ${scalp.direction === "LONG" ? "text-emerald-400" : "text-red-400"}`}>
+              {scalp.direction === "LONG" ? "● LONG" : "● SHORT"}
+            </span>
+            <span className="font-mono text-[11px] text-slate-500">score {scalp.confidence}/100 · R:R 1:{scalp.setup.rr.toFixed(1)}</span>
+          </div>
+          <div className="grid grid-cols-2 gap-px bg-[#1c2230] sm:grid-cols-5">
+            <Cell label="Entry" value={`${fmt(scalp.setup.entryLow)}–${fmt(scalp.setup.entryHigh)}`} small />
+            <Cell label="Stop" value={fmt(scalp.setup.sl)} accent="text-red-400" small />
+            <Cell label="TP1" value={fmt(scalp.setup.tp1)} accent="text-emerald-400" small />
+            <Cell label="TP2" value={fmt(scalp.setup.tp2)} accent="text-emerald-400" small />
+            <Cell label="TP3" value={fmt(scalp.setup.tp3)} accent="text-emerald-400" small />
+          </div>
+          <div className="mt-2 font-mono text-[11px] text-sky-300/80">{scalp.setup.invalidation}</div>
+        </div>
       )}
 
       <div className="grid gap-px border-t border-[#1c2230] bg-[#1c2230] md:grid-cols-2">

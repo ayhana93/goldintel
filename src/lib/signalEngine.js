@@ -152,7 +152,7 @@ export function analyze(data) {
     if (confidence < THRESHOLD) { direction = "NO_TRADE"; reasonsAgainst.push("High evidence conflict reduced confidence below threshold"); }
   }
 
-  // --- Trade setup ---
+  // --- Trade setup (swing / position tier: score >= 70, R:R >= 2) ---
   let setup = null;
   if (direction !== "NO_TRADE" && atrH1) {
     setup = buildSetup(direction, price, atrH1, tf, levels);
@@ -160,6 +160,31 @@ export function analyze(data) {
       reasonsAgainst.push(`Risk/reward ${setup.rr.toFixed(1)}:1 is below the 2:1 minimum`);
       direction = "NO_TRADE";
       setup = null;
+    }
+  }
+
+  // --- Scalp / quick-trade tier (score >= 58, R:R >= 1, M15-based) ---
+  const SCALP_THRESHOLD = 58, SCALP_GAP = 8;
+  let scalp = null;
+  const atrM15 = tf.M15 ? last(tf.M15.ind.atr14) : null;
+  const scalpAtr = atrM15 || (atrH1 ? atrH1 * 0.5 : null);
+  if (scalpAtr) {
+    let sDir = "NO_TRADE";
+    if (long >= SCALP_THRESHOLD && long - short >= SCALP_GAP) sDir = "LONG";
+    else if (short >= SCALP_THRESHOLD && short - long >= SCALP_GAP) sDir = "SHORT";
+    if (sDir !== "NO_TRADE" && conflict !== "HIGH") {
+      const m15Bias = tf.M15?.emaBias, m5Bias = tf.M5?.emaBias;
+      const aligned = sDir === "LONG"
+        ? (m15Bias === "bullish" || m15Bias === "neutral") && (m5Bias !== "bearish")
+        : (m15Bias === "bearish" || m15Bias === "neutral") && (m5Bias !== "bullish");
+      if (aligned) {
+        scalp = {
+          direction: sDir,
+          confidence: Math.max(long, short),
+          setup: buildScalpSetup(sDir, price, scalpAtr),
+          m15Bias, m5Bias,
+        };
+      }
     }
   }
 
@@ -181,6 +206,7 @@ export function analyze(data) {
     regime,
     levels,
     setup,
+    scalp,
     atrH1,
     rsiH1,
     timeframeBias,
@@ -240,5 +266,24 @@ function buildSetup(direction, price, atrH1, tf, levels) {
     invalidation: isLong
       ? `LONG invalidated on H1 close below ${sl.toFixed(1)}`
       : `SHORT invalidated on H1 close above ${sl.toFixed(1)}`,
+  };
+}
+
+// Tighter M15-based setup for intraday/scalp trades. R:R >= 1, fast targets.
+function buildScalpSetup(direction, price, atr) {
+  const isLong = direction === "LONG";
+  const entryLow = price - atr * 0.15;
+  const entryHigh = price + atr * 0.15;
+  const entryMid = price;
+  const sl = isLong ? price - atr * 0.8 : price + atr * 0.8;
+  const risk = Math.abs(entryMid - sl);
+  const tp1 = isLong ? entryMid + risk * 1.0 : entryMid - risk * 1.0;
+  const tp2 = isLong ? entryMid + risk * 1.8 : entryMid - risk * 1.8;
+  const tp3 = isLong ? entryMid + risk * 2.5 : entryMid - risk * 2.5;
+  return {
+    entryLow, entryHigh, sl, tp1, tp2, tp3, rr: 1.0, risk,
+    invalidation: isLong
+      ? `Scalp LONG invalidated on M15 close below ${sl.toFixed(1)}`
+      : `Scalp SHORT invalidated on M15 close above ${sl.toFixed(1)}`,
   };
 }

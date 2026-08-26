@@ -20,6 +20,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [intervalSec, setIntervalSec] = useState(60);
   const lastSetupKey = useRef(null);
+  const lastScalpKey = useRef(null);
 
   const loadHistory = useCallback(async () => {
     const rows = await base44.entities.Signal.list("-created_date", 25);
@@ -86,6 +87,49 @@ export default function Dashboard() {
             rr: a.setup.rr,
             invalidation: a.setup.invalidation,
             reason: a.reasonsFor.join("; "),
+          }).catch(() => {});
+          await loadHistory();
+        }
+      }
+      // Persist scalp / quick-trade signals (separate stream, tighter key so it fires on small changes)
+      if (a.available && a.scalp?.setup) {
+        const sKey = `SCALP-${a.scalp.direction}-${Math.round(a.scalp.setup.sl)}`;
+        if (sKey !== lastScalpKey.current) {
+          lastScalpKey.current = sKey;
+          await base44.entities.Signal.create({
+            setup_key: sKey,
+            direction: a.scalp.direction,
+            status: "WATCHING",
+            price_at_signal: a.price,
+            entry_low: a.scalp.setup.entryLow,
+            entry_high: a.scalp.setup.entryHigh,
+            stop_loss: a.scalp.setup.sl,
+            tp1: a.scalp.setup.tp1,
+            tp2: a.scalp.setup.tp2,
+            tp3: a.scalp.setup.tp3,
+            risk_reward: a.scalp.setup.rr,
+            confidence: a.scalp.confidence,
+            regime: a.regime,
+            conflict_level: a.conflict,
+            scores: Object.fromEntries(Object.entries(a.breakdown).map(([k, b]) => [k, Math.round(b.long * 10) / 10])),
+            timeframe_bias: a.timeframeBias,
+            reasons_for: a.reasonsFor,
+            reasons_against: a.reasonsAgainst,
+            invalidation: a.scalp.setup.invalidation,
+          });
+          base44.functions.invoke("notifySignal", {
+            direction: a.scalp.direction,
+            confidence: a.scalp.confidence,
+            regime: `SCALP · ${a.regime}`,
+            entryLow: a.scalp.setup.entryLow,
+            entryHigh: a.scalp.setup.entryHigh,
+            sl: a.scalp.setup.sl,
+            tp1: a.scalp.setup.tp1,
+            tp2: a.scalp.setup.tp2,
+            tp3: a.scalp.setup.tp3,
+            rr: a.scalp.setup.rr,
+            invalidation: a.scalp.setup.invalidation,
+            reason: `Quick trade (M15): ${a.reasonsFor.slice(0, 3).join("; ")}`,
           }).catch(() => {});
           await loadHistory();
         }
