@@ -44,7 +44,7 @@ export default function SignalCard({ analysis }) {
         <Cell label="TP1" value={setup ? fmt(setup.tp1) : "—"} accent="text-emerald-400" />
         <Cell label="TP2" value={setup ? fmt(setup.tp2) : "—"} accent="text-emerald-400" />
         <Cell label="TP3" value={setup ? fmt(setup.tp3) : "—"} accent="text-emerald-400" />
-        <Cell label="R:R (TP1)" value={setup ? `1:${setup.rr.toFixed(1)}` : "—"} />
+        <Cell label="Max R:R" value={setup ? `1:${setup.rr.toFixed(1)}` : "—"} accent="text-amber-300" />
         <Cell label="Regime" value={regime.replace(/_/g, " ")} small />
         <Cell label="Long / Short" value={`${longScore} / ${shortScore}`} small />
       </div>
@@ -60,7 +60,7 @@ export default function SignalCard({ analysis }) {
             <span className={`font-mono text-sm font-bold ${scalp.direction === "LONG" ? "text-emerald-400" : "text-red-400"}`}>
               {scalp.direction === "LONG" ? "● LONG" : "● SHORT"}
             </span>
-            <span className="font-mono text-[11px] text-slate-500">score {scalp.confidence}/100 · R:R 1:{scalp.setup.rr.toFixed(1)}</span>
+            <span className="font-mono text-[11px] text-slate-500">score {scalp.confidence}/100 · max R:R 1:{scalp.setup.rr.toFixed(1)}</span>
           </div>
           <div className="grid grid-cols-2 gap-px bg-[#1c2230] sm:grid-cols-5">
             <Cell label="Entry" value={`${fmt(scalp.setup.entryLow)}–${fmt(scalp.setup.entryHigh)}`} small />
@@ -78,7 +78,7 @@ export default function SignalCard({ analysis }) {
         <ReasonList title="Evidence Against / Risks" items={reasonsAgainst} dot="text-red-500" />
       </div>
       <div className="border-t border-[#1c2230] px-5 py-2 text-[11px] text-slate-600">
-        Decision-support information only — not financial advice. Signals require a score ≥ 70 and R:R ≥ 2:1.
+        Decision-support information only — not financial advice. Targets extend to the farthest significant level for maximum reward; Max R:R reflects TP3.
       </div>
     </div>
   );

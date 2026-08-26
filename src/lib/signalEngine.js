@@ -181,7 +181,7 @@ export function analyze(data) {
         scalp = {
           direction: sDir,
           confidence: Math.max(long, short),
-          setup: buildScalpSetup(sDir, price, scalpAtr),
+          setup: buildScalpSetup(sDir, price, scalpAtr, levels),
           m15Bias, m5Bias,
         };
       }
@@ -251,37 +251,51 @@ function buildSetup(direction, price, atrH1, tf, levels) {
   }
   const risk = Math.abs(entryMid - sl);
 
-  // TPs from structure levels, falling back to ATR multiples
-  const targets = isLong
-    ? levels.resistances.map((l) => l.price).filter((p) => p > entryHigh + risk * 1.5)
-    : levels.supports.map((l) => l.price).filter((p) => p < entryLow - risk * 1.5);
-  const tpFallback = (m) => (isLong ? entryMid + risk * m : entryMid - risk * m);
-  const tp1 = targets[0] ?? tpFallback(2);
-  const tp2 = targets[1] ?? tpFallback(3);
-  const tp3 = targets[2] ?? tpFallback(4.5);
-  const rr = Math.abs(tp1 - entryMid) / risk;
+  // TPs from structure levels — aim for MAXIMUM reward, not fixed R multiples.
+  // tp1 = nearest significant level, tp2 = next, tp3 = farthest (max potential runner).
+  const cands = (isLong ? levels.resistances : levels.supports)
+    .map((l) => l.price)
+    .filter((p) => (isLong ? p > entryHigh + risk * 0.5 : p < entryLow - risk * 0.5))
+    .sort((a, b) => Math.abs(a - entryMid) - Math.abs(b - entryMid));
+  const fb = (m) => (isLong ? entryMid + risk * m : entryMid - risk * m);
+  const tp1 = cands[0] ?? fb(2);
+  const tp2 = cands[1] ?? fb(3.5);
+  // Max reward: extend to the farthest structure level, with a 5R floor to chase maximum potential.
+  const farthest = cands.length > 0 ? cands[cands.length - 1] : fb(5);
+  const tp3 = isLong ? Math.max(farthest, fb(5)) : Math.min(farthest, fb(5));
+  const rr = Math.abs(tp3 - entryMid) / risk;   // MAX R:R (to farthest target)
+  const rr1 = Math.abs(tp1 - entryMid) / risk;
 
   return {
-    entryLow, entryHigh, sl, tp1, tp2, tp3, rr, risk,
+    entryLow, entryHigh, sl, tp1, tp2, tp3, rr, rr1, risk,
     invalidation: isLong
       ? `LONG invalidated on H1 close below ${sl.toFixed(1)}`
       : `SHORT invalidated on H1 close above ${sl.toFixed(1)}`,
   };
 }
 
-// Tighter M15-based setup for intraday/scalp trades. R:R >= 1, fast targets.
-function buildScalpSetup(direction, price, atr) {
+// Tighter M15-based setup for intraday/scalp trades. Targets extend to the farthest
+// available structure level to chase maximum reward — no fixed R cap.
+function buildScalpSetup(direction, price, atr, levels) {
   const isLong = direction === "LONG";
   const entryLow = price - atr * 0.15;
   const entryHigh = price + atr * 0.15;
   const entryMid = price;
   const sl = isLong ? price - atr * 0.8 : price + atr * 0.8;
   const risk = Math.abs(entryMid - sl);
-  const tp1 = isLong ? entryMid + risk * 1.0 : entryMid - risk * 1.0;
-  const tp2 = isLong ? entryMid + risk * 1.8 : entryMid - risk * 1.8;
-  const tp3 = isLong ? entryMid + risk * 2.5 : entryMid - risk * 2.5;
+
+  const cands = (isLong ? levels?.resistances : levels?.supports || [])
+    .map((l) => l.price)
+    .filter((p) => (isLong ? p > entryHigh + risk * 0.3 : p < entryLow - risk * 0.3))
+    .sort((a, b) => Math.abs(a - entryMid) - Math.abs(b - entryMid));
+  const fb = (m) => (isLong ? entryMid + risk * m : entryMid - risk * m);
+  const tp1 = cands[0] ?? fb(1.2);
+  const tp2 = cands[1] ?? fb(2.2);
+  const farthest = cands.length > 0 ? cands[cands.length - 1] : fb(3.5);
+  const tp3 = isLong ? Math.max(farthest, fb(3.5)) : Math.min(farthest, fb(3.5));
+  const rr = Math.abs(tp3 - entryMid) / risk;   // MAX R:R (to farthest target)
   return {
-    entryLow, entryHigh, sl, tp1, tp2, tp3, rr: 1.0, risk,
+    entryLow, entryHigh, sl, tp1, tp2, tp3, rr, risk,
     invalidation: isLong
       ? `Scalp LONG invalidated on M15 close below ${sl.toFixed(1)}`
       : `Scalp SHORT invalidated on M15 close above ${sl.toFixed(1)}`,
