@@ -92,10 +92,14 @@ export default function Dashboard() {
           await loadHistory();
         }
       }
-      // Persist scalp / quick-trade signals (separate stream, tighter key so it fires on small changes)
+      // Persist scalp / quick-trade signals — but suppress same-direction notifications while
+      // an entered (ACTIVE) scalp of the same direction is still open. Only a direction change
+      // (or a closed position) allows a new scalp signal through. Swing signals are never suppressed.
       if (a.available && a.scalp?.setup) {
+        const activeScalps = await base44.entities.Signal.filter({ status: "ACTIVE" }, "-created_date", 10).catch(() => []);
+        const openSameDir = activeScalps.find((x) => x.setup_key?.startsWith("SCALP-") && x.direction === a.scalp.direction);
         const sKey = `SCALP-${a.scalp.direction}-${Math.round(a.scalp.setup.sl / 5) * 5}`;
-        if (sKey !== lastScalpKey.current) {
+        if (!openSameDir && sKey !== lastScalpKey.current) {
           lastScalpKey.current = sKey;
           await base44.entities.Signal.create({
             setup_key: sKey,
