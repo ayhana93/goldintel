@@ -24,7 +24,12 @@ export default function SignalCard({ analysis }) {
             {isLong ? "● LONG" : isShort ? "● SHORT" : "○ NO TRADE"}
           </span>
           {conflict !== "LOW" && (
-            <span className="border border-amber-500/40 px-2 py-0.5 font-mono text-[11px] text-amber-400">SIGNAL CONFLICT: {conflict}</span>
+            <div className="flex flex-col gap-0.5">
+              <span className="border border-amber-500/40 px-2 py-0.5 font-mono text-[11px] text-amber-400">⚠ Mixed Signals</span>
+              <span className="font-mono text-[10px] text-slate-500">
+                {conflict === "HIGH" ? "Bullish & bearish evidence both strong — wait for clarity." : "Some evidence disagrees — trade with caution."}
+              </span>
+            </div>
           )}
         </div>
         <div className="text-right">
