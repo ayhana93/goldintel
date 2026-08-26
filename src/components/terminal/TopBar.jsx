@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function TopBar({ price, previousClose, fetchedAt, onRefresh, loading }) {
+export default function TopBar({ price, previousClose, fetchedAt, onRefresh, loading, intervalSec, onIntervalChange }) {
   const change = price != null && previousClose != null ? price - previousClose : null;
   const pct = change != null ? (change / previousClose) * 100 : null;
   const ageSec = fetchedAt ? Math.round((Date.now() - fetchedAt) / 1000) : null;
@@ -29,6 +29,19 @@ export default function TopBar({ price, previousClose, fetchedAt, onRefresh, loa
             {stale ? "DATA STALE · " : ""}updated {ageSec}s ago
           </span>
         )}
+        <label className="flex items-center gap-1.5 font-mono text-[11px] text-slate-500" title="Auto-refresh interval">
+          <span className="uppercase tracking-wider">Every</span>
+          <input
+            type="number" min={0.3} max={60} step={0.1}
+            value={intervalSec}
+            onChange={(e) => {
+              const v = Number(e.target.value);
+              if (!isNaN(v)) onIntervalChange(Math.min(60, Math.max(0.3, v)));
+            }}
+            className="w-14 border border-[#2a3348] bg-[#141a26] px-2 py-1 text-center text-slate-100 outline-none focus:border-amber-500/50"
+          />
+          <span className="uppercase tracking-wider">s</span>
+        </label>
         <button
           onClick={onRefresh}
           disabled={loading}

@@ -18,6 +18,7 @@ export default function Dashboard() {
   const [signals, setSignals] = useState([]);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [intervalSec, setIntervalSec] = useState(60);
   const lastSetupKey = useRef(null);
 
   const loadHistory = useCallback(async () => {
@@ -98,10 +99,10 @@ export default function Dashboard() {
     loadHistory();
     loadEvents();
     refresh();
-    const id = setInterval(refresh, 60 * 1000);
+    const id = setInterval(refresh, intervalSec * 1000);
     const evId = setInterval(loadEvents, 15 * 60 * 1000);
     return () => { clearInterval(id); clearInterval(evId); };
-  }, [refresh, loadHistory, loadEvents]);
+  }, [refresh, loadHistory, loadEvents, intervalSec]);
 
   const gold = data?.gold;
 
@@ -113,6 +114,8 @@ export default function Dashboard() {
         fetchedAt={gold?.fetchedAt}
         onRefresh={refresh}
         loading={loading}
+        intervalSec={intervalSec}
+        onIntervalChange={setIntervalSec}
       />
       {loading && !analysis ? (
         <div className="flex h-96 items-center justify-center font-mono text-sm text-slate-500">
