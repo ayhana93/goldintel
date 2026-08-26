@@ -52,10 +52,25 @@ export default function FeedbackPanel({ signals, currentRegime }) {
     return bMatch - aMatch || new Date(b.created_date) - new Date(a.created_date);
   });
 
+  const wins = feedbacks.filter((f) => f.outcome === "win").length;
+  const losses = feedbacks.filter((f) => f.outcome === "loss").length;
+  const be = feedbacks.filter((f) => f.outcome === "breakeven").length;
+  const totalR = feedbacks.reduce((sum, f) => sum + (f.result_r || 0), 0);
+  const decided = wins + losses;
+  const winRate = decided > 0 ? Math.round((wins / decided) * 100) : null;
+
   return (
     <div className="border border-[#1c2230] bg-[#0b0f17]">
       <div className="border-b border-[#1c2230] px-4 py-2 font-mono text-[11px] uppercase tracking-widest text-slate-400">
         Trade Feedback &amp; Learnings
+      </div>
+
+      <div className="grid grid-cols-5 gap-px border-b border-[#1c2230] bg-[#1c2230]">
+        <Stat label="Trades" value={feedbacks.length} />
+        <Stat label="Wins" value={wins} accent="text-emerald-400" />
+        <Stat label="Losses" value={losses} accent="text-red-400" />
+        <Stat label="Win Rate" value={winRate != null ? `${winRate}%` : "—"} accent={winRate != null && winRate >= 50 ? "text-emerald-400" : winRate != null ? "text-red-400" : "text-slate-100"} />
+        <Stat label="Net R" value={totalR > 0 ? `+${totalR.toFixed(1)}` : totalR.toFixed(1)} accent={totalR > 0 ? "text-emerald-400" : totalR < 0 ? "text-red-400" : "text-slate-100"} />
       </div>
 
       {pending.length > 0 && (
@@ -139,6 +154,15 @@ export default function FeedbackPanel({ signals, currentRegime }) {
         )}
         {error && <div className="mt-2 font-mono text-[11px] text-red-400">Error: {error}</div>}
       </div>
+    </div>
+  );
+}
+
+function Stat({ label, value, accent = "text-slate-100" }) {
+  return (
+    <div className="bg-[#0b0f17] px-3 py-2.5 text-center">
+      <div className="font-mono text-[10px] uppercase tracking-wider text-slate-500">{label}</div>
+      <div className={`mt-0.5 font-mono text-lg font-bold ${accent}`}>{value}</div>
     </div>
   );
 }

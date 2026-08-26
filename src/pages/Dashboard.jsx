@@ -49,10 +49,14 @@ export default function Dashboard() {
       setData(d);
       const a = analyze(d);
       setAnalysis(a);
-      // Persist directional signals only when the underlying setup materially changes
+      // Persist swing signals — suppress same-direction notifications while an entered (ACTIVE)
+      // swing of the same direction is still open. Only a direction change (or a closed position)
+      // allows a new swing signal through.
       if (a.available && a.direction !== "NO_TRADE" && a.setup) {
+        const activeSwings = await base44.entities.Signal.filter({ status: "ACTIVE" }, "-created_date", 10).catch(() => []);
+        const openSameDir = activeSwings.find((x) => !x.setup_key?.startsWith("SCALP-") && x.direction === a.direction);
         const key = `${a.direction}-${a.regime}-${Math.round(a.setup.sl / 20) * 20}`;
-        if (key !== lastSetupKey.current) {
+        if (!openSameDir && key !== lastSetupKey.current) {
           lastSetupKey.current = key;
           await base44.entities.Signal.create({
             setup_key: key,
@@ -94,7 +98,7 @@ export default function Dashboard() {
       }
       // Persist scalp / quick-trade signals — but suppress same-direction notifications while
       // an entered (ACTIVE) scalp of the same direction is still open. Only a direction change
-      // (or a closed position) allows a new scalp signal through. Swing signals are never suppressed.
+      // (or a closed position) allows a new scalp signal through.
       if (a.available && a.scalp?.setup) {
         const activeScalps = await base44.entities.Signal.filter({ status: "ACTIVE" }, "-created_date", 10).catch(() => []);
         const openSameDir = activeScalps.find((x) => x.setup_key?.startsWith("SCALP-") && x.direction === a.scalp.direction);

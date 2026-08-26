@@ -6,10 +6,15 @@ const fmt = (v) => (v != null ? v.toFixed(1) : "—");
 const ACTIVE = ["WATCHING", "PENDING", "ACTIVE"];
 
 export default function ActiveSignalsPanel({ signals, onUpdated }) {
-  // signals arrive newest-first; show only the latest active signal per tier (one swing, one scalp)
+  // signals arrive newest-first. Per tier, prefer an ENTERED (ACTIVE) position so it stays
+  // visible until closed — newer WATCHING signals of the same tier do not replace it.
   const list = signals || [];
-  const latestSwing = list.find((s) => ACTIVE.includes(s.status) && !s.setup_key?.startsWith("SCALP-"));
-  const latestScalp = list.find((s) => ACTIVE.includes(s.status) && s.setup_key?.startsWith("SCALP-"));
+  const pick = (isScalp) => {
+    const tier = list.filter((s) => isScalp ? s.setup_key?.startsWith("SCALP-") : !s.setup_key?.startsWith("SCALP-"));
+    return tier.find((s) => s.status === "ACTIVE") ?? tier.find((s) => ACTIVE.includes(s.status));
+  };
+  const latestSwing = pick(false);
+  const latestScalp = pick(true);
   const active = [latestSwing, latestScalp].filter(Boolean);
   if (active.length === 0) return null;
 
@@ -26,6 +31,7 @@ function SignalRow({ signal, onUpdated }) {
   const [busy, setBusy] = useState(false);
   const [reporting, setReporting] = useState(false);
   const [form, setForm] = useState({ outcome: "win", result_r: "", notes: "" });
+  const [error, setError] = useState(null);
   const s = signal;
   const isScalp = s.setup_key?.startsWith("SCALP-");
   const isLong = s.direction === "LONG";
@@ -46,17 +52,20 @@ function SignalRow({ signal, onUpdated }) {
   };
 
   const submitFeedback = async () => {
-    setBusy(true);
+    setBusy(true); setError(null);
     try {
-      await base44.functions.invoke("recordTradeFeedback", {
+      const res = await base44.functions.invoke("recordTradeFeedback", {
         signal_id: s.id,
         outcome: form.outcome,
         result_r: form.result_r === "" ? null : Number(form.result_r),
         notes: form.notes,
       });
-      await base44.entities.Signal.update(s.id, { status: form.outcome === "loss" ? "STOPPED" : "TP3_HIT" });
+      if (res.data?.error) throw new Error(res.data.error);
       setReporting(false);
+      setForm({ outcome: "win", result_r: "", notes: "" });
       onUpdated?.();
+    } catch (e) {
+      setError(e.message);
     } finally {
       setBusy(false);
     }
@@ -138,6 +147,7 @@ function SignalRow({ signal, onUpdated }) {
             </button>
             <button onClick={() => setReporting(false)} className="border border-[#2a3348] px-2 py-1.5 font-mono text-[11px] text-slate-400">Cancel</button>
           </div>
+          {error && <div className="font-mono text-[11px] text-red-400">Error: {error}</div>}
         </div>
       )}
     </div>
