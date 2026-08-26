@@ -162,7 +162,7 @@ export default function Dashboard() {
         onIntervalChange={setIntervalSec}
       />
       <div className="mx-auto max-w-[1400px] space-y-3 p-3 lg:p-4">
-          <ActiveSignalsPanel signals={signals} />
+          <ActiveSignalsPanel signals={signals} onUpdated={loadHistory} />
           <SignalCard analysis={analysis} />
           <div className="grid gap-3 lg:grid-cols-3">
             <div className="space-y-3 lg:col-span-2">
