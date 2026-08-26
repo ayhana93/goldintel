@@ -27,14 +27,15 @@ export default function Dashboard() {
   }, []);
 
   const loadEvents = useCallback(async () => {
-    try {
-      await base44.functions.invoke("syncEconomicCalendar", {});
-      const rows = await base44.entities.EconomicEvent.list("-event_time", 30);
-      setEvents(rows);
-    } catch {
-      const rows = await base44.entities.EconomicEvent.list("-event_time", 30).catch(() => []);
-      setEvents(rows);
-    }
+    // Show already-stored events instantly, then refresh from the web in the background.
+    const rows = await base44.entities.EconomicEvent.list("-event_time", 30).catch(() => []);
+    setEvents(rows);
+    base44.functions.invoke("syncEconomicCalendar", {})
+      .then(async () => {
+        const fresh = await base44.entities.EconomicEvent.list("-event_time", 30).catch(() => []);
+        setEvents(fresh);
+      })
+      .catch(() => {});
   }, []);
 
   const refresh = useCallback(async () => {
