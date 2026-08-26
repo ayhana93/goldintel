@@ -9,6 +9,7 @@ import CandleChart from "@/components/terminal/CandleChart";
 import MacroPanel from "@/components/terminal/MacroPanel";
 import CalendarPanel from "@/components/terminal/CalendarPanel";
 import HistoryPanel from "@/components/terminal/HistoryPanel";
+import PositionCalculator from "@/components/terminal/PositionCalculator";
 
 export default function Dashboard() {
   const [data, setData] = useState(null);
@@ -58,6 +59,20 @@ export default function Dashboard() {
             reasons_against: a.reasonsAgainst,
             invalidation: a.setup.invalidation,
           });
+          base44.functions.invoke("notifySignal", {
+            direction: a.direction,
+            confidence: a.confidence,
+            regime: a.regime,
+            entryLow: a.setup.entryLow,
+            entryHigh: a.setup.entryHigh,
+            sl: a.setup.sl,
+            tp1: a.setup.tp1,
+            tp2: a.setup.tp2,
+            tp3: a.setup.tp3,
+            rr: a.setup.rr,
+            invalidation: a.setup.invalidation,
+            reason: a.reasonsFor.join("; "),
+          }).catch(() => {});
           await loadHistory();
         }
       }
@@ -70,7 +85,7 @@ export default function Dashboard() {
     loadHistory();
     base44.entities.EconomicEvent.list("-event_time", 30).then(setEvents).catch(() => {});
     refresh();
-    const id = setInterval(refresh, 5 * 60 * 1000);
+    const id = setInterval(refresh, 60 * 1000);
     return () => clearInterval(id);
   }, [refresh, loadHistory]);
 
@@ -100,6 +115,7 @@ export default function Dashboard() {
               <HistoryPanel signals={signals} />
             </div>
             <div className="space-y-3">
+              <PositionCalculator setup={analysis?.setup} price={analysis?.price} />
               {analysis?.available && <RegimePanel timeframeBias={analysis.timeframeBias} />}
               {analysis?.available && <ScoreBreakdown breakdown={analysis.breakdown} />}
               <MacroPanel dxy={data?.dxy} us10y={data?.us10y} />
