@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { analyze } from "@/lib/signalEngine";
 import TopBar from "@/components/terminal/TopBar";
@@ -20,13 +20,9 @@ export default function Dashboard() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [intervalSec, setIntervalSec] = useState(60);
-  const lastSetupKey = useRef(null);
-  const lastScalpKey = useRef(null);
-
   const loadHistory = useCallback(async () => {
     const rows = await base44.entities.Signal.list("-created_date", 25);
     setSignals(rows);
-    if (rows[0]?.setup_key) lastSetupKey.current = rows[0].setup_key;
   }, []);
 
   const loadEvents = useCallback(async () => {
@@ -53,11 +49,10 @@ export default function Dashboard() {
       // swing of the same direction is still open. Only a direction change (or a closed position)
       // allows a new swing signal through.
       if (a.available && a.direction !== "NO_TRADE" && a.setup) {
-        const activeSwings = await base44.entities.Signal.filter({ status: "ACTIVE" }, "-created_date", 10).catch(() => []);
-        const openSameDir = activeSwings.find((x) => !x.setup_key?.startsWith("SCALP-") && x.direction === a.direction);
         const key = `${a.direction}-${a.regime}-${Math.round(a.setup.sl / 20) * 20}`;
-        if (!openSameDir && key !== lastSetupKey.current) {
-          lastSetupKey.current = key;
+        const existing = await base44.entities.Signal.filter({ setup_key: key }, "-created_date", 1).catch(() => []);
+        const OPEN = ["WATCHING", "PENDING", "ACTIVE"];
+        if (!existing[0] || !OPEN.includes(existing[0].status)) {
           await base44.entities.Signal.create({
             setup_key: key,
             direction: a.direction,
@@ -100,11 +95,10 @@ export default function Dashboard() {
       // an entered (ACTIVE) scalp of the same direction is still open. Only a direction change
       // (or a closed position) allows a new scalp signal through.
       if (a.available && a.scalp?.setup) {
-        const activeScalps = await base44.entities.Signal.filter({ status: "ACTIVE" }, "-created_date", 10).catch(() => []);
-        const openSameDir = activeScalps.find((x) => x.setup_key?.startsWith("SCALP-") && x.direction === a.scalp.direction);
         const sKey = `SCALP-${a.scalp.direction}-${Math.round(a.scalp.setup.sl / 5) * 5}`;
-        if (!openSameDir && sKey !== lastScalpKey.current) {
-          lastScalpKey.current = sKey;
+        const existing = await base44.entities.Signal.filter({ setup_key: sKey }, "-created_date", 1).catch(() => []);
+        const OPEN = ["WATCHING", "PENDING", "ACTIVE"];
+        if (!existing[0] || !OPEN.includes(existing[0].status)) {
           await base44.entities.Signal.create({
             setup_key: sKey,
             direction: a.scalp.direction,
