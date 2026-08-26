@@ -26,6 +26,17 @@ export default function Dashboard() {
     if (rows[0]?.setup_key) lastSetupKey.current = rows[0].setup_key;
   }, []);
 
+  const loadEvents = useCallback(async () => {
+    try {
+      await base44.functions.invoke("syncEconomicCalendar", {});
+      const rows = await base44.entities.EconomicEvent.list("-event_time", 30);
+      setEvents(rows);
+    } catch {
+      const rows = await base44.entities.EconomicEvent.list("-event_time", 30).catch(() => []);
+      setEvents(rows);
+    }
+  }, []);
+
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
@@ -84,11 +95,12 @@ export default function Dashboard() {
 
   useEffect(() => {
     loadHistory();
-    base44.entities.EconomicEvent.list("-event_time", 30).then(setEvents).catch(() => {});
+    loadEvents();
     refresh();
     const id = setInterval(refresh, 60 * 1000);
-    return () => clearInterval(id);
-  }, [refresh, loadHistory]);
+    const evId = setInterval(loadEvents, 15 * 60 * 1000);
+    return () => { clearInterval(id); clearInterval(evId); };
+  }, [refresh, loadHistory, loadEvents]);
 
   const gold = data?.gold;
 
