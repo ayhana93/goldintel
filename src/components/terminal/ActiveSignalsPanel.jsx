@@ -24,6 +24,8 @@ export default function ActiveSignalsPanel({ signals, onUpdated }) {
 
 function SignalRow({ signal, onUpdated }) {
   const [busy, setBusy] = useState(false);
+  const [reporting, setReporting] = useState(false);
+  const [form, setForm] = useState({ outcome: "win", result_r: "", notes: "" });
   const s = signal;
   const isScalp = s.setup_key?.startsWith("SCALP-");
   const isLong = s.direction === "LONG";
@@ -31,11 +33,29 @@ function SignalRow({ signal, onUpdated }) {
   const termColor = isScalp ? "text-sky-400 border-sky-500/40" : "text-amber-400 border-amber-500/40";
   const dirColor = isLong ? "text-emerald-400" : "text-red-400";
   const border = isLong ? "border-emerald-500/40" : "border-red-500/40";
+  const entered = s.status === "ACTIVE";
 
   const act = async (status) => {
     setBusy(true);
     try {
       await base44.entities.Signal.update(s.id, { status });
+      onUpdated?.();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitFeedback = async () => {
+    setBusy(true);
+    try {
+      await base44.functions.invoke("recordTradeFeedback", {
+        signal_id: s.id,
+        outcome: form.outcome,
+        result_r: form.result_r === "" ? null : Number(form.result_r),
+        notes: form.notes,
+      });
+      await base44.entities.Signal.update(s.id, { status: form.outcome === "loss" ? "STOPPED" : "TP3_HIT" });
+      setReporting(false);
       onUpdated?.();
     } finally {
       setBusy(false);
@@ -68,21 +88,58 @@ function SignalRow({ signal, onUpdated }) {
         <Cell label="Status" value={s.status.replace(/_/g, " ")} small />
       </div>
       <div className="flex items-center gap-2 border-t border-[#1c2230] px-4 py-2.5">
-        <button
-          onClick={() => act("ACTIVE")}
-          disabled={busy}
-          className="border border-emerald-500/50 bg-emerald-500/10 px-3 py-1 font-mono text-[11px] font-semibold uppercase tracking-wider text-emerald-400 transition hover:bg-emerald-500/20 disabled:opacity-50"
-        >
-          ✓ Entered
-        </button>
-        <button
-          onClick={() => act("INVALIDATED")}
-          disabled={busy}
-          className="border border-slate-600 bg-slate-700/30 px-3 py-1 font-mono text-[11px] font-semibold uppercase tracking-wider text-slate-300 transition hover:bg-slate-700/50 disabled:opacity-50"
-        >
-          ✕ Skip
-        </button>
+        {!entered ? (
+          <>
+            <button
+              onClick={() => act("ACTIVE")}
+              disabled={busy}
+              className="border border-emerald-500/50 bg-emerald-500/10 px-3 py-1 font-mono text-[11px] font-semibold uppercase tracking-wider text-emerald-400 transition hover:bg-emerald-500/20 disabled:opacity-50"
+            >
+              ✓ Entered
+            </button>
+            <button
+              onClick={() => act("INVALIDATED")}
+              disabled={busy}
+              className="border border-slate-600 bg-slate-700/30 px-3 py-1 font-mono text-[11px] font-semibold uppercase tracking-wider text-slate-300 transition hover:bg-slate-700/50 disabled:opacity-50"
+            >
+              ✕ Skip
+            </button>
+          </>
+        ) : !reporting ? (
+          <button
+            onClick={() => setReporting(true)}
+            className="border border-amber-500/50 bg-amber-500/10 px-3 py-1 font-mono text-[11px] font-semibold uppercase tracking-wider text-amber-400 transition hover:bg-amber-500/20"
+          >
+            ★ Report result
+          </button>
+        ) : null}
       </div>
+
+      {reporting && (
+        <div className="space-y-2 border-t border-[#1c2230] bg-[#0d121c] px-4 py-3">
+          <div className="flex gap-2">
+            {["win", "loss", "breakeven"].map((o) => (
+              <button key={o} onClick={() => setForm((f) => ({ ...f, outcome: o }))}
+                className={`flex-1 border px-2 py-1 font-mono text-[11px] uppercase ${form.outcome === o ? "border-amber-500 bg-amber-500/10 text-amber-300" : "border-[#2a3348] text-slate-400"}`}>
+                {o}
+              </button>
+            ))}
+          </div>
+          <input type="number" step="0.1" placeholder="Realized R (e.g. 2.4 or -1)" value={form.result_r}
+            onChange={(e) => setForm((f) => ({ ...f, result_r: e.target.value }))}
+            className="w-full border border-[#2a3348] bg-[#0b0f17] px-2 py-1 font-mono text-xs text-slate-100 outline-none focus:border-amber-500/50" />
+          <textarea placeholder="Notes (what happened, execution, timing)…" rows={2} value={form.notes}
+            onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+            className="w-full resize-none border border-[#2a3348] bg-[#0b0f17] px-2 py-1 text-xs text-slate-100 outline-none focus:border-amber-500/50" />
+          <div className="flex gap-2">
+            <button onClick={submitFeedback} disabled={busy}
+              className="flex-1 bg-amber-500 px-2 py-1.5 font-mono text-[11px] font-semibold text-black disabled:opacity-50">
+              {busy ? "Analyzing…" : "Save & analyze"}
+            </button>
+            <button onClick={() => setReporting(false)} className="border border-[#2a3348] px-2 py-1.5 font-mono text-[11px] text-slate-400">Cancel</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
