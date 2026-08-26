@@ -5,7 +5,7 @@ export default function FeedbackPanel({ signals, currentRegime }) {
   const [feedbacks, setFeedbacks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeId, setActiveId] = useState(null);
-  const [form, setForm] = useState({ outcome: "win", result_r: "", notes: "" });
+  const [form, setForm] = useState({ outcome: "win", result_eur: "", notes: "" });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
@@ -32,12 +32,12 @@ export default function FeedbackPanel({ signals, currentRegime }) {
       const res = await base44.functions.invoke("recordTradeFeedback", {
         signal_id: signalId,
         outcome: form.outcome,
-        result_r: form.result_r === "" ? null : Number(form.result_r),
+        result_eur: form.result_eur === "" ? null : Number(form.result_eur),
         notes: form.notes,
       });
       if (res.data?.error) throw new Error(res.data.error);
       setActiveId(null);
-      setForm({ outcome: "win", result_r: "", notes: "" });
+      setForm({ outcome: "win", result_eur: "", notes: "" });
       await load();
     } catch (e) {
       setError(e.message);
@@ -55,7 +55,7 @@ export default function FeedbackPanel({ signals, currentRegime }) {
   const wins = feedbacks.filter((f) => f.outcome === "win").length;
   const losses = feedbacks.filter((f) => f.outcome === "loss").length;
   const be = feedbacks.filter((f) => f.outcome === "breakeven").length;
-  const totalR = feedbacks.reduce((sum, f) => sum + (f.result_r || 0), 0);
+  const totalEur = feedbacks.reduce((sum, f) => sum + (f.result_eur || 0), 0);
   const decided = wins + losses;
   const winRate = decided > 0 ? Math.round((wins / decided) * 100) : null;
 
@@ -70,7 +70,7 @@ export default function FeedbackPanel({ signals, currentRegime }) {
         <Stat label="Wins" value={wins} accent="text-emerald-400" />
         <Stat label="Losses" value={losses} accent="text-red-400" />
         <Stat label="Win Rate" value={winRate != null ? `${winRate}%` : "—"} accent={winRate != null && winRate >= 50 ? "text-emerald-400" : winRate != null ? "text-red-400" : "text-slate-100"} />
-        <Stat label="Net R" value={totalR > 0 ? `+${totalR.toFixed(1)}` : totalR.toFixed(1)} accent={totalR > 0 ? "text-emerald-400" : totalR < 0 ? "text-red-400" : "text-slate-100"} />
+        <Stat label="Net €" value={totalEur > 0 ? `+€${totalEur.toFixed(1)}` : `€${totalEur.toFixed(1)}`} accent={totalEur > 0 ? "text-emerald-400" : totalEur < 0 ? "text-red-400" : "text-slate-100"} />
       </div>
 
       {pending.length > 0 && (
@@ -99,8 +99,8 @@ export default function FeedbackPanel({ signals, currentRegime }) {
                         </button>
                       ))}
                     </div>
-                    <input type="number" step="0.1" placeholder="Realized R (e.g. 2.4 or -1)" value={form.result_r}
-                      onChange={(e) => setForm((f) => ({ ...f, result_r: e.target.value }))}
+                    <input type="number" step="0.1" placeholder="Realized P/L in € (e.g. 120 or -9)" value={form.result_eur}
+                      onChange={(e) => setForm((f) => ({ ...f, result_eur: e.target.value }))}
                       className="w-full border border-[#2a3348] bg-[#0b0f17] px-2 py-1 font-mono text-xs text-slate-100 outline-none focus:border-amber-500/50" />
                     <textarea placeholder="Notes (what happened, execution, timing)…" rows={2} value={form.notes}
                       onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
@@ -138,7 +138,7 @@ export default function FeedbackPanel({ signals, currentRegime }) {
                   <div className="flex items-center gap-2">
                     <span className={`border px-1.5 py-0.5 font-mono text-[10px] uppercase ${badge}`}>{f.outcome}</span>
                     <span className={`font-mono text-[11px] ${f.direction === "LONG" ? "text-emerald-400" : "text-red-400"}`}>{f.direction}</span>
-                    {f.result_r != null && <span className="font-mono text-[11px] text-slate-400">{f.result_r > 0 ? "+" : ""}{f.result_r}R</span>}
+                    {f.result_eur != null && <span className="font-mono text-[11px] text-slate-400">{f.result_eur > 0 ? "+" : ""}€{f.result_eur}</span>}
                     {regimeMatch && <span className="font-mono text-[10px] text-amber-400">· matches current regime</span>}
                   </div>
                   <p className="mt-1.5 text-xs leading-relaxed text-slate-200">{f.lesson}</p>

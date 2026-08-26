@@ -17,7 +17,7 @@ export default async function(req) {
     const outcome = p.outcome === 'win' || p.outcome === 'loss' || p.outcome === 'breakeven' ? p.outcome : null;
     if (!signalId || !outcome) return Response.json({ error: 'signal_id and outcome required' }, { status: 400 });
 
-    const resultR = num(p.result_r);
+    const resultEur = num(p.result_eur);
     const notes = txt(p.notes, 1000);
 
     // Fetch the signal context (service role so any user's own signal is readable; RLS may also permit user scope)
@@ -44,7 +44,7 @@ export default async function(req) {
 Produce ONE concise, actionable lesson (max 220 chars) the trader can reuse in future similar setups, plus 1-3 short tags (lowercase, hyphenated) capturing the recurring condition.
 
 Signal context: ${JSON.stringify(ctx)}
-Outcome: ${outcome}${resultR != null ? `, realized ${resultR}R` : ''}
+Outcome: ${outcome}${resultEur != null ? `, realized ${resultEur} euros (P/L)` : ''}
 Trader notes: ${notes || 'none'}
 
 Respond with JSON only: {"lesson": string, "tags": string[]}`;
@@ -68,7 +68,7 @@ Respond with JSON only: {"lesson": string, "tags": string[]}`;
       signal_id: signalId,
       direction: signal.direction,
       outcome,
-      result_r: resultR,
+      result_eur: resultEur,
       notes,
       regime: signal.regime,
       conflict_level: signal.conflict_level,
@@ -81,7 +81,6 @@ Respond with JSON only: {"lesson": string, "tags": string[]}`;
     const statusMap = { win: 'TP1_HIT', loss: 'STOPPED', breakeven: 'INVALIDATED' };
     await base44.asServiceRole.entities.Signal.update(signalId, {
       status: statusMap[outcome],
-      result_r: resultR,
     });
 
     return Response.json({ ok: true, lesson, tags, feedback });

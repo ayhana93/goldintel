@@ -21,9 +21,9 @@
         "breakeven"
       ]
     },
-    "result_r": {
+    "result_eur": {
       "type": "number",
-      "description": "Realized R multiple (e.g. 2.4 for a 2.4R win, -1 for a full stop-out)"
+      "description": "Realized profit/loss in euros (e.g. 120 for a \u20ac120 win, -9 for a \u20ac9 loss)"
     },
     "notes": {
       "type": "string",

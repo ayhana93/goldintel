@@ -30,7 +30,7 @@ export default function ActiveSignalsPanel({ signals, onUpdated }) {
 function SignalRow({ signal, onUpdated }) {
   const [busy, setBusy] = useState(false);
   const [reporting, setReporting] = useState(false);
-  const [form, setForm] = useState({ outcome: "win", result_r: "", notes: "" });
+  const [form, setForm] = useState({ outcome: "win", result_eur: "", notes: "" });
   const [error, setError] = useState(null);
   const s = signal;
   const isScalp = s.setup_key?.startsWith("SCALP-");
@@ -57,12 +57,12 @@ function SignalRow({ signal, onUpdated }) {
       const res = await base44.functions.invoke("recordTradeFeedback", {
         signal_id: s.id,
         outcome: form.outcome,
-        result_r: form.result_r === "" ? null : Number(form.result_r),
+        result_eur: form.result_eur === "" ? null : Number(form.result_eur),
         notes: form.notes,
       });
       if (res.data?.error) throw new Error(res.data.error);
       setReporting(false);
-      setForm({ outcome: "win", result_r: "", notes: "" });
+      setForm({ outcome: "win", result_eur: "", notes: "" });
       onUpdated?.();
     } catch (e) {
       setError(e.message);
@@ -134,8 +134,8 @@ function SignalRow({ signal, onUpdated }) {
               </button>
             ))}
           </div>
-          <input type="number" step="0.1" placeholder="Realized R (e.g. 2.4 or -1)" value={form.result_r}
-            onChange={(e) => setForm((f) => ({ ...f, result_r: e.target.value }))}
+          <input type="number" step="0.1" placeholder="Realized P/L in € (e.g. 120 or -9)" value={form.result_eur}
+            onChange={(e) => setForm((f) => ({ ...f, result_eur: e.target.value }))}
             className="w-full border border-[#2a3348] bg-[#0b0f17] px-2 py-1 font-mono text-xs text-slate-100 outline-none focus:border-amber-500/50" />
           <textarea placeholder="Notes (what happened, execution, timing)…" rows={2} value={form.notes}
             onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
