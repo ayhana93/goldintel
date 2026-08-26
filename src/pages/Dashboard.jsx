@@ -10,6 +10,7 @@ import MacroPanel from "@/components/terminal/MacroPanel";
 import CalendarPanel from "@/components/terminal/CalendarPanel";
 import HistoryPanel from "@/components/terminal/HistoryPanel";
 import PositionCalculator from "@/components/terminal/PositionCalculator";
+import FeedbackPanel from "@/components/terminal/FeedbackPanel";
 
 export default function Dashboard() {
   const [data, setData] = useState(null);
@@ -113,6 +114,7 @@ export default function Dashboard() {
                 <CandleChart timeframes={gold.timeframes} levels={analysis.levels} setup={analysis.setup} />
               )}
               <HistoryPanel signals={signals} />
+              <FeedbackPanel signals={signals} currentRegime={analysis?.regime} />
             </div>
             <div className="space-y-3">
               <PositionCalculator setup={analysis?.setup} price={analysis?.price} />

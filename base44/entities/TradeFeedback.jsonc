@@ -1,0 +1,62 @@
+{
+  "name": "TradeFeedback",
+  "type": "object",
+  "properties": {
+    "signal_id": {
+      "type": "string",
+      "description": "Reference to the Signal this feedback reports on"
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "LONG",
+        "SHORT"
+      ]
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "win",
+        "loss",
+        "breakeven"
+      ]
+    },
+    "result_r": {
+      "type": "number",
+      "description": "Realized R multiple (e.g. 2.4 for a 2.4R win, -1 for a full stop-out)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional trader notes about execution, timing, or context"
+    },
+    "regime": {
+      "type": "string",
+      "description": "Market regime at signal time (copied for lesson filtering)"
+    },
+    "conflict_level": {
+      "type": "string",
+      "enum": [
+        "LOW",
+        "MODERATE",
+        "HIGH"
+      ]
+    },
+    "confidence": {
+      "type": "number"
+    },
+    "lesson": {
+      "type": "string",
+      "description": "AI-generated concise, actionable lesson from this outcome"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "signal_id",
+    "outcome"
+  ]
+}
