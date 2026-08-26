@@ -25,9 +25,12 @@ export default async function(req) {
 
     const f = (v) => (v != null ? v.toFixed(1) : '—');
     const emoji = direction === 'LONG' ? '🟢' : '🔴';
+    const isScalp = txt(p.regime, 40).startsWith('SCALP');
+    const tradeType = isScalp ? '⚡ Quick Trade (M15)' : '📈 Swing (H1)';
     const body = [
       `GOLD SIGNAL — XAU/USD`,
       ``,
+      `${tradeType}`,
       `${emoji} ${direction}`,
       ``,
       `Signal Score: ${confidence ?? '—'}/100`,
@@ -51,7 +54,7 @@ export default async function(req) {
     await base44.asServiceRole.integrations.Core.SendEmail({
       to: RECIPIENT,
       from_name: 'Gold Intelligence',
-      subject: `${emoji} XAU/USD ${direction} signal — score ${confidence ?? '—'}/100`,
+      subject: `${isScalp ? '⚡ QUICK TRADE' : '📈 SWING'} ${emoji} XAU/USD ${direction} — score ${confidence ?? '—'}/100`,
       body,
     });
 
