@@ -42,13 +42,7 @@ export default function TopBar({ price, previousClose, fetchedAt, onRefresh, loa
           />
           <span className="uppercase tracking-wider">s</span>
         </label>
-        <button
-          onClick={onRefresh}
-          disabled={loading}
-          className="border border-[#2a3348] px-3 py-1 font-mono text-[11px] uppercase tracking-wider text-slate-300 hover:bg-[#141a26] disabled:opacity-50"
-        >
-          {loading ? "Loading…" : "Refresh"}
-        </button>
+
       </div>
     </div>
   );

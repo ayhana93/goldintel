@@ -113,16 +113,10 @@ export default function Dashboard() {
         previousClose={gold?.previousClose}
         fetchedAt={gold?.fetchedAt}
         onRefresh={refresh}
-        loading={loading}
         intervalSec={intervalSec}
         onIntervalChange={setIntervalSec}
       />
-      {loading && !analysis ? (
-        <div className="flex h-96 items-center justify-center font-mono text-sm text-slate-500">
-          Loading live market data…
-        </div>
-      ) : (
-        <div className="mx-auto max-w-[1400px] space-y-3 p-3 lg:p-4">
+      <div className="mx-auto max-w-[1400px] space-y-3 p-3 lg:p-4">
           <SignalCard analysis={analysis} />
           <div className="grid gap-3 lg:grid-cols-3">
             <div className="space-y-3 lg:col-span-2">
@@ -146,7 +140,6 @@ export default function Dashboard() {
             Signals are decision-support information, not financial advice.
           </p>
         </div>
-      )}
     </div>
   );
 }
