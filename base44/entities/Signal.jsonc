@@ -1,0 +1,140 @@
+{
+  "name": "Signal",
+  "type": "object",
+  "properties": {
+    "setup_key": {
+      "type": "string",
+      "description": "Unique key identifying the underlying setup, used to prevent duplicate signals"
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "LONG",
+        "SHORT",
+        "NO_TRADE"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "WATCHING",
+        "PENDING",
+        "ACTIVE",
+        "TP1_HIT",
+        "TP2_HIT",
+        "TP3_HIT",
+        "STOPPED",
+        "INVALIDATED",
+        "EXPIRED"
+      ],
+      "default": "WATCHING"
+    },
+    "price_at_signal": {
+      "type": "number"
+    },
+    "entry_low": {
+      "type": "number"
+    },
+    "entry_high": {
+      "type": "number"
+    },
+    "stop_loss": {
+      "type": "number"
+    },
+    "tp1": {
+      "type": "number"
+    },
+    "tp2": {
+      "type": "number"
+    },
+    "tp3": {
+      "type": "number"
+    },
+    "risk_reward": {
+      "type": "number"
+    },
+    "confidence": {
+      "type": "number"
+    },
+    "regime": {
+      "type": "string"
+    },
+    "conflict_level": {
+      "type": "string",
+      "enum": [
+        "LOW",
+        "MODERATE",
+        "HIGH"
+      ]
+    },
+    "scores": {
+      "type": "object",
+      "properties": {
+        "trend": {
+          "type": "number"
+        },
+        "structure": {
+          "type": "number"
+        },
+        "momentum": {
+          "type": "number"
+        },
+        "support_resistance": {
+          "type": "number"
+        },
+        "price_action": {
+          "type": "number"
+        },
+        "macro": {
+          "type": "number"
+        }
+      }
+    },
+    "timeframe_bias": {
+      "type": "object",
+      "properties": {
+        "D1": {
+          "type": "string"
+        },
+        "H4": {
+          "type": "string"
+        },
+        "H1": {
+          "type": "string"
+        },
+        "M15": {
+          "type": "string"
+        },
+        "M5": {
+          "type": "string"
+        }
+      }
+    },
+    "reasons_for": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "reasons_against": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "invalidation": {
+      "type": "string"
+    },
+    "explanation": {
+      "type": "string"
+    },
+    "result_r": {
+      "type": "number",
+      "description": "Realized R multiple once closed"
+    }
+  },
+  "required": [
+    "direction",
+    "price_at_signal"
+  ]
+}

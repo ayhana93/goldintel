@@ -1,0 +1,39 @@
+{
+  "name": "EconomicEvent",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "event_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC event time"
+    },
+    "importance": {
+      "type": "string",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "high"
+    },
+    "forecast": {
+      "type": "string"
+    },
+    "previous": {
+      "type": "string"
+    },
+    "actual": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "event_time"
+  ]
+}
