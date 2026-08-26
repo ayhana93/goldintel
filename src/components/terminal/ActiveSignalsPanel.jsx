@@ -5,7 +5,11 @@ const fmt = (v) => (v != null ? v.toFixed(1) : "—");
 const ACTIVE = ["WATCHING", "PENDING", "ACTIVE"];
 
 export default function ActiveSignalsPanel({ signals }) {
-  const active = (signals || []).filter((s) => ACTIVE.includes(s.status));
+  // signals arrive newest-first; show only the latest active signal per tier (one swing, one scalp)
+  const list = signals || [];
+  const latestSwing = list.find((s) => ACTIVE.includes(s.status) && !s.setup_key?.startsWith("SCALP-"));
+  const latestScalp = list.find((s) => ACTIVE.includes(s.status) && s.setup_key?.startsWith("SCALP-"));
+  const active = [latestSwing, latestScalp].filter(Boolean);
   if (active.length === 0) return null;
 
   return (

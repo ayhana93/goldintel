@@ -51,7 +51,7 @@ export default function Dashboard() {
       setAnalysis(a);
       // Persist directional signals only when the underlying setup materially changes
       if (a.available && a.direction !== "NO_TRADE" && a.setup) {
-        const key = `${a.direction}-${a.regime}-${Math.round(a.setup.sl / 5) * 5}`;
+        const key = `${a.direction}-${a.regime}-${Math.round(a.setup.sl / 20) * 20}`;
         if (key !== lastSetupKey.current) {
           lastSetupKey.current = key;
           await base44.entities.Signal.create({
@@ -94,7 +94,7 @@ export default function Dashboard() {
       }
       // Persist scalp / quick-trade signals (separate stream, tighter key so it fires on small changes)
       if (a.available && a.scalp?.setup) {
-        const sKey = `SCALP-${a.scalp.direction}-${Math.round(a.scalp.setup.sl)}`;
+        const sKey = `SCALP-${a.scalp.direction}-${Math.round(a.scalp.setup.sl / 5) * 5}`;
         if (sKey !== lastScalpKey.current) {
           lastScalpKey.current = sKey;
           await base44.entities.Signal.create({
