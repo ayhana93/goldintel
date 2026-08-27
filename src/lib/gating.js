@@ -37,12 +37,13 @@ export const DEFAULT_GATES = {
 const NEWS_ORDER = { LOW: 0, MEDIUM: 1, HIGH: 2 };
 
 /**
- * @param setup    the detected setup, with its measured history attached
- * @param context  { evidenceScore, regime, session, newsRisk, atr, plan, direction }
- * @param stats    the generated EDGE_STATS document
- * @param gates    overrides for DEFAULT_GATES
- * @returns { tradable, reasons, blockedBy } — reasons always explain the verdict,
- *          including when it is positive, so the UI never has to guess.
+ * setup    the detected setup, with its measured history attached
+ * context  evidenceScore, regime, session, newsRisk, atr, plan, direction
+ * stats    the generated EDGE_STATS document
+ * gates    overrides for DEFAULT_GATES
+ *
+ * Returns tradable, blockedBy and reasons. The reasons always explain the
+ * verdict, including when it is positive, so the UI never has to guess.
  */
 export function evaluateGates({ setup, context, stats, gates = {} }) {
   const g = { ...DEFAULT_GATES, ...(stats?.gating?.thresholds ?? {}), ...gates };

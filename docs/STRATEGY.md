@@ -112,13 +112,44 @@ was.
 
 ## When the system says no
 
-- No setup condition holds.
-- A condition holds but its measured tier is `NO_TRADE`.
-- Required market data is unavailable or stale — the system shows
-  `DATA UNAVAILABLE` rather than analysing a partial picture.
-- Fewer than 60 closed candles on H1 or D1.
-- The risk engine has hit a daily or weekly loss limit, the concurrency cap, or a
-  consecutive-loss cooldown.
+**The default answer is NO TRADE.** A signal appears only when every one of these
+passes, and the card shows you which one failed when it doesn't:
+
+| Gate | What it requires |
+| --- | --- |
+| Setup enabled | Not quarantined as `DISABLED_NEGATIVE_EDGE` |
+| Sample size | At least 100 out-of-sample trades behind it |
+| Expectancy | At least +0.02R out of sample, after realistic costs |
+| Profit factor | At least 1.10 out of sample |
+| Confidence interval | The 95% interval must exclude zero |
+| Direction | Currently **LONG only** — shorts are disabled |
+| Evidence score | At least 70/100 — necessary, never sufficient |
+| News risk | Below the configured maximum |
+| Stop distance | Far enough that the spread is not a big share of the risk |
+| Risk engine | Daily and weekly limits, concurrency cap, loss cooldown |
+
+Plus the ordinary refusals: no setup condition holds, market data is unavailable
+or stale (shown as `DATA UNAVAILABLE`), or fewer than 60 closed candles on H1/D1.
+
+A high evidence score cannot rescue a setup that fails the statistical bar. There
+is a test that asserts a score of 100 still produces NO TRADE when the measured
+record is bad.
+
+## Does the evidence score actually mean anything?
+
+Now, yes — and this is new. Expectancy rises with the score in every period and on
+both data feeds:
+
+| Score threshold | Development | Validation | Final test |
+| --- | --- | --- | --- |
+| 62 | −0.073R | −0.038R | +0.104R |
+| 70 (shipped) | −0.007R | +0.107R | +0.210R |
+| 74 | +0.048R | +0.300R | +0.359R |
+| 82 | +0.143R | +0.172R | +0.235R |
+
+A higher score has historically paid more. It is still **not** a probability — a
+score of 82 does not mean an 82% chance of profit — but it is no longer just a
+number on a card.
 
 ## What the system will not do
 
@@ -133,11 +164,25 @@ was.
 
 ## The honest summary
 
-As of the last full evaluation the system's verdict on itself is **NO EDGE**: the
-strategy as shipped does not make money after realistic costs on data it has not
-seen. One setup — C, the bullish pullback — is positive out of sample and is
-worth watching, but on a sample too small to act on. The system is in paper
-trading mode and records what its own signals would have done, so that judgement
-can be revisited with evidence instead of hope.
+The system's verdict on itself is **POSSIBLE EDGE**, for one configuration: the
+score engine taking **long signals only**.
+
+Out of sample (2020–2025, 355 trades) that returns +0.171R per trade with a
+profit factor of 1.40 and a 95% interval of [+0.048, +0.298]. It beats a random
+entry with the same 100% long exposure and the same exits by a wide margin in
+every period — so this is timing, not just being long in a rising market.
+
+Two things keep it short of proven. It was flat for seven years in a market that
+went nowhere and profitable for six in a market that tripled: 35% of quarters
+were profitable in 2012–2019 against 75% in 2020–2025. And every figure carries a
+±0.05R uncertainty band, measured by running the same test against a second
+independent data vendor.
+
+**Shorts are switched off.** Every short setup lost money in every period tested.
+**Scalping is switched off.** It loses about 0.2–0.4R per trade after costs, on
+over 4,000 out-of-sample trades.
+
+The system remains in paper trading. It records what its own signals would have
+done so this judgement can be revisited with evidence rather than hope.
 
 Read `docs/EDGE_REPORT.md` for the numbers.

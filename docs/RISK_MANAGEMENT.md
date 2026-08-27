@@ -47,17 +47,19 @@ a kill switch retroactively.
 
 ## Why the limits are set where they are
 
-At 1% risk per trade with the measured out-of-sample distribution, Monte Carlo
-gives a probability of losing half the account of **0%** over 5,000 resamples,
-with a median drawdown of 12.4R and a 95th-percentile drawdown of 24.5R.
+At 1% risk per trade on the measured out-of-sample distribution, Monte Carlo over
+5,000 resamples gives a **0%** probability of losing half the account, a median
+drawdown of **11.4R** and a **12.4%** chance of a losing year. 99.6% of resampled
+paths end positive.
 
-That sounds comfortable, and it is the wrong thing to be comforted by. The same
-Monte Carlo says only **40.4%** of resampled paths end positive and there is a
-**58.3%** chance of a losing year. The risk settings are survivable. The strategy
-is what is not working.
+Those numbers describe the sampling distribution of the *measured* edge. They say
+nothing about the risk that the edge itself is era-specific — which is the real
+risk here, and no amount of resampling can price it. The strategy earned nothing
+across 2012–2019. Position sizing cannot protect against a return to that regime;
+only accepting the possibility can.
 
-Raising risk per trade does not fix a negative expectancy; it only makes the
-arithmetic arrive faster.
+Raising risk per trade does not create expectancy. It only makes whatever
+expectancy exists — positive or negative — arrive faster.
 
 ## What the drawdown numbers mean
 

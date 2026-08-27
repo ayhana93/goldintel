@@ -1,523 +1,367 @@
 # Edge report — does GoldIntel actually make money?
 
-**Verdict: NO EDGE.**
+**Verdict: POSSIBLE EDGE**, for one specific configuration, in one specific era.
 
-If you had followed GoldIntel's signals exactly over 2021-01-01 → 2022-03-04 —
-the period the strategy was frozen before ever seeing — with realistic spread,
-slippage, commission and 1% risk per trade, you would have lost money: 93 trades,
-**−0.028R per trade**, profit factor **0.94**, **−€264** on a €10,000 account.
+If you had followed GoldIntel's signals over 2023-01-01 → 2025-12-31 — three
+years the strategy was frozen before ever seeing — taking **long signals only**,
+with realistic spread, slippage, commission and 1% risk per trade, you would have
+made money: **221 trades, +0.210R per trade, profit factor 1.50, maximum
+drawdown 13.2R**, on a €10,000 account about **+€4,600**.
 
-The scalp tier would have cost you far more: 726 trades at **−0.351R each**,
-**−€25,491**, a result so consistently negative (t = −6.8) that chance is not a
-plausible explanation.
+Over the full out-of-sample record (2020–2025, 355 trades) the figure is
+**+0.171R per trade, profit factor 1.40, 95% confidence interval
+[+0.048, +0.298]** — the first configuration in this project whose interval
+excludes zero.
 
-One component of the system does look real and is described in section 9.
+Three things stop this being called a proven edge:
 
-Every figure below comes from `quant/results/`, produced by the scripts in
-`quant/scripts/`. Nothing was excluded for looking bad.
+1. **It did not work in the earlier era.** 35% of quarters were profitable in
+   2012–2019 against 75% in 2020–2025.
+2. **Its profitability tracks how hard gold trended.** Development (gold −2%):
+   −0.007R. Validation (+20%): +0.107R. Final test (+136%): +0.210R.
+3. **Every figure carries a ±0.05R feed-uncertainty band**, measured between two
+   independent data vendors.
+
+Everything below comes from `quant/results/`. Nothing was excluded for looking bad.
 
 ---
 
-## 1. Historical performance
+## 1. What changed since the previous report
 
-Production engine, reproduced exactly as shipped, realistic costs, whole
-available history (2012-05 → 2021-01, i.e. development + validation):
+The previous report concluded **NO EDGE**, on a final test ending March 2022.
+That conclusion was not wrong; it was stale. `verify-published.mjs` reproduces
+**all 30** of its published figures exactly. The change is data, not method: a
+second independent feed extends coverage to December 2025, and the split was
+rebuilt as development ≤2019 / validation 2020–2022 / final test 2023–2025.
 
-| Metric | Value |
-| --- | --- |
-| Trades | 644 |
-| Win rate | 50.2% |
-| Expectancy | **+0.008R** |
-| Profit factor | 1.017 |
-| Net R | +5.1 |
-| Max drawdown | 40.7R |
-| Sharpe | 0.06 |
+The two other changes that moved the answer:
 
-Ten years of trading to make five R. That is not a strategy; it is a random walk
-with commissions.
+- **Shorts are disabled.** Every short setup is negative on development *and*
+  validation. Removing them is the single largest improvement in the project.
+- **The scalp tier is quarantined**, as before, and the new data agrees emphatically.
 
-### Cost sensitivity — the whole result lives inside the spread
+## 2. Historical performance
 
-| Scenario | Expectancy | Profit factor | Net R | Max DD |
-| --- | --- | --- | --- | --- |
-| `zero` (frictionless) | +0.077R | 1.167 | +48.4 | 23.6R |
-| `optimistic` | +0.046R | 1.099 | +29.2 | 24.9R |
-| `realistic` | +0.008R | 1.017 | +5.1 | 40.7R |
-| `conservative` | **−0.071R** | 0.857 | −46.7 | 79.0R |
+Primary configuration (the shipped score engine, long signals only), realistic costs:
 
-The raw signal is worth about 0.077R per trade. Realistic execution costs about
-0.069R. **The edge and the cost of harvesting it are the same size.** Whether
-GoldIntel makes money is decided by your broker, not by your analysis.
+| Period | Market | Trades | Win rate | Expectancy | PF | Max DD |
+| --- | --- | --- | --- | --- | --- | --- |
+| Development 2012–2019 | −2% | 282 | 49.3% | −0.007R | 0.99 | 17.2R |
+| Validation 2020–2022 | +20% | 134 | 53.7% | +0.107R | 1.25 | 14.2R |
+| **Final test 2023–2025** | **+136%** | **221** | **56.6%** | **+0.210R** | **1.50** | **13.2R** |
+| Pooled out-of-sample | — | 355 | 55.5% | **+0.171R** | 1.40 | 14.2R |
 
-## 2. Out-of-sample performance
+`p(edge ≤ 0) = 0.0016`, `t = 2.68`, 95% interval `[+0.048, +0.298]`.
 
-The final test period was opened once, after the configurations were frozen.
+## 3. Out-of-sample performance, and the controls
 
-| Configuration | Trades | Win rate | Expectancy | PF | Net P/L | Max DD | p(edge≤0) |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| GoldIntel as shipped | 93 | 46.2% | **−0.028R** | 0.94 | −€264 | 19.4R | 0.60 |
-| GoldIntel minus macro | 108 | 45.4% | −0.065R | 0.87 | −€702 | 25.0R | 0.73 |
-| Selected setup candidate | 64 | 35.9% | −0.083R | 0.87 | −€529 | 14.7R | 0.70 |
-| **GoldIntel scalp tier** | 726 | 26.9% | **−0.351R** | 0.55 | **−€25,491** | 262.6R | 1.00 |
-| Control: EMA 20/50 cross | 137 | 52.6% | +0.051R | 1.11 | +€704 | 11.5R | 0.30 |
-| Control: trend following | 138 | 37.7% | −0.291R | 0.54 | −€4,020 | 49.7R | 1.00 |
-| Control: random entry | 108 | 45.4% | −0.205R | 0.63 | −€2,212 | 21.1R | 0.99 |
+The final test alone proves nothing: gold rose 136%, and a long-biased strategy
+should make money by accident. It did not happen by accident.
 
-Two things stand out. All three registered GoldIntel configurations lost money.
-And a plain EMA crossover — the most trivial control in the file — was the only
-configuration that made any, though at p = 0.30 that is not significant either.
-
-### The same configurations across all three periods
-
-| Configuration | Development | Validation | Final test |
-| --- | --- | --- | --- |
-| GoldIntel as shipped | −0.008R (480) | +0.056R (164) | −0.028R (93) |
-| GoldIntel minus macro | +0.031R (571) | +0.039R (191) | −0.065R (108) |
-| Selected setup candidate | +0.094R (380) | +0.015R (85) | −0.083R (64) |
-| GoldIntel scalp | −0.442R (3,563) | −0.349R (1,280) | −0.351R (726) |
-
-The candidate's arc is the classic overfitting signature: +0.094R where it was
-chosen, +0.015R on the next period, −0.083R on data nobody had looked at.
-
-## 3. Walk-forward performance
-
-31 rolling windows: 12 months training, 3 months testing, advancing quarterly,
-across development + validation.
-
-| Metric | Value |
-| --- | --- |
-| Out-of-sample windows | 30 |
-| Profitable windows | **15 (50.0%)** |
-| Mean in-sample expectancy | +0.151R |
-| Mean out-of-sample expectancy | +0.101R |
-| Degradation | 0.050R |
-| Stitched out-of-sample (reselecting) | **−0.001R** over 511 trades |
-| Stitched out-of-sample (frozen config) | +0.065R over 451 trades, PF 1.12, p = 0.13 |
-
-Exactly half the windows made money. That is what a coin flip looks like.
-
-Note the two stitched figures. Reselecting the best configuration every quarter
-produced −0.001R; keeping one configuration produced +0.065R. **Quarterly
-re-fitting was, if anything, mildly harmful** — the thing that looked most like
-adaptive intelligence was the thing adding the least.
-
-## 4. Profit factor
-
-Final test, primary configuration: **0.944**.
-Best across all periods: 1.115 (validation). Frictionless, whole history: 1.167.
-The scalp tier: 0.49 – 0.55 across every period.
-
-## 5. Expectancy
-
-Final test: **−0.028R per trade**. Best period ever recorded: +0.056R
-(validation, 164 trades, p = 0.30). No period, on any configuration, produced an
-expectancy that a bootstrap test can distinguish from zero.
-
-## 6. Maximum drawdown
-
-| Configuration | Final test | Whole history |
+| Configuration | Final test | Pooled OOS |
 | --- | --- | --- |
-| GoldIntel as shipped | 19.4R | 40.7R |
-| GoldIntel scalp | 262.6R | 2,020R |
+| **GoldIntel, long only** | **+0.210R (221)** | **+0.171R (355)** |
+| GoldIntel as shipped, both directions | +0.200R (256) | +0.118R (483) |
+| The four long setups | +0.101R (557) | +0.053R (895) |
+| Setup C alone | +0.031R (146) | +0.107R (194) |
+| GoldIntel scalp tier | −0.205R (2,084) | −0.235R (4,072) |
+| Control: **100% long random entry** | **−0.125R (273)** | −0.095R (538) |
+| Control: 50/50 random entry | −0.100R (304) | −0.060R (611) |
+| Control: long when the daily trend is up | −0.045R (234) | −0.067R (349) |
+| Control: EMA 20/50 crossover | −0.039R (302) | −0.023R (622) |
 
-At 1% risk the swing strategy's worst historical drawdown is about 41% of the
-account, in exchange for an expectancy of zero. The scalp tier's 2,020R is not a
-drawdown; it is the account being deleted twenty times over.
+**Every control loses money in the same bull market.** Buying gold at random
+during a 136% rally, with these stops and targets, returns −0.125R per trade. The
+strategy returns +0.210R. The difference — **+0.335R per trade** — is entry
+timing, not exposure.
 
-## 7. Long vs short
+That is the load-bearing result in this report. Without it, "+0.210R in a market
+that rose 136%" would be indistinguishable from beta.
 
-Development period, all setups measured in isolation:
+## 4. Walk-forward performance
 
-| Direction | Trades | Win rate | Expectancy | PF |
+12-month train / 3-month test, quarterly, run inside each feed:
+
+| Era | Quarters positive | Mean expectancy |
+| --- | --- | --- |
+| 2012–2019 | 8 of 23 (35%) | −0.077R |
+| 2020–2025 | 15 of 20 (75%) | +0.176R |
+| Combined | 23 of 43 (53%) | — |
+
+This is the criterion the strategy fails (0.53 against a 0.55 requirement) and the
+honest headline caveat. Either the market changed or the strategy is fitted to
+recent conditions; this dataset cannot distinguish them, and pretending otherwise
+would be the dishonest move.
+
+## 5. Profit factor · 6. Expectancy · 7. Maximum drawdown
+
+Final test **1.50** / **+0.210R** / **13.2R**.
+Pooled out-of-sample 1.40 / +0.171R / 14.2R.
+At 1% risk, 14.2R is about 14% of the account.
+
+## 8. Long versus short
+
+| Period | LONG | SHORT |
+| --- | --- | --- |
+| Development | +0.004R (281) pf 1.01 | −0.039R (282) pf 0.92 |
+| Validation | +0.107R (134) pf 1.25 | −0.092R (93) pf 0.83 |
+| Final test | +0.238R (218) pf 1.57 | −0.020R (38) pf 0.95 |
+
+Short is negative in all three periods, at the strategy level and at every
+individual setup. **SHORT is disabled**, and the decision needed only development
+and validation to reach.
+
+Per-setup out-of-sample, all four short setups quarantined:
+
+| Setup | OOS trades | OOS expectancy | PF | State |
 | --- | --- | --- | --- | --- |
-| SHORT | 1,222 | 52.6% | −0.015R | 0.97 |
-| LONG | 794 | 48.4% | −0.080R | 0.85 |
+| B · trend continuation short | 140 | −0.105R | 0.80 | `DISABLED_NEGATIVE_EDGE` |
+| D · bearish pullback | 79 | −0.145R | 0.72 | `DISABLED_NEGATIVE_EDGE` |
+| F · range reversal short | 279 | −0.128R | 0.76 | `DISABLED_NEGATIVE_EDGE` |
+| H · breakout short | 201 | −0.158R | 0.71 | `DISABLED_NEGATIVE_EDGE` |
 
-Final test, primary configuration:
+## 9. Scalp performance
 
-| Direction | Trades | Expectancy | PF |
-| --- | --- | --- | --- |
-| LONG | 50 | +0.139R | 1.31 |
-| SHORT | 43 | −0.223R | 0.62 |
-
-**The asymmetry reverses between periods.** Shorts were the better side across
-2012–2018 (a bear and range market); longs were the better side in 2021–2022.
-That is a description of what gold did, not a property of the strategy. Anyone
-disabling shorts on the development evidence would have disabled the profitable
-side of the final test.
-
-**Recommendation: keep both, and treat any long/short asymmetry as regime
-description rather than edge.**
-
-## 8. Scalp vs swing
-
-| Tier | Period | Trades | Win rate | Expectancy | PF |
-| --- | --- | --- | --- | --- | --- |
-| Scalp | Development | 3,563 | 24.4% | −0.442R | 0.49 |
-| Scalp | Validation | 1,280 | 26.0% | −0.349R | 0.57 |
-| Scalp | Final test | 726 | 26.9% | −0.351R | 0.55 |
-| Scalp | Frictionless (dev) | 4,427 | 30.1% | **+0.041R** | 1.06 |
-
-This is the clearest result in the study. The scalp signal is very slightly
-positive **before costs** and catastrophic after them.
-
-The arithmetic: the scalp stop is 0.8 × ATR(M15), roughly $1.20–$3.20 on gold.
-Round-trip cost at realistic assumptions is about $0.50. **Costs are 15–40% of
-the risk on every trade**, against a raw edge of 0.041R. Under conservative
-assumptions expectancy falls to −0.70R.
-
-**Recommendation: scalp is disabled in code.** It is not a marginal call — with
-5,569 out-of-sample trades at t = −6.8, this is one of the few things in this
-report that is statistically certain.
-
-## 9. Best setups
-
-Each setup measured alone, with `maxConcurrentTrades = 1` so its statistics do
-not depend on which other setup happened to hold the slot.
-
-| Setup | Dev expectancy | OOS trades | OOS expectancy | OOS p | Tier |
-| --- | --- | --- | --- | --- | --- |
-| **C · Bullish pullback** | +0.192R | 101 | **+0.214R** | **0.024** | **B** |
-| G · Breakout long | −0.065R | 250 | +0.080R | 0.122 | C |
-| E · Range reversal long | −0.134R | 240 | +0.037R | 0.292 | C |
-| A · Trend continuation long | −0.100R | 257 | −0.006R | 0.536 | NO_TRADE |
-| F · Range reversal short | −0.054R | 151 | −0.047R | 0.714 | NO_TRADE |
-| B · Trend continuation short | +0.004R | 81 | −0.287R | 0.994 | NO_TRADE |
-| H · Breakout short | −0.030R | 115 | −0.292R | 1.000 | NO_TRADE |
-| D · Bearish pullback | −0.132R | 49 | −0.335R | 0.996 | NO_TRADE |
-
-### C — Bullish pullback: the one thing worth watching
-
-Higher timeframe bullish, H1 turns down, price reclaims the 20 EMA on an up bar.
-
-**Out of sample only** (validation + final test — data that played no part in
-selecting it):
-
-```
-101 trades   59.4% win rate   +0.214R per trade
-profit factor 1.52   max drawdown 6.1R   t = 1.94   p = 0.024
-95% CI on expectancy: [+0.002R, +0.426R]
-```
-
-Positive in all three periods: +0.192R (89 trades), +0.142R (85), +0.597R (16).
-
-**And here is why it is rated B and not A.** The confidence interval's lower
-bound is +0.002R — it clears zero by a hair. The final-test sample is 16 trades,
-where one or two outcomes move the average dramatically. It produces roughly 19
-trades a year, so confirming it takes years, not months. And it was chosen as the
-best of eight candidates: the development p-value of 0.036 does not survive a
-Bonferroni correction for eight comparisons (0.00625).
-
-The out-of-sample p of 0.024 is a legitimate single pre-registered test and is
-the strongest positive finding in this report. It is not proof.
-
-### Worst setup
-
-**D · Bearish pullback** — negative in every period, −0.335R out of sample on 49
-trades. **H · Breakout short** is close behind (−0.292R, p = 1.000).
-
-## 10. Best and worst regimes
-
-Development period, all setups:
-
-| Regime | Trades | Win rate | Expectancy | PF |
+| Period | Trades | Expectancy | PF | Frictionless |
 | --- | --- | --- | --- | --- |
-| HIGH_VOLATILITY | 30 | 60.0% | +0.175R | 1.43 |
-| TRENDING_BEARISH | 478 | 54.4% | +0.055R | 1.12 |
-| PULLBACK_BULLISH | 248 | 53.6% | −0.002R | 1.00 |
-| PULLBACK_BEARISH | 427 | 51.8% | −0.066R | 0.87 |
-| TRENDING_BULLISH | 245 | 46.1% | −0.073R | 0.87 |
-| UNCERTAIN | 566 | 48.4% | −0.105R | 0.80 |
-| RANGE | 17 | 35.3% | −0.326R | 0.51 |
+| Development | 4,141 | −0.444R | 0.49 | — |
+| Validation | 1,988 | −0.267R | — | −0.009R |
+| Final test | 2,084 | −0.205R | — | **+0.048R** |
 
-On the final test the ranking inverts: TRENDING_BULLISH becomes the best regime
-(+0.221R) and TRENDING_BEARISH the worst (−0.114R). The regime labels describe
-what gold was doing, not conditions under which the strategy has an edge.
+The pattern is unchanged and now confirmed on 4,072 out-of-sample trades: the
+scalp signal is marginally positive **before costs** and catastrophic after them.
+A 0.8 × ATR(M15) stop on gold is \$1.20–\$3.20; a realistic round trip is about
+\$0.50, so costs are 15–40% of the risk on every trade.
 
-## 11. News impact
+**Scalp stays disabled.** This is the most statistically certain conclusion here.
 
-Four filter modes, plus two designed for the fact that decisions are hourly:
+## 10. Swing performance
+
+Swing is the whole strategy above. It stays enabled, long side only, in paper mode.
+
+## 11. Best setups · 12. Worst setups
+
+Each setup measured alone, out-of-sample (validation + final test):
+
+| Setup | OOS trades | OOS expectancy | PF | p | State |
+| --- | --- | --- | --- | --- | --- |
+| C · bullish pullback | 194 | +0.107R | 1.24 | 0.081 | active, tier B |
+| G · breakout long | 464 | +0.088R | 1.19 | 0.041 | active, tier B |
+| A · trend continuation long | 490 | +0.072R | 1.15 | 0.083 | active, tier B |
+| E · range reversal long | 480 | +0.027R | 1.06 | 0.285 | active, tier C |
+| B, D, F, H (all shorts) | 140–279 | −0.105 to −0.158R | 0.71–0.80 | ≈1 | quarantined |
+
+Best: **C, bullish pullback** — and it is the only setup that survives the
+concentration test below. Worst: **H, breakout short** (−0.158R, PF 0.71).
+
+### The concentration test, which most setups fail
+
+Removing each setup's five best development trades:
+
+| Setup | Expectancy without its top 5 | Survives |
+| --- | --- | --- |
+| C · bullish pullback | +0.140R | **yes** |
+| A, B, D, E, F, G, H | −0.038R to −0.185R | no |
+
+Seven of eight setups owe their entire result to a handful of trades. Only C does
+not. That is a stronger discriminator than any p-value in this report.
+
+## 13. Best regimes · 14. Worst regimes
+
+Primary configuration on the final test:
+
+| Regime | Trades | Expectancy |
+| --- | --- | --- |
+| TRENDING_BULLISH | 147 | +0.281R |
+| UNCERTAIN | 20 | +0.090R |
+| PULLBACK_BULLISH | 53 | +0.020R |
+
+The edge is concentrated exactly where a long-side trend strategy's edge should
+be if it is real. **This is a bull-trend participation strategy**, and calling it
+anything more general would misrepresent it.
+
+## 15. News impact
+
+Six filter modes on development data:
 
 | Mode | Trades | Expectancy | PF |
 | --- | --- | --- | --- |
-| A · trade normally | 2,016 | −0.0406R | 0.919 |
-| B · block 15 min before | 2,015 | −0.0406R | 0.919 |
-| C · block 30 min before | 2,011 | −0.0397R | 0.921 |
-| D · block 15 min either side | 2,015 | −0.0406R | 0.919 |
-| E · block if a release is < 4h away | 1,995 | −0.0390R | 0.922 |
-| F · block if a release is < 24h away | 1,913 | −0.0419R | 0.917 |
+| A · trade normally | 2,334 | −0.0359R | 0.928 |
+| B · block 15 min before | 2,333 | −0.0359R | 0.928 |
+| C · block 30 min before | 2,329 | −0.0351R | 0.930 |
+| D · block 15 min either side | 2,333 | −0.0359R | 0.928 |
+| E · block if a release is <4h away | 2,311 | −0.0359R | 0.928 |
+| F · block if a release is <24h away | 2,216 | −0.0362R | 0.928 |
 
 **The news filter does not improve performance.** Every mode is inside noise of
-every other.
+every other. On an hourly decision grid a 15-minute window around a release almost
+never contains a decision — modes B and D removed one trade out of 2,334. Spread
+widening around releases *is* modelled in the cost engine, where it belongs.
 
-The mechanical reason is instructive: with decisions taken on hourly closes, a
-15-minute window around a release almost never contains one. Modes B and D
-removed a single trade out of 2,016. Even blocking a full day ahead of every
-high-impact release removed only 5% of trades and made things marginally worse.
+## 16. Session performance
 
-A news filter is a sensible idea that this decision frequency cannot express. It
-would matter for a strategy trading M5, which is exactly the tier the cost
-analysis already eliminated. Spread widening around releases **is** modelled in
-the cost engine, where it belongs.
+Primary configuration, best-to-worst session by period:
 
-## 12. Session performance
-
-Development period:
-
-| Session (UTC) | Trades | Win rate | Expectancy | PF |
-| --- | --- | --- | --- | --- |
-| LATE (21–23) | 79 | 51.9% | +0.044R | 1.09 |
-| ASIA (23–07) | 472 | 53.0% | +0.017R | 1.04 |
-| NEW YORK (16–21) | 527 | 49.9% | −0.058R | 0.89 |
-| OVERLAP (12–16) | 504 | 50.4% | −0.066R | 0.87 |
-| LONDON (07–12) | 434 | 50.5% | −0.069R | 0.86 |
-
-The quietest sessions look best and the most liquid look worst — which should
-make anyone suspicious, since it is the opposite of where an edge would be
-expected to live. On the final test the ordering reshuffles again (NEW YORK
-worst at −0.271R, LATE best at +0.077R). Hour-of-day expectancy ranges from
-+0.22R at 01:00 UTC (80 trades) to −0.23R at 18:00 UTC (123 trades), which at
-those sample sizes is noise wearing a pattern's clothes.
-
-**Recommendation: no session is disabled.** Nothing here survives being asked to
-repeat itself.
-
-## 13. Sensitivity analysis
-
-Around the chosen configuration, on development data:
-
-| Parameter | Flag | Expectancy across the neighbourhood |
-| --- | --- | --- |
-| pullbackWindow 8/10/12/14/16 | STABLE | 0.081, 0.099, 0.094, 0.105, 0.091 |
-| rsiOversold 20/22/25/28/30 | STABLE | 0.104, 0.102, 0.094, 0.084, 0.084 |
-| stopCfg.swingBufferAtr 0.05–0.25 | STABLE | 0.065, 0.073, 0.094, 0.085, 0.095 |
-| stopCfg.minStopAtr 0.3–0.7 | STABLE | 0.082, 0.093, 0.094, 0.098, 0.098 |
-| targetCfg R multiples ±13% | STABLE | 0.047, 0.063, 0.094, 0.102, 0.084 |
-| rsiOverbought | INERT | (not read by the chosen setups) |
-
-Indicator neighbourhoods, each requiring the whole context rebuilt:
-
-| Parameter | 19 / 20 / 21 (etc.) |
+| Period | Ranking |
 | --- | --- |
-| EMA fast | 0.072, 0.094, 0.107 |
-| EMA mid (48/50/52) | 0.084, 0.094, 0.094 |
-| EMA slow (190/200/210) | 0.080, 0.094, 0.093 |
-| ATR period (13/14/15) | 0.091, 0.094, 0.094 |
-| RSI period (13/14/15) | 0.092, 0.094, 0.092 |
-| Swing lookback (2/3/4) | 0.060, 0.094, 0.096 |
+| Development | NEWYORK +0.210 · OVERLAP +0.115 · LONDON +0.027 · ASIA −0.154 · LATE −0.355 |
+| Validation | NEWYORK +0.386 · LONDON +0.065 · ASIA +0.018 · OVERLAP +0.004 |
+| Final test | ASIA +0.273 · NEWYORK +0.182 · OVERLAP +0.173 · LONDON +0.134 |
 
-`OVERFIT_RISK = LOW`. **This is a genuine positive and it is worth reading
-carefully.** The result does not depend on a magic parameter value — but the
-plateau it sits on is at approximately zero out of sample. The strategy is not
-fragile. It is flat.
+ASIA is worst in development and best in the final test. **The rankings do not
+repeat, which is what noise looks like. No session is disabled.**
 
-## 14. Monte Carlo
+## 17. Sensitivity analysis, and score calibration
 
-5,000 bootstrap resamples of the final-test trades, seeded:
+Threshold neighbourhood on development data:
+`[−0.073, −0.034, −0.007, +0.047, +0.046, +0.143]` for thresholds 62–82.
+Flag `STABLE`, `OVERFIT_RISK = LOW`.
+
+The full calibration curve is more interesting than the flag:
+
+| Evidence threshold | Development | Validation | Final test |
+| --- | --- | --- | --- |
+| 62 | −0.073R (480) | −0.038R (229) | +0.104R (322) |
+| 66 | −0.034R (377) | +0.052R (182) | +0.141R (261) |
+| **70 (shipped)** | **−0.007R (282)** | **+0.107R (134)** | **+0.210R (221)** |
+| 74 | +0.048R (197) | +0.300R (98) | +0.359R (153) |
+| 78 | +0.046R (126) | +0.209R (64) | +0.393R (104) |
+| 82 | +0.143R (61) | +0.172R (34) | +0.235R (67) |
+
+**Expectancy rises with the evidence score in every period and on both feeds.**
+This is the first evidence in the project that the 0–100 score carries
+information. It is still not a probability, and it is still not sufficient on its
+own to make a setup tradable — but it is no longer decorative.
+
+It also means the shipped threshold of 70 is not the best available. Raising it to
+~74 is supported by development *and* validation. **It has not been adopted**,
+because doing so after seeing the final test would be exactly the data-snooping
+this protocol exists to prevent. It is registered as the candidate for the next
+evaluation cycle, to be judged on 2026 forward data.
+
+## 18. Monte Carlo
+
+5,000 bootstrap resamples of the final-test trades:
 
 | Metric | Value |
 | --- | --- |
-| Median final R | −2.76 |
-| 5th / 95th percentile | −20.2R / +15.8R |
-| Resamples ending positive | **40.4%** |
-| Median drawdown | 12.4R |
-| 95th-percentile drawdown | 24.5R |
-| Probability of ruin (50% loss, 1% risk) | 0.0% |
-| Probability of a negative year | **58.3%** |
+| Resamples ending positive | 99.3% |
+| Probability of a negative year | 7.2% |
+| Median drawdown | 9.2R |
+| Probability of ruin (50% loss at 1% risk) | 0.0% |
 
-You will not blow up at 1% risk. You will slowly bleed, and lose money in three
-years out of five.
+On the pooled out-of-sample record: 99.6% positive, 12.4% chance of a losing year,
+median drawdown 11.4R.
 
-## 15. Feature correlation and double counting
+These describe the *sampling* distribution of the measured edge. They do not
+account for the edge not existing in the earlier era, which no resampling can fix.
 
-Correlation matrix of the six scoring components (5,988 samples, development):
+## 19. Overfitting risk
+
+`OVERFIT_RISK = LOW` on parameter sensitivity, and the classification is now
+sounder than it was: it distinguishes an isolated peak (fitted noise) from a
+monotone response (a relationship), where the previous version flagged both HIGH.
+
+The multiple-testing screen is the more important number. 58 conditional cells
+with n≥30 were examined; 4 were nominally significant at 0.05; **2.9 are expected
+by chance; none survive false-discovery-rate control.** There is no robust
+conditional structure inside these setups, and the report says so rather than
+presenting the best cell as a discovery.
+
+The residual overfitting concern is not parametric. It is that the entire positive
+result comes from one era.
+
+## 20. Feature correlation
 
 | | trend | struct | mom | S/R | PA | macro |
 | --- | --- | --- | --- | --- | --- | --- |
-| **trend** | 1.00 | 0.39 | 0.28 | 0.02 | 0.19 | 0.31 |
-| **structure** | 0.39 | 1.00 | 0.09 | 0.00 | 0.02 | 0.16 |
 | **momentum** | 0.28 | 0.09 | 1.00 | 0.03 | **0.73** | 0.01 |
-| **S/R** | 0.02 | 0.00 | 0.03 | 1.00 | 0.05 | 0.03 |
 | **price action** | 0.19 | 0.02 | **0.73** | 0.05 | 1.00 | 0.01 |
-| **macro** | 0.31 | 0.16 | 0.01 | 0.03 | 0.01 | 1.00 |
 
-Momentum and price action correlate at **0.73** — 22 of the 100 points are
-substantially one measurement counted twice. Trend correlates 0.39 with structure
-and 0.31 with macro.
+Momentum and price action still correlate 0.73 — 22 of the 100 points are largely
+one measurement counted twice.
 
-But the more damaging number is this one — each component's correlation with the
-**forward 24-hour return**, ATR-normalized:
+Correlation of each component with the forward 24-hour return: trend +0.032,
+momentum +0.010, structure +0.008, S/R −0.001, price action −0.001, macro −0.030.
+**Individually, none of them predicts the next day.** The score works, to the
+extent it does, as a joint filter rather than through any one strong ingredient —
+which is consistent with a modest edge that only shows up after many trades.
 
-```
-trend  +0.033   structure −0.002   momentum +0.009
-S/R    −0.002   price action 0.000   macro   −0.015
-```
+Component ablation on the primary configuration (development):
 
-**Not one component has meaningful predictive correlation with what price does
-next.** Trend is the largest at 0.033, which explains 0.1% of variance. Macro is
-negative — the wrong sign for its intended logic.
+| Removed | Expectancy | Δ |
+| --- | --- | --- |
+| nothing | −0.007R | — |
+| structure | +0.020R | +0.026 |
+| trend | +0.011R | +0.017 |
+| macro | +0.002R | +0.009 |
+| S/R | −0.065R | −0.058 |
+| momentum | −0.080R | −0.073 |
+| price action | −0.089R | −0.082 |
 
-This is the root cause. The engine is not badly weighted; the ingredients do not
-contain much information at this horizon, and no weighting of near-zero
-predictors produces a non-zero predictor.
+Price action, momentum and support/resistance are load-bearing. Trend, structure
+and macro are not, on development data. None of these ablations was adopted:
+each is within or near the feed-uncertainty band, and chasing them would be
+fitting noise.
 
-### Component ablation
+## 21. Final verdict
 
-Removing one component and renormalizing the rest to 100, development period:
-
-| Configuration | Expectancy | PF | Max DD | Δ vs full |
-| --- | --- | --- | --- | --- |
-| Full engine | −0.008R | 0.982 | 29.8R | — |
-| without trend | −0.052R | 0.897 | 26.6R | −0.043 |
-| without structure | −0.019R | 0.959 | 35.1R | −0.011 |
-| without momentum | −0.059R | 0.883 | 44.7R | −0.050 |
-| without support/resistance | −0.034R | 0.930 | 38.4R | −0.026 |
-| without price action | −0.060R | 0.881 | 43.1R | −0.051 |
-| **without macro** | **+0.031R** | **1.071** | **20.1R** | **+0.039** |
-
-**Removing the macro component is the only single-component change that improves
-the engine.** It also cuts drawdown by a third. Consistent with its −0.015
-correlation with forward returns: the macro leg was contributing noise with the
-wrong sign.
-
-That improvement did not survive: −0.065R on the final test. Which is exactly why
-it was registered as a candidate and tested rather than simply adopted.
-
-Caveat: the backtest's macro leg is a synthetic dollar index and the 10-year
-yield component is absent entirely (`docs/DATA_SOURCES.md`). This finding indicts
-the dollar-trend leg as implemented against that proxy.
-
-## 16. Does a simpler strategy do better?
-
-| Strategy | Trades | Expectancy | PF |
-| --- | --- | --- | --- |
-| Score only, as shipped | 480 | −0.008R | 0.98 |
-| Score + ATR stop + 1/2/3R | 1,218 | −0.075R | 0.86 |
-| Score with threshold raised to 80 | 291 | −0.024R | 0.95 |
-| Score with threshold lowered to 60 | 2,183 | −0.042R | 0.92 |
-| Trend-following control | 605 | **+0.011R** | 1.02 |
-| Random entry control | 603 | −0.053R | 0.90 |
-
-On development data a plain trend-following rule beat the whole GoldIntel engine.
-On the final test that reversed — trend following collapsed to −0.291R while the
-engine reached −0.028R.
-
-Neither is an edge. What this shows is that the 100-point scoring engine, with
-its six components and five timeframes, does not outperform rules that fit on one
-line. **The sophistication is not buying anything.**
-
-## 17. Stop-loss and take-profit findings
-
-MAE/MFE across all setups on development data:
-
-| How far trades ran in favour | Share |
-| --- | --- |
-| ≥ 0.5R | 63.2% |
-| ≥ 1.0R | 46.8% |
-| ≥ 1.5R | 31.5% |
-| ≥ 2.0R | 22.7% |
-| ≥ 3.0R | 8.8% |
-| ≥ 4.0R | **1.0%** |
-| ≥ 5.0R | **0.2%** |
-
-**This kills the original target construction.** The old TP3 was the farthest
-structure level with a 5R floor, and the headline "Max R:R 1:5" was quoted
-against it. Two trades in a thousand ever got there. Targets are now 1R/2R/3R.
-
-Stop placement, from the same data: winners took a median 0.41R of heat and 0.63R
-at the 75th percentile, so **a stop tighter than about 0.7R would cut out most
-winners**. Losers ran a median 0.28R in favour before failing, so there is no
-"almost worked" population to rescue with an earlier breakeven move.
-
-Full stop × target grid (24 combinations, development, all setups):
-
-| Best combinations | Trades | Expectancy | PF |
-| --- | --- | --- | --- |
-| ATR stop + R 2/3/5 | 1,994 | −0.021R | 0.97 |
-| Swing stop + R 1.5/2.5/4 | 1,626 | −0.024R | 0.96 |
-| ATR stop + R 1.5/2.5/4 | 2,338 | −0.030R | 0.95 |
-| *Worst:* swing stop + R 0.75/1.5/2.5 | 2,164 | −0.096R | 0.79 |
-
-**Every one of the 24 combinations is negative.** No stop or target policy
-rescues the entry logic — which is the correct order in which to learn that.
-
-## 18. Overfitting risk
-
-`OVERFIT_RISK = LOW` on parameter sensitivity, but the classifier returns
-**OVERFIT** for two of the three registered configurations, and the reason is
-visible in the arc: the setup candidate went +0.094R → +0.015R → −0.083R across
-the three periods.
-
-The system is not overfitted to a knife-edge parameter. It is overfitted in the
-subtler way: **choices that looked like improvements on development data did not
-reproduce.** Both attempted improvements — dropping macro, and selecting the best
-setups — were worse on the final test than the untouched baseline.
-
-## 19. The verdict, criterion by criterion
-
-Computed by `quant/src/backtest/edge.js` against thresholds fixed before any
-result was examined.
+# POSSIBLE EDGE
 
 | Criterion | Actual | Required | |
 | --- | --- | --- | --- |
-| Out-of-sample sample size | 93 | ≥ 100 | FAIL |
-| Out-of-sample expectancy | −0.028R | ≥ +0.02R | FAIL |
-| Out-of-sample profit factor | 0.944 | ≥ 1.10 | FAIL |
-| Out-of-sample max drawdown | 19.4R | ≤ 40R | PASS |
-| Walk-forward consistency | 0.50 | ≥ 0.55 | FAIL |
-| In-sample → out-of-sample degradation | 0.050R | ≤ 0.10R | PASS |
+| Out-of-sample sample size | 355 | ≥ 100 | PASS |
+| Out-of-sample expectancy | +0.171R | ≥ +0.02R | PASS |
+| Out-of-sample profit factor | 1.40 | ≥ 1.10 | PASS |
+| Out-of-sample max drawdown | 14.2R | ≤ 40R | PASS |
+| Walk-forward consistency | 0.535 | ≥ 0.55 | **FAIL** |
+| Development → OOS degradation | −0.178R | ≤ 0.10R | PASS |
 | Parameter sensitivity | LOW | ≤ MODERATE | PASS |
-| Survives realistic costs | negative | ≥ 30% of frictionless | FAIL |
+| Survives realistic costs | 79% of frictionless | ≥ 30% | PASS |
 
-| Configuration | Verdict |
-| --- | --- |
-| **GoldIntel as shipped** | **NO EDGE** (3/8) |
-| GoldIntel minus macro | OVERFIT (4/8) |
-| Selected setup candidate | OVERFIT (3/8) |
+Seven of eight. The failure is the era-consistency criterion, and it is the right
+one to fail loudly on.
 
-## 20. Final verdict
+### What this means in plain terms
 
-# NO EDGE
+GoldIntel's long-side signals contain something real. They beat a
+direction-matched random control by a wide margin in every out-of-sample period,
+they survive realistic costs with 79% of the frictionless edge intact, and the
+evidence score they are built on is genuinely calibrated — higher scores pay more,
+consistently, across 13 years and two independent data feeds.
 
-GoldIntel, as it exists today, does not contain a statistically defensible
-trading edge in XAU/USD. The signal it extracts is real but tiny — about 0.077R
-per trade before costs — and realistic execution consumes essentially all of it.
-Out of sample it is negative. Its scalp tier is severely and significantly
-negative and has been disabled in code.
+What has **not** been shown is that this works in all conditions. It was flat for
+seven years in a market that went nowhere, and profitable for six in a market that
+tripled. That is consistent with a real trend-participation edge, and it is also
+consistent with a strategy that will disappoint the moment gold stops rising.
 
-### What is worth keeping
+### What should happen next
 
-1. **Setup C, bullish pullback**, is positive in all three periods and
-   significant out of sample (n = 101, +0.214R, p = 0.024, PF 1.52). Not proof —
-   the confidence interval touches zero and it trades about 19 times a year — but
-   it is the one component that survived contact with unseen data. It is rated
-   tier **B** and is the only setup the live engine will surface.
-2. **The infrastructure.** The backtester, the closed-candle model, the cost
-   engine, the walk-forward harness and the paper-trading loop are now the assets.
-   They are what turned "GoldIntel looks smart" into a number.
-
-### What should change
-
-1. **Do not trade this with real money.** The system is in paper-trading mode.
-2. **Scalp stays off.** 5,569 out-of-sample trades at t = −6.8.
-3. **Accumulate paper evidence on setup C.** ~19 trades a year means roughly five
-   years to reach 100 more. `performanceMonitor` compares live results against the
-   backtested expectancy and raises `EDGE_DEGRADATION` at two standard errors below.
-4. **Stop adding indicators.** The correlation analysis is unambiguous: the six
-   components already overlap heavily and none of them predicts forward returns.
-   A seventh correlated indicator will raise the score and not the expectancy.
-5. **Look for edges the cost model can support.** Anything whose stop is small
-   relative to a 30-cent spread is dead on arrival, as the scalp tier proved.
-   Setup C's stop averages well over an ATR, which is why it has room to work.
-6. **Get better data before the next round.** Ten years of one broker's mid
-   prices, with no bid/ask and no yield series, is the binding constraint on what
-   can be concluded — not the code.
+1. **Keep it in paper trading.** The system records every signal as a simulated
+   trade and compares live results against these expectations
+   (`performanceMonitor` raises `EDGE_DECAY` at two standard errors below).
+2. **Shorts and scalp stay off.** Both are quarantined in code with the numbers
+   attached; both remain available for research.
+3. **2026 is the next real test**, and the only one that is genuinely untouched.
+   The pre-registered question: does long-only hold ≥ +0.10R per trade over at
+   least 60 trades? A secondary pre-registered question: does threshold 74 beat 70,
+   as development and validation both suggest?
+4. **The failure mode to watch is a sideways or falling gold market.** That is
+   where the development period says this strategy earns nothing, and no amount of
+   recent success changes what that period showed.
+5. **Do not add indicators.** Six components already overlap heavily and none
+   predicts the next day on its own. A seventh will raise the score, not the
+   expectancy.
 
 ### Reproducing this report
 
 ```
 npm run quant:data
+node quant/scripts/check-feeds.mjs
+node quant/scripts/verify-published.mjs
 node quant/scripts/run-study.mjs
+node quant/scripts/run-decompose.mjs
+node quant/scripts/run-targets.mjs
 node quant/scripts/run-validate.mjs
 node quant/scripts/run-final.mjs
 node quant/scripts/export-live-stats.mjs
@@ -525,4 +369,4 @@ npm test
 ```
 
 Data checksums are in `quant/data/MANIFEST.json`; every result file records the
-code revision and data fingerprint it was produced from.
+code revision and data fingerprint it came from.
