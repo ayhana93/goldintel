@@ -24,7 +24,8 @@ export default function FeedbackPanel({ signals, currentRegime }) {
   useEffect(() => { load(); }, [load]);
 
   const reportedIds = new Set(feedbacks.map((f) => f.signal_id));
-  const pending = signals.filter((s) => !reportedIds.has(s.id));
+  // Only ask for feedback on trades the user actually entered — not every generated signal.
+  const pending = signals.filter((s) => s.status === "ACTIVE" && !reportedIds.has(s.id));
 
   const submit = async (signalId) => {
     setSubmitting(true); setError(null);
