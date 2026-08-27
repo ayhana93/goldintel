@@ -41,7 +41,8 @@ function buildEmail(a, setup) {
     '<div style="font-family: -apple-system, Segoe UI, Roboto, sans-serif; color:#1a1a1a; max-width:480px;">',
     `<div style="font-size:12px; letter-spacing:2px; color:#888; margin-bottom:18px;">GOLD SIGNAL — XAU/USD</div>`,
     `<div style="font-size:20px; font-weight:600; margin-bottom:4px;">${tierLabel}</div>`,
-    `<div style="font-size:22px; font-weight:700; color:${setup.direction === 'LONG' ? '#16a34a' : '#dc2626'}; margin-bottom:20px;">${emoji} Open ${setup.direction}</div>`,
+    `<div style="font-size:22px; font-weight:700; color:${setup.direction === 'LONG' ? '#16a34a' : '#dc2626'}; margin-bottom:4px;">${emoji} Open ${setup.direction}</div>`,
+    `<div style="font-size:15px; color:#666; margin-bottom:20px;">Вход: <span style="font-weight:700; color:#1a1a1a;">${f(plan.entry)}</span></div>`,
     `<table style="border-collapse:collapse; font-size:15px; margin-bottom:18px;">`,
     `<tr><td style="padding:6px 0; color:#666;">TP1</td><td style="padding:6px 0 6px 24px; font-weight:600;">${f(plan.tp1)}</td></tr>`,
     `<tr><td style="padding:6px 0; color:#666;">TP2</td><td style="padding:6px 0 6px 24px; font-weight:600;">${f(plan.tp2)}</td></tr>`,
@@ -50,7 +51,7 @@ function buildEmail(a, setup) {
     `<div style="border-top:1px solid #eee; padding-top:12px; margin-bottom:6px;">`,
     `<span style="color:#666; font-size:15px;">STOP LOSS&nbsp;&nbsp;</span><span style="font-weight:700; color:#dc2626; font-size:16px;">${f(plan.sl)}</span>`,
     `</div>`,
-    `<div style="margin-top:18px; padding:10px 14px; background:#f5f5f4; border-radius:8px; font-size:14px; color:#1a1a1a;">${probLine}</div>`,
+    `<div style="margin-top:18px; padding:14px 16px; background:#f5f5f4; border-radius:8px; font-size:16px; color:#1a1a1a; line-height:1.5;"><span style="color:#666;">Вероятност да се реализира:</span><br/><span style="font-size:22px; font-weight:700;">${probLine.replace(/^Вероятност да се реализира: ?/, '')}</span></div>`,
     `<div style="margin-top:20px; font-size:12px; color:#999;">Paper trading · не е финансов съвет.</div>`,
     '</div>',
   ].join('');
