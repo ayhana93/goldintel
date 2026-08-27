@@ -27,13 +27,22 @@ const VERDICT_STYLE = {
 };
 
 const STRATEGY_LABELS = {
-  "production-baseline": "GoldIntel as shipped",
-  "baseline-no-macro": "GoldIntel without macro",
-  "setup-candidate": "Selected setup candidate",
-  "production-scalp": "GoldIntel scalp tier",
+  "baseline-long-only": "GoldIntel · long side only",
+  "production-baseline": "GoldIntel as shipped (both directions)",
+  "setups-long-only": "The four long setups",
+  "setup-C-only": "Setup C · bullish pullback",
+  "production-scalp": "GoldIntel scalp tier (disabled)",
+  "control-random-100pct-long": "Control · 100% long random entry",
+  "control-random-5050": "Control · 50/50 random entry",
+  "control-long-when-d1-bullish": "Control · long when the daily trend is up",
   "control-ema-cross": "Control · EMA 20/50 cross",
-  "control-trend-follow": "Control · trend following",
-  "control-random-entry": "Control · random entry",
+};
+
+const DECAY_STYLE = {
+  EDGE_DECAY: "border-red-500/60 bg-red-500/10 text-red-300",
+  WATCH: "border-amber-500/60 bg-amber-500/10 text-amber-300",
+  IN_LINE: "border-emerald-500/60 bg-emerald-500/10 text-emerald-300",
+  UNKNOWN: "border-[#2a3348] text-slate-400",
 };
 
 export default function BacktestDashboard() {
@@ -70,17 +79,37 @@ export default function BacktestDashboard() {
 
       <div className="mx-auto max-w-[1400px] space-y-3 p-3 lg:p-4">
         {/* Verdict */}
-        <div className={`border px-5 py-4 ${VERDICT_STYLE[results.verdicts?.[results.primary]?.verdict] ?? "border-[#2a3348]"}`}>
-          <div className="font-mono text-[10px] uppercase tracking-widest opacity-70">Final verdict · primary configuration</div>
-          <div className="mt-1 font-mono text-2xl font-bold tracking-wider">
-            {results.verdicts?.[results.primary]?.verdict ?? "—"}
+        <div className={`border px-5 py-4 ${VERDICT_STYLE[results.verdict] ?? "border-[#2a3348]"}`}>
+          <div className="font-mono text-[10px] uppercase tracking-widest opacity-70">
+            Final verdict · {STRATEGY_LABELS[results.primary] ?? results.primary}
           </div>
-          <div className="mt-2 grid gap-1 font-mono text-[11px] opacity-80 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-1 font-mono text-2xl font-bold tracking-wider">{results.verdict ?? "—"}</div>
+          <div className="mt-2 grid gap-1 font-mono text-[11px] opacity-80 sm:grid-cols-3">
             <span>Development: {results.periods?.development}</span>
             <span>Validation: {results.periods?.validation}</span>
             <span>Final test: {results.periods?.finalTest}</span>
           </div>
+          <div className="mt-3 max-w-4xl text-xs leading-relaxed opacity-90">
+            Out of sample the primary configuration returns {rr(EDGE_STATS.measured?.strategies?.BASELINE_SWING_LONG_ONLY?.outOfSample?.expectancy)} per
+            trade with a profit factor of {fmt(EDGE_STATS.measured?.strategies?.BASELINE_SWING_LONG_ONLY?.outOfSample?.profitFactor)}. The evidence is
+            era-specific: {pct(results.walkForward?.byFeed?.legacy?.consistency * 100)} of quarters are profitable in the 2012–2019 era against{" "}
+            {pct(results.walkForward?.byFeed?.modern?.consistency * 100)} in the 2020–2025 era. Every figure on this page carries a feed-uncertainty
+            band of about ±{EDGE_STATS.feedUncertaintyR}R — the amount a second independent data vendor moves the same measurement.
+          </div>
         </div>
+
+        {/* Edge decay */}
+        {results.edgeDecay && (
+          <div className={`border px-5 py-3 ${DECAY_STYLE[results.edgeDecay.status] ?? "border-[#2a3348]"}`}>
+            <div className="font-mono text-[10px] uppercase tracking-widest opacity-70">Edge decay · most recent unseen year</div>
+            <div className="mt-1 font-mono text-lg font-bold tracking-wider">{results.edgeDecay.status.replace(/_/g, " ")}</div>
+            <div className="mt-1 font-mono text-[11px] opacity-90">
+              {results.edgeDecay.latestYear}: {results.edgeDecay.latest?.trades} trades, {rr(results.edgeDecay.latest?.expectancy)},
+              profit factor {fmt(results.edgeDecay.latest?.profitFactor)} — against a pooled out-of-sample{" "}
+              {rr(results.edgeDecay.pooledOutOfSample?.expectancy)} (z = {fmt(results.edgeDecay.zScore)}).
+            </div>
+          </div>
+        )}
 
         {/* Verdict criteria */}
         <Panel title="How the verdict was reached">
@@ -179,16 +208,43 @@ export default function BacktestDashboard() {
         </div>
 
         {/* Per-setup evidence tiers */}
-        <Panel title="Setups · tier assigned from out-of-sample statistics only">
+        <Panel title="Setups · state and tier assigned from out-of-sample statistics only">
           <Table
-            head={["Setup", "Tier", "OOS trades", "OOS win rate", "OOS expectancy", "OOS profit factor", "p(edge ≤ 0)"]}
+            head={["Setup", "State", "Tier", "OOS trades", "OOS win rate", "OOS expectancy", "OOS profit factor", "p(edge ≤ 0)"]}
             rows={Object.entries(EDGE_STATS.measured.setups).map(([id, s]) => [
-              id, s.tier, s.outOfSample?.trades ?? 0, pct(s.outOfSample?.winRate),
+              id,
+              s.state === "DISABLED_NEGATIVE_EDGE"
+                ? <span key={id} className="text-red-400" title={s.stateReason ?? ""}>QUARANTINED</span>
+                : <span key={id} className="text-slate-300">active</span>,
+              s.tier, s.outOfSample?.trades ?? 0, pct(s.outOfSample?.winRate),
               rr(s.outOfSample?.expectancy), fmt(s.outOfSample?.profitFactor), fmt(s.outOfSample?.p, 3),
             ])}
-            highlight={(row) => row[1] === "A+" || row[1] === "A" || row[1] === "B"}
+            highlight={(row, i) => Object.values(EDGE_STATS.measured.setups)[i]?.outOfSample?.expectancy > 0}
           />
+          <div className="border-t border-[#1c2230] px-4 py-2 text-[10px] leading-relaxed text-slate-500">
+            A quarantined setup has a large out-of-sample sample, negative expectancy and a profit factor below 1. The live engine will
+            not emit it however strong the current evidence looks. It stays here so the decision can be revisited with more data.
+          </div>
         </Panel>
+
+        {/* Calibration — does the evidence score mean anything? */}
+        {results.calibration && (
+          <Panel title="Evidence-score calibration · does a higher score actually pay?">
+            <Table
+              head={["Score threshold", "Development", "Validation", "Final test"]}
+              rows={results.calibration.map((c) => [
+                c.threshold,
+                `${c.development.trades} trades · ${rr(c.development.expectancy)}`,
+                `${c.validation.trades} trades · ${rr(c.validation.expectancy)}`,
+                `${c.finalTest.trades} trades · ${rr(c.finalTest.expectancy)}`,
+              ])}
+            />
+            <div className="border-t border-[#1c2230] px-4 py-2 text-[10px] leading-relaxed text-slate-500">
+              Expectancy rises with the score in every period and on both data feeds. That is the evidence that the 0–100 number carries
+              information — it is still not a probability, and it is still not sufficient on its own to make a setup tradable.
+            </div>
+          </Panel>
+        )}
 
         {/* Monthly */}
         <Panel title="Monthly · primary configuration on the final test">
@@ -200,14 +256,17 @@ export default function BacktestDashboard() {
 
         {/* Walk-forward and Monte Carlo */}
         <div className="grid gap-3 lg:grid-cols-2">
-          <Panel title="Walk-forward validation">
+          <Panel title="Walk-forward validation · quarterly, by era">
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 px-4 py-3 font-mono text-[11px]">
-              <Field label="Out-of-sample windows" value={EDGE_STATS.walkForward?.windows} />
-              <Field label="Profitable windows" value={`${EDGE_STATS.walkForward?.profitableWindows} of ${EDGE_STATS.walkForward?.windows}`} />
-              <Field label="Consistency" value={fmt(EDGE_STATS.walkForward?.consistency, 3)} />
-              <Field label="Mean OOS expectancy" value={rr(EDGE_STATS.walkForward?.meanOutOfSampleExpectancy)} />
-              <Field label="Stitched OOS expectancy" value={rr(EDGE_STATS.walkForward?.stitchedExpectancy)} />
+              <Field label="2012–2019 quarters profitable" value={`${results.walkForward?.byFeed?.legacy?.profitableWindows} of ${results.walkForward?.byFeed?.legacy?.windows}`} />
+              <Field label="2012–2019 mean expectancy" value={rr(results.walkForward?.byFeed?.legacy?.meanExpectancy)} />
+              <Field label="2020–2025 quarters profitable" value={`${results.walkForward?.byFeed?.modern?.profitableWindows} of ${results.walkForward?.byFeed?.modern?.windows}`} />
+              <Field label="2020–2025 mean expectancy" value={rr(results.walkForward?.byFeed?.modern?.meanExpectancy)} />
+              <Field label="Combined consistency" value={fmt(results.walkForward?.summary?.consistency, 3)} />
             </dl>
+            <div className="border-t border-[#1c2230] px-4 py-2 text-[10px] leading-relaxed text-slate-500">
+              This is the single largest caveat on the result: the configuration did not work in the earlier era and does in the recent one.
+            </div>
           </Panel>
           <Panel title="Monte Carlo (5,000 bootstrap resamples)">
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 px-4 py-3 font-mono text-[11px]">

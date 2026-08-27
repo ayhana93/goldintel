@@ -1,106 +1,75 @@
 #!/usr/bin/env node
-// Phase 18/29/35 — THE FINAL TEST.
-//
-// This is the only script in the repository that reads PERIODS.finalTest. It is
-// meant to be run once, at the end, on configurations that were frozen before it
-// ran. It selects nothing. All three registered configurations are reported,
-// including the ones that do badly.
+// Phases 18, 25, 29, 35 — the final evaluation and the dashboard data.
 //
 //   node quant/scripts/run-final.mjs
+//
+// Evaluates the frozen configurations on the final test period, reports every
+// one of them including the losers, and checks whether the edge is decaying on
+// the most recent slice of unseen data.
 
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { readFileSync, writeFileSync } from 'node:fs';
-import { loadGoldDataset } from '../src/data/dataset.js';
-import { buildContext } from '../src/core/context.js';
-import { buildCalendar, makeNewsWindow } from '../src/core/calendar.js';
-import { runBacktest } from '../src/backtest/engine.js';
-import { computeMetrics, groupMetrics, maeMfeStudy, equitySeries, rHistogram, monthlyBreakdown } from '../src/backtest/metrics.js';
+import { runIn, M, brief, RISK, SOLO_RISK, PERIODS } from '../src/research.js';
+import * as S from '../src/backtest/strategies.js';
+import { computeMetrics, groupMetrics, maeMfeStudy, equitySeries, rHistogram, monthlyBreakdown, significance } from '../src/backtest/metrics.js';
 import { monteCarlo } from '../src/backtest/montecarlo.js';
 import { classifyEdge } from '../src/backtest/edge.js';
-import {
-  productionSwing, productionScalp, setupStrategy,
-  emaCrossBaseline, trendFollowBaseline, randomEntryBaseline,
-} from '../src/backtest/strategies.js';
 import { SCENARIOS } from '../src/core/execution.js';
-import { PERIODS, label } from '../src/periods.js';
+import { label } from '../src/periods.js';
 import { writeResult, readResult, slimTrades, ROOT } from '../src/report/io.js';
 
-const DIR = join(ROOT, 'data', 'normalized');
-const RISK = { accountSize: 10000, riskPerTradePct: 1, maxConcurrentTrades: 2, maxDailyLossPct: 3, maxWeeklyLossPct: 6 };
-const SOLO_RISK = { ...RISK, maxConcurrentTrades: 1 };
 const step = (m) => process.stdout.write(`\n=== ${m}\n`);
-const r4 = (x) => (x == null || !Number.isFinite(x) ? null : Math.round(x * 10000) / 10000);
-const brief = (m) => ({
-  trades: m.trades, winRate: r4(m.winRate), expectancy: r4(m.expectancy),
-  profitFactor: m.profitFactor === Infinity ? null : r4(m.profitFactor),
-  netR: r4(m.netR), netPnl: r4(m.netPnl), maxDrawdownR: r4(m.maxDrawdownR), maxDrawdownPct: r4(m.maxDrawdownPct),
-  sharpe: r4(m.sharpe), t: r4(m.significance?.t), p: r4(m.significance?.pBootstrap),
-});
+const r = (x, d = 4) => (x == null || !Number.isFinite(x) ? null : Math.round(x * 10 ** d) / 10 ** d);
+const LONGS = ['A_TREND_CONT_LONG', 'C_PULLBACK_LONG', 'E_RANGE_REV_LONG', 'G_BREAKOUT_LONG'];
+const longFilter = (factory) => () => { const inner = factory(); return (a) => inner(a).filter((s) => s.direction === 'LONG'); };
 
 const frozen = JSON.parse(readFileSync(join(ROOT, 'config', 'strategy-candidate.json'), 'utf8'));
 const validation = readResult('validation');
-if (!validation) throw new Error('Run quant/scripts/run-validate.mjs first: the final test may only evaluate frozen configurations.');
-
-console.log(`Frozen candidate : ${frozen.chosenLabel}`);
-console.log(`Registered       : ${frozen.registeredForFinalTest.map((r) => r.id).join(', ')}`);
-console.log(`Primary          : ${frozen.primary}`);
-console.log(`FINAL TEST PERIOD: ${label(PERIODS.finalTest)}  — opened now, for the first time.`);
-
-const ds = loadGoldDataset(DIR);
-const ctx = buildContext({ m15: ds.m15, h1: ds.h1, h4: ds.h4, d1: ds.d1, macro: { dxy: ds.dxy } });
-const events = buildCalendar(ds.h1.candles[0].openTime, ds.h1.candles.at(-1).closeTime);
-const costNews = makeNewsWindow(events, { beforeMin: 10, afterMin: 20 });
+if (!validation) throw new Error('Run quant/scripts/run-validate.mjs first.');
 
 const STRATEGIES = {
-  'production-baseline': { fn: () => productionSwing(), risk: RISK },
-  'baseline-no-macro': { fn: () => productionSwing({ weights: frozen.noMacroWeights }), risk: RISK },
-  'setup-candidate': { fn: () => setupStrategy(frozen.strategy), risk: SOLO_RISK },
-  'production-scalp': { fn: () => productionScalp(), risk: RISK },
-  'control-ema-cross': { fn: () => emaCrossBaseline(), risk: RISK },
-  'control-trend-follow': { fn: () => trendFollowBaseline(), risk: RISK },
-  'control-random-entry': { fn: () => randomEntryBaseline({ probability: 0.02 }), risk: RISK },
+  'baseline-long-only': { make: longFilter(() => S.productionSwing()), risk: RISK },
+  'production-baseline': { make: () => S.productionSwing(), risk: RISK },
+  'setups-long-only': { make: () => S.setupStrategy({ enabled: LONGS }), risk: SOLO_RISK },
+  'setup-C-only': { make: () => S.setupStrategy({ enabled: ['C_PULLBACK_LONG'] }), risk: SOLO_RISK },
+  'production-scalp': { make: () => S.productionScalp(), risk: RISK },
+  'control-random-100pct-long': { make: () => S.matchedRandomBaseline({ probability: 0.02, longProbability: 1 }), risk: RISK },
+  'control-random-5050': { make: () => S.randomEntryBaseline({ probability: 0.02 }), risk: RISK },
+  'control-long-when-d1-bullish': { make: () => S.dailyBiasBaseline({ probability: 0.02, allowShort: false }), risk: RISK },
+  'control-ema-cross': { make: () => S.emaCrossBaseline(), risk: RISK },
 };
+const primary = frozen.primary ?? 'baseline-long-only';
 
-const go = (name, period, execution = 'realistic') => runBacktest({
-  ctx, strategy: STRATEGIES[name].fn(), execution, risk: STRATEGIES[name].risk,
-  newsWindow: costNews, fromMs: period.from, toMs: period.to,
-});
-const M = (trades) => computeMetrics(trades, { accountSize: RISK.accountSize });
-
-step(`Final test — ${label(PERIODS.finalTest)}, realistic costs`);
-const finalRuns = {};
-const finalMetrics = {};
-for (const name of Object.keys(STRATEGIES)) {
-  const r = go(name, PERIODS.finalTest);
-  finalRuns[name] = r;
-  finalMetrics[name] = M(r.trades);
-  console.log(`  ${name.padEnd(22)}`, JSON.stringify(brief(finalMetrics[name])));
+step(`Final test — ${label(PERIODS.finalTest)} (${PERIODS.finalTest.feed} feed), realistic costs`);
+const finalRuns = {}, finalMetrics = {};
+for (const [name, spec] of Object.entries(STRATEGIES)) {
+  const t = runIn(PERIODS.finalTest, spec.make(), { risk: spec.risk }).trades;
+  finalRuns[name] = t;
+  finalMetrics[name] = M(t);
+  console.log(`  ${name.padEnd(30)} ${JSON.stringify(brief(finalMetrics[name]))}`);
 }
 
-step('Same configurations across every period, for comparison');
+step('Every configuration across all three periods');
 const acrossPeriods = {};
-for (const name of ['production-baseline', 'baseline-no-macro', 'setup-candidate', 'production-scalp']) {
-  acrossPeriods[name] = {
-    development: M(go(name, PERIODS.development).trades),
-    validation: M(go(name, PERIODS.validation).trades),
-    finalTest: finalMetrics[name],
-  };
-  console.log(`  ${name}`);
-  for (const [p, m] of Object.entries(acrossPeriods[name])) {
-    console.log(`    ${p.padEnd(12)} ${JSON.stringify(brief(m))}`);
+for (const name of Object.keys(STRATEGIES)) {
+  acrossPeriods[name] = {};
+  for (const [pn, p] of Object.entries(PERIODS)) {
+    acrossPeriods[name][pn] = brief(M(runIn(p, STRATEGIES[name].make(), { risk: STRATEGIES[name].risk }).trades));
   }
 }
-
-const primary = frozen.primary;
-step(`Primary configuration (${primary}) under every cost scenario, final test`);
-const finalCostScenarios = {};
-for (const s of Object.keys(SCENARIOS)) {
-  finalCostScenarios[s] = M(go(primary, PERIODS.finalTest, s).trades);
-  console.log(`  ${s.padEnd(14)}`, JSON.stringify(brief(finalCostScenarios[s])));
+for (const [name, per] of Object.entries(acrossPeriods)) {
+  console.log(`  ${name.padEnd(30)} ` + Object.entries(per).map(([k, m]) => `${k.slice(0, 5)} ${String(m.trades).padStart(4)} ${(m.expectancy >= 0 ? '+' : '')}${m.expectancy.toFixed(3)}R`).join(' | '));
 }
 
-step('Conditional breakdown of the primary configuration on the final test');
-const pTrades = finalRuns[primary].trades;
+step(`Primary (${primary}) under every cost scenario, final test`);
+const finalCostScenarios = {};
+for (const s of Object.keys(SCENARIOS)) {
+  finalCostScenarios[s] = M(runIn(PERIODS.finalTest, STRATEGIES[primary].make(), { risk: STRATEGIES[primary].risk, execution: s }).trades);
+  console.log(`  ${s.padEnd(14)} ${JSON.stringify(brief(finalCostScenarios[s]))}`);
+}
+
+step('Conditional breakdown of the primary on the final test');
+const pTrades = finalRuns[primary];
 const G = (fn) => groupMetrics(pTrades, fn, { accountSize: RISK.accountSize });
 const finalConditional = {
   byDirection: G((t) => t.direction),
@@ -110,82 +79,96 @@ const finalConditional = {
   byNews: G((t) => (t.meta.inNews ? 'IN_NEWS_WINDOW' : 'OUTSIDE')),
 };
 for (const [k, obj] of Object.entries(finalConditional)) {
-  console.log(`  ${k}`);
-  for (const [g, m] of Object.entries(obj)) {
-    if (m.trades < 5) continue;
-    console.log(`    ${g.padEnd(20)} n=${String(m.trades).padStart(4)} exp=${String(r4(m.expectancy)).padStart(9)} pf=${String(r4(m.profitFactor)).padStart(7)}`);
-  }
+  const rows = Object.entries(obj).filter(([, m]) => m.trades >= 10).sort((a, b) => b[1].expectancy - a[1].expectancy);
+  console.log(`  ${k}: ` + rows.map(([g, m]) => `${g} n=${m.trades} ${(m.expectancy >= 0 ? '+' : '')}${m.expectancy.toFixed(3)}R`).join('  |  '));
 }
 
-step('Monte Carlo on the final-test trades of the primary configuration');
-const finalMc = monteCarlo(pTrades, { runs: 5000, mode: 'bootstrap', riskPct: 1, ruinPct: 50, tradesPerYear: 60 });
-console.log('  ', JSON.stringify({
-  medianFinalR: r4(finalMc.finalR?.median), pctPositive: r4(finalMc.finalR?.pctPositive),
-  medianDD: r4(finalMc.drawdownR?.median), p95DD: r4(finalMc.drawdownR?.p95),
-  pRuin: r4(finalMc.probabilityOfRuin?.pct), pNegativeYear: r4(finalMc.probabilityOfNegativeYear?.pct),
-}));
+// ---------------------------------------------------------------- EDGE_DECAY
+step('EDGE_DECAY — is the most recent unseen year still performing?');
+// Split the final test into its calendar years and compare the newest against
+// the pooled out-of-sample expectation. A strategy whose edge is fading shows it
+// here first.
+const years = {};
+for (let y = 2023; y <= 2025; y++) {
+  const t = runIn({ from: Date.UTC(y, 0, 1), to: Date.UTC(y, 11, 31, 23, 59, 59), feed: 'modern' }, STRATEGIES[primary].make(), { risk: STRATEGIES[primary].risk }).trades;
+  years[y] = { ...brief(M(t)) };
+  console.log(`  ${y}  ${JSON.stringify(years[y])}`);
+}
+const oosT = [
+  ...runIn(PERIODS.validation, STRATEGIES[primary].make(), { risk: STRATEGIES[primary].risk }).trades,
+  ...runIn(PERIODS.finalTest, STRATEGIES[primary].make(), { risk: STRATEGIES[primary].risk }).trades,
+];
+const oosM = M(oosT);
+const oosSig = significance(oosT.map((t) => t.rMultiple));
+const latest = years[2025];
+const latestSE = latest.trades > 1 && oosM.significance?.se ? oosM.significance.se * Math.sqrt(oosM.trades / latest.trades) : null;
+const z = latestSE ? (latest.expectancy - oosM.expectancy) / latestSE : null;
+const decay = {
+  latestYear: 2025, latest, pooledOutOfSample: brief(oosM),
+  zScore: r(z, 2),
+  status: z == null ? 'UNKNOWN' : z <= -2 ? 'EDGE_DECAY' : z <= -1 ? 'WATCH' : 'IN_LINE',
+};
+console.log(`  most recent year vs pooled out-of-sample: z = ${decay.zScore}  ->  ${decay.status}`);
+
+step('Monte Carlo on the primary\'s final-test trades');
+const finalMc = monteCarlo(pTrades, { runs: 5000, mode: 'bootstrap', riskPct: 1, ruinPct: 50, tradesPerYear: 75 });
+console.log(`  positive ${r(finalMc.finalR?.pctPositive, 1)}%  negative-year ${r(finalMc.probabilityOfNegativeYear?.pct, 1)}%  median DD ${r(finalMc.drawdownR?.median, 1)}R  ruin ${r(finalMc.probabilityOfRuin?.pct, 2)}%`);
 
 step('Phase 29 — final edge classification');
 const verdicts = {};
-for (const name of ['production-baseline', 'baseline-no-macro', 'setup-candidate']) {
-  const v = classifyEdge({
-    outOfSample: finalMetrics[name],
-    inSample: acrossPeriods[name].development,
+for (const name of ['baseline-long-only', 'production-baseline', 'setups-long-only', 'setup-C-only']) {
+  const oos = [
+    ...runIn(PERIODS.validation, STRATEGIES[name].make(), { risk: STRATEGIES[name].risk }).trades,
+    ...runIn(PERIODS.finalTest, STRATEGIES[name].make(), { risk: STRATEGIES[name].risk }).trades,
+  ];
+  verdicts[name] = classifyEdge({
+    outOfSample: computeMetrics(oos, { accountSize: RISK.accountSize }),
+    inSample: M(runIn(PERIODS.development, STRATEGIES[name].make(), { risk: STRATEGIES[name].risk }).trades),
     walkForward: validation.walkForward.summary,
     sensitivity: validation.sensitivity,
     costScenarios: name === primary ? finalCostScenarios : undefined,
   });
-  verdicts[name] = v;
-  console.log(`  ${name.padEnd(22)} ${v.verdict}  (${v.passed}/${v.total})`);
+  console.log(`  ${name.padEnd(30)} ${verdicts[name].verdict} (${verdicts[name].passed}/${verdicts[name].total})`);
 }
 const overall = verdicts[primary];
-console.log('\n  Checks for the primary configuration:');
-for (const c of overall.checks) {
-  console.log(`    [${c.pass ? 'PASS' : 'FAIL'}] ${c.name.padEnd(38)} actual=${c.actual} required ${c.required}`);
-}
+console.log('\n  Checks for the primary:');
+for (const c of overall.checks) console.log(`    [${c.pass ? 'PASS' : 'FAIL'}] ${c.name.padEnd(38)} actual=${c.actual} required ${c.required}`);
 console.log(`\n  FINAL VERDICT: ${overall.verdict}`);
 
 writeResult('final-test', {
-  period: label(PERIODS.finalTest),
-  frozenConfig: { chosenLabel: frozen.chosenLabel, primary, registered: frozen.registeredForFinalTest },
-  finalMetrics,
-  acrossPeriods,
-  finalCostScenarios,
-  finalConditional,
-  maeMfe: maeMfeStudy(pTrades),
-  monteCarlo: finalMc,
-  verdicts,
-  finalVerdict: overall.verdict,
-}, { period: 'FINAL TEST', note: 'Evaluated once, on frozen configurations. Nothing was selected using this period.' });
+  period: `${label(PERIODS.finalTest)} (${PERIODS.finalTest.feed} feed)`,
+  primary, finalMetrics: Object.fromEntries(Object.entries(finalMetrics).map(([k, v]) => [k, brief(v)])),
+  acrossPeriods, finalCostScenarios: Object.fromEntries(Object.entries(finalCostScenarios).map(([k, v]) => [k, brief(v)])),
+  finalConditional, maeMfe: maeMfeStudy(pTrades), monteCarlo: finalMc,
+  edgeDecay: decay,
+  outOfSample: { ...brief(oosM), ci95: oosSig.ci95?.map((x) => r(x, 4)) },
+  verdicts, finalVerdict: overall.verdict,
+}, { note: 'Frozen configurations evaluated on the final test. Nothing was selected using this period.' });
+
+// The dashboard is a web page, not an archive: downsample long equity curves so
+// the bundle stays reasonable. The full series live in trades-final.json.
+const downsample = (series, max = 400) => {
+  if (series.length <= max) return series;
+  const stride = Math.ceil(series.length / max);
+  const out = series.filter((_, i) => i % stride === 0);
+  if (out[out.length - 1] !== series[series.length - 1]) out.push(series[series.length - 1]);
+  return out;
+};
 
 writeResult('dashboard', {
   primary,
-  periods: {
-    development: label(PERIODS.development),
-    validation: label(PERIODS.validation),
-    finalTest: label(PERIODS.finalTest),
-  },
-  overview: finalMetrics,
+  verdict: overall.verdict,
+  periods: Object.fromEntries(Object.entries(PERIODS).map(([k, v]) => [k, `${label(v)} (${v.feed})`])),
+  overview: Object.fromEntries(Object.entries(finalMetrics).map(([k, v]) => [k, brief(v)])),
   acrossPeriods,
-  equity: Object.fromEntries(Object.entries(finalRuns).map(([k, r]) => [k, equitySeries(r.trades, { accountSize: RISK.accountSize })])),
-  histogram: Object.fromEntries(Object.entries(finalRuns).map(([k, r]) => [k, rHistogram(r.trades)])),
+  equity: Object.fromEntries(Object.entries(finalRuns).map(([k, t]) => [k, downsample(equitySeries(t, { accountSize: RISK.accountSize }))])),
+  histogram: Object.fromEntries(Object.entries(finalRuns).map(([k, t]) => [k, rHistogram(t)])),
   monthly: monthlyBreakdown(pTrades, { accountSize: RISK.accountSize }),
   conditional: finalConditional,
+  edgeDecay: decay,
+  calibration: validation.calibration,
+  walkForward: validation.walkForward,
   verdicts,
 });
-
 writeResult('trades-final', { trades: slimTrades(pTrades) }, { strategy: primary, period: label(PERIODS.finalTest) });
-
-writeFileSync(join(ROOT, 'config', 'strategy-final.json'), JSON.stringify({
-  id: 'final',
-  description: 'The configuration carried into the final test, frozen beforehand. Recorded regardless of the verdict.',
-  primary,
-  registered: frozen.registeredForFinalTest,
-  strategy: frozen.strategy,
-  noMacroWeights: frozen.noMacroWeights,
-  risk: RISK,
-  verdict: overall.verdict,
-  evaluatedAt: new Date().toISOString(),
-}, null, 2));
-
 console.log('\n-> quant/results/final-test.json, dashboard.json, trades-final.json');
