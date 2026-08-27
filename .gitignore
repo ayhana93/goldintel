@@ -30,3 +30,7 @@ dist-ssr
 .env
 .vite
 base44/.app.jsonc
+
+# quant research data: raw vendor files are re-fetchable via quant/scripts/fetch-data.mjs
+quant/data/cache/
+quant/data/normalized/
