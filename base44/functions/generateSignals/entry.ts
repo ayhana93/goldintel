@@ -37,22 +37,23 @@ function buildEmail(a, setup) {
   }
 
   const subject = `${tierLabel} ${emoji} XAU/USD ${setup.direction}`;
-  const body = [
-    'GOLD SIGNAL — XAU/USD',
-    '',
-    `${tierLabel}`,
-    `Open ${setup.direction}`,
-    '',
-    `TP1: ${f(plan.tp1)}`,
-    `TP2: ${f(plan.tp2)}`,
-    `TP3: ${f(plan.tp3)}`,
-    '',
-    `STOP LOSS: ${f(plan.sl)}`,
-    '',
-    probLine,
-    '',
-    'Paper trading · не е финансов съвет.',
-  ].join('\n');
+  const lines = [
+    '<div style="font-family: -apple-system, Segoe UI, Roboto, sans-serif; color:#1a1a1a; max-width:480px;">',
+    `<div style="font-size:12px; letter-spacing:2px; color:#888; margin-bottom:18px;">GOLD SIGNAL — XAU/USD</div>`,
+    `<div style="font-size:20px; font-weight:600; margin-bottom:4px;">${tierLabel}</div>`,
+    `<div style="font-size:22px; font-weight:700; color:${setup.direction === 'LONG' ? '#16a34a' : '#dc2626'}; margin-bottom:20px;">${emoji} Open ${setup.direction}</div>`,
+    `<table style="border-collapse:collapse; font-size:15px; margin-bottom:18px;">`,
+    `<tr><td style="padding:6px 0; color:#666;">TP1</td><td style="padding:6px 0 6px 24px; font-weight:600;">${f(plan.tp1)}</td></tr>`,
+    `<tr><td style="padding:6px 0; color:#666;">TP2</td><td style="padding:6px 0 6px 24px; font-weight:600;">${f(plan.tp2)}</td></tr>`,
+    `<tr><td style="padding:6px 0; color:#666;">TP3</td><td style="padding:6px 0 6px 24px; font-weight:600;">${f(plan.tp3)}</td></tr>`,
+    `</table>`,
+    `<div style="border-top:1px solid #eee; padding-top:12px; margin-bottom:6px;">`,
+    `<span style="color:#666; font-size:15px;">STOP LOSS&nbsp;&nbsp;</span><span style="font-weight:700; color:#dc2626; font-size:16px;">${f(plan.sl)}</span>`,
+    `</div>`,
+    `<div style="margin-top:18px; padding:10px 14px; background:#f5f5f4; border-radius:8px; font-size:14px; color:#1a1a1a;">${probLine}</div>`,
+    `<div style="margin-top:20px; font-size:12px; color:#999;">Paper trading · не е финансов съвет.</div>`,
+    '</div>',
+  ].join('');
   return { subject, body };
 }
 
