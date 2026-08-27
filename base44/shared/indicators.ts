@@ -1,6 +1,6 @@
 // Pure technical indicator calculations from OHLCV candle arrays.
 // Candle shape: { time, open, high, low, close, volume }
-// Server-side mirror of src/lib/indicators.js — keep in sync.
+// Keep in sync with src/lib/indicators.js — quant/test/mirror.test.js enforces it.
 
 export function ema(values, period) {
   if (values.length < period) return [];

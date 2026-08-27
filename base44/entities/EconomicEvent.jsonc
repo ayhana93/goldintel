@@ -30,6 +30,15 @@
     },
     "category": {
       "type": "string"
+    },
+    "precision": {
+      "type": "string",
+      "enum": [
+        "exact",
+        "approximate"
+      ],
+      "default": "exact",
+      "description": "How the timestamp was determined. 'exact' means the agency's published release rule fixes it; 'approximate' means the month is certain but the day follows the usual pattern. Only exact events are allowed to gate the strategy."
     }
   },
   "required": [

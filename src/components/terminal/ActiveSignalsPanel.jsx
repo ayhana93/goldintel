@@ -9,13 +9,16 @@ export default function ActiveSignalsPanel({ signals, onUpdated }) {
   // signals arrive newest-first. Per tier, prefer an ENTERED (ACTIVE) position so it stays
   // visible until closed — newer WATCHING signals of the same tier do not replace it.
   const list = signals || [];
-  const pick = (isScalp) => {
-    const tier = list.filter((s) => isScalp ? s.setup_key?.startsWith("SCALP-") : !s.setup_key?.startsWith("SCALP-"));
-    return tier.find((s) => s.status === "ACTIVE") ?? tier.find((s) => ACTIVE.includes(s.status));
-  };
-  const latestSwing = pick(false);
-  const latestScalp = pick(true);
-  const active = [latestSwing, latestScalp].filter(Boolean);
+  // One card per setup: an ENTERED position stays visible until it closes, and a
+  // newer WATCHING signal for the same setup does not displace it.
+  const bySetup = new Map();
+  for (const s of list) {
+    if (!ACTIVE.includes(s.status)) continue;
+    const key = s.setup_id ?? s.setup_key ?? s.id;
+    const existing = bySetup.get(key);
+    if (!existing || (existing.status !== "ACTIVE" && s.status === "ACTIVE")) bySetup.set(key, s);
+  }
+  const active = [...bySetup.values()].slice(0, 3);
   if (active.length === 0) return null;
 
   return (
@@ -33,10 +36,9 @@ function SignalRow({ signal, onUpdated }) {
   const [form, setForm] = useState({ outcome: "win", result_eur: "", notes: "" });
   const [error, setError] = useState(null);
   const s = signal;
-  const isScalp = s.setup_key?.startsWith("SCALP-");
   const isLong = s.direction === "LONG";
-  const term = isScalp ? "Short-term · Scalp (M15)" : "Long-term · Swing (H1)";
-  const termColor = isScalp ? "text-sky-400 border-sky-500/40" : "text-amber-400 border-amber-500/40";
+  const term = s.setup_name ?? "Swing (H1)";
+  const termColor = s.tier === "B" ? "text-sky-400 border-sky-500/40" : "text-amber-400 border-amber-500/40";
   const dirColor = isLong ? "text-emerald-400" : "text-red-400";
   const border = isLong ? "border-emerald-500/40" : "border-red-500/40";
   const entered = s.status === "ACTIVE";
@@ -154,7 +156,7 @@ function SignalRow({ signal, onUpdated }) {
   );
 }
 
-function Cell({ label, value, accent = "text-slate-100", small }) {
+function Cell({ label, value, accent = "text-slate-100", small = false }) {
   return (
     <div className="bg-[#0b0f17] px-3 py-2.5">
       <div className="font-mono text-[10px] uppercase tracking-wider text-slate-500">{label}</div>

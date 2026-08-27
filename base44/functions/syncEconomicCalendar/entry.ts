@@ -1,93 +1,66 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { buildCalendar } from '../../shared/calendar.ts';
 
-// Syncs upcoming economic events into the EconomicEvent entity using a web-search
-// LLM (Gemini) that pulls the real current calendar. Dedupes by name + event_time.
+// Populates EconomicEvent from a DETERMINISTIC schedule.
+//
+// The previous implementation asked a web-browsing LLM for exact release
+// timestamps and stored the answer as authoritative UTC datetimes. An LLM can
+// explain what CPI measures; it must not decide when CPI was published, and a
+// prompt that says "exact if known or best estimate" guarantees that some stored
+// timestamps are guesses indistinguishable from facts.
+//
+// Events now come from the agencies' own published release rules:
+//   Non-Farm Payrolls      first Friday, 08:30 US Eastern     precision: exact
+//   Initial Jobless Claims every Thursday, 08:30 US Eastern   precision: exact
+//   CPI / PPI / Retail Sales   usual day of month             precision: approximate
+//
+// Rate decisions are not rule-derivable and are deliberately absent rather than
+// invented; they belong to a structured calendar provider. Only 'exact' events
+// are allowed to gate anything in the strategy.
 
-const IMPACT_OK = new Set(['high', 'medium', 'low']);
+const HORIZON_DAYS = 14;
 
-export default async function(req) {
+export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const today = new Date();
-    const horizon = new Date(today.getTime() + 7 * 24 * 3600 * 1000);
-    const fmt = (d) => d.toISOString().slice(0, 10);
-
-    const prompt = `You are an economic calendar data agent. From current live web sources, list the upcoming HIGH and MEDIUM impact macroeconomic events scheduled between ${fmt(today)} and ${fmt(horizon)} that move gold (XAU/USD).
-
-Prioritize United States events (CPI, PCE, NFP, FOMC, GDP, retail sales, PMI, unemployment claims, Powell/Yellen/Bessent speeches, treasury auctions) and major central bank decisions (ECB, BOE, BOJ, RBA, SNB, BOC).
-
-For each event return: name, event_time (ISO 8601 UTC, exact if known or best estimate at the scheduled release time), importance ("high" or "medium"), forecast (string or null), previous (string or null), category (the ISO country code, e.g. USD, EUR, GBP, JPY).
-
-Only return events you can verify from current sources. Do NOT invent events. Return at most 40 events, soonest first.`;
-
-    const llm = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      prompt,
-      add_context_from_internet: true,
-      model: 'gemini_3_flash',
-      response_json_schema: {
-        type: 'object',
-        properties: {
-          events: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                name: { type: 'string' },
-                event_time: { type: 'string' },
-                importance: { type: 'string' },
-                forecast: { type: 'string' },
-                previous: { type: 'string' },
-                category: { type: 'string' },
-              },
-              required: ['name', 'event_time', 'importance'],
-            },
-          },
-        },
-        required: ['events'],
-      },
-    });
-
-    const raw = Array.isArray(llm.events) ? llm.events : [];
     const now = Date.now();
-    const upcoming = [];
+    const events = buildCalendar(now - 2 * 86_400_000, now + HORIZON_DAYS * 86_400_000);
 
-    for (const e of raw) {
-      const importance = (e.importance || '').toLowerCase();
-      if (!IMPACT_OK.has(importance) || importance === 'low') continue;
-      const ts = Date.parse(e.event_time);
-      if (isNaN(ts) || ts < now - 3600 * 1000) continue;
-      const clean = (v) => {
-        if (v == null) return null;
-        const s = String(v).trim();
-        if (!s || s.toLowerCase() === 'null') return null;
-        return s.slice(0, 50);
-      };
-      upcoming.push({
-        name: String(e.name || 'Event').slice(0, 200),
-        event_time: new Date(ts).toISOString(),
-        importance,
-        forecast: clean(e.forecast),
-        previous: clean(e.previous),
-        category: e.category ? String(e.category).slice(0, 8) : null,
+    const db = base44.asServiceRole.entities;
+    const existing = await db.EconomicEvent.list('-event_time', 500);
+    const seen = new Set(existing.map((x) => `${x.name}|${x.event_time}`));
+
+    const fresh = [];
+    for (const e of events) {
+      const iso = new Date(e.time).toISOString();
+      if (seen.has(`${e.name}|${iso}`)) continue;
+      fresh.push({
+        name: e.name,
+        event_time: iso,
+        importance: e.importance,
+        category: 'USD',
+        // Precision travels with the event so nothing downstream can mistake an
+        // inferred day for a published one.
+        precision: e.precision,
       });
     }
 
-    if (upcoming.length === 0) return Response.json({ synced: 0, reason: 'No upcoming events returned' });
-
-    const existing = await base44.asServiceRole.entities.EconomicEvent.list('-event_time', 500);
-    const seen = new Set(existing.map((x) => `${x.name}|${x.event_time}`));
-    const fresh = upcoming.filter((e) => !seen.has(`${e.name}|${e.event_time}`));
-
     let created = 0;
     if (fresh.length > 0) {
-      const r = await base44.asServiceRole.entities.EconomicEvent.bulkCreate(fresh);
+      const r = await db.EconomicEvent.bulkCreate(fresh);
       created = Array.isArray(r) ? r.length : fresh.length;
     }
 
-    return Response.json({ synced: created, totalUpcoming: upcoming.length });
+    return Response.json({
+      synced: created,
+      totalUpcoming: events.length,
+      exact: events.filter((e) => e.precision === 'exact').length,
+      approximate: events.filter((e) => e.precision === 'approximate').length,
+      source: 'deterministic release schedule (no LLM)',
+    });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
