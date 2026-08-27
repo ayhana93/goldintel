@@ -12,7 +12,11 @@
 //  * Historical win rate, expectancy, profit factor and sample size are reported
 //    separately, from quant/ backtests, and belong to the SETUP rather than to
 //    this particular signal.
-//  * Setups carry a tier assigned from OUT-OF-SAMPLE statistics only.
+//  * Setups carry a tier assigned from OUT-OF-SAMPLE statistics only, and a
+//    state: a setup with a negative out-of-sample record is DISABLED_NEGATIVE_EDGE
+//    and the engine will not emit it, however good the current evidence looks.
+//  * The default answer is NO TRADE. A signal is emitted only when EVERY gate in
+//    gating.ts passes. The evidence score is necessary but never sufficient.
 //  * The scalp tier is gone. Measured at -0.35R to -0.44R per trade across every
 //    period tested, with t = -6.8 on the final test.
 //
@@ -23,6 +27,7 @@ import { classifyStructure, emaTrendBias, findLevels, biasScore } from './struct
 import { closedCandles, developingCandle } from './marketFeed.ts';
 import { buildCalendar, newsRiskAt, sessionOf } from './calendar.ts';
 import { EDGE_STATS } from './edgeStats.ts';
+import { evaluateGates } from './gating.ts';
 
 export const WEIGHTS = {
   trend: 25, structure: 25, momentum: 12, support_resistance: 13, price_action: 10, macro: 15,
@@ -185,12 +190,25 @@ export function analyze(data, options = {}) {
       swingHigh: h1.structure.lastSwingHigh?.price,
     });
     const stats = EDGE_STATS.measured.setups[s.id] ?? null;
+    const evidence = s.direction === 'LONG' ? longScore : shortScore;
+    const gate = evaluateGates({
+      setup: s,
+      context: {
+        direction: s.direction, evidenceScore: evidence,
+        regime: regime.regime, session, newsRisk: newsRisk.level,
+        plan, atr: atrH1,
+      },
+      stats: EDGE_STATS,
+    });
     return {
       ...s,
       plan,
+      state: stats?.state ?? 'NO_MEASURED_HISTORY',
+      stateReason: stats?.stateReason ?? null,
+      gate,
       tier: stats?.tier ?? 'NO_TRADE',
       tierReason: stats?.tierReason ?? stats?.reason ?? 'No measured history.',
-      evidence: s.direction === 'LONG' ? longScore : shortScore,
+      evidence,
       // These belong to the SETUP's measured history, not to this signal.
       history: stats
         ? {
@@ -207,15 +225,24 @@ export function analyze(data, options = {}) {
     };
   });
 
-  // The primary signal is the highest-tier setup with a usable plan. A setup the
-  // statistics rate NO_TRADE is not shown as an opportunity.
+  // The default is NO TRADE. Only a setup that clears every gate becomes the
+  // primary signal; among those, the best measured expectancy wins.
   const TIER_RANK = { 'A+': 0, A: 1, B: 2, C: 3, NO_TRADE: 4 };
-  const tradable = setups.filter((s) => s.plan && s.tier !== 'NO_TRADE');
+  const tradable = setups.filter((s) => s.plan && s.gate.tradable);
   tradable.sort((a, b) => TIER_RANK[a.tier] - TIER_RANK[b.tier] || (b.expectedValueR ?? -9) - (a.expectedValueR ?? -9));
   const primary = tradable[0] ?? null;
 
   if (setups.length > 0 && tradable.length === 0) {
-    reasonsAgainst.push(`${setups.length} setup condition(s) hold, but none of them has measured evidence above the NO_TRADE threshold`);
+    // Report WHY, not just that. The blocking reasons are the useful output when
+    // the answer is no, and the answer is usually no.
+    const blocks = new Map();
+    for (const s of setups) {
+      for (const b of s.gate.blockedBy) blocks.set(b, (blocks.get(b) ?? 0) + 1);
+    }
+    reasonsAgainst.push(
+      `${setups.length} setup condition(s) hold but none is tradable — blocked by: ` +
+      [...blocks.entries()].map(([k, n]) => `${k}${n > 1 ? ` (${n})` : ''}`).join(', ')
+    );
   }
 
   return {
@@ -239,6 +266,13 @@ export function analyze(data, options = {}) {
     // Legacy field names the existing UI still reads. Same numbers, honest names above.
     longScore, shortScore, breakdown, conflict,
     direction: primary?.direction ?? 'NO_TRADE',
+    // Present even when a signal fires, so the UI can always show what was checked.
+    gateSummary: {
+      allowedDirections: EDGE_STATS.gating.allowedDirections,
+      paperTradingOnly: EDGE_STATS.gating.paperTradingOnly,
+      thresholds: EDGE_STATS.gating.thresholds,
+      blocked: setups.filter((s) => !s.gate.tradable).map((s) => ({ id: s.id, direction: s.direction, blockedBy: s.gate.blockedBy, reasons: s.gate.reasons })),
+    },
     regime: regime.regime,
     volState: regime.volState,
     volRatio,
