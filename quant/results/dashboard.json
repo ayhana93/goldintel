@@ -1,7 +1,7 @@
 {
   "_provenance": {
-    "generatedAt": "2026-08-27T16:28:42.464Z",
-    "codeRevision": "47d205c",
+    "generatedAt": "2026-08-27T16:36:16.168Z",
+    "codeRevision": "90f7f26",
     "dataFingerprint": "legacy:XAUUSD_M15:4a179fd4 legacy:XAUUSD_H1:4c9ff7b1 legacy:XAUUSD_H4:db5a98c6 legacy:XAUUSD_D1:d3da2122 legacy:EURUSD_H1:1b29ca23 legacy:USDJPY_H1:4bdca353 legacy:GBPUSD_H1:affda7b6 legacy:USDCAD_H1:ef4ff565 legacy:USDCHF_H1:82e3f4cb modern:XAUUSD_M15:97dc307a modern:XAUUSD_H1:aec7009a modern:XAUUSD_H4:8e924230 modern:XAUUSD_D1:1c66a195 modern:EURUSD_H1:3a129445 modern:GBPUSD_H1:76278930 modern:USDCAD_H1:64e4a8f6 modern:USDCHF_H1:759c2b6f modern:AUDUSD_H1:de481ada"
   },
   "primary": "baseline-long-only",

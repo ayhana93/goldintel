@@ -1,13 +1,20 @@
 {
   "id": "baseline",
-  "description": "Production GoldIntel engine reproduced as shipped: 0-100 evidence score, threshold 70 for swing and 58 for scalp, production stop and target construction.",
+  "description": "Production GoldIntel engine reproduced as shipped: 0-100 evidence score, threshold 70 for swing and 58 for scalp, production stop and target construction, BOTH directions. Never tuned. This is the control every candidate is measured against.",
   "swing": {
     "threshold": 70,
     "stopPolicy": "production",
     "targetPolicy": "production",
     "minRR": 2,
     "rrLeg": "rr3",
-    "weights": { "trend": 25, "structure": 25, "momentum": 12, "support_resistance": 13, "price_action": 10, "macro": 15 }
+    "weights": {
+      "trend": 25,
+      "structure": 25,
+      "momentum": 12,
+      "support_resistance": 13,
+      "price_action": 10,
+      "macro": 15
+    }
   },
   "scalp": {
     "threshold": 58,
@@ -22,5 +29,6 @@
     "maxConcurrentTrades": 2,
     "maxConsecutiveLosses": 4,
     "cooldownHours": 24
-  }
+  },
+  "note": "The primary candidate differs from this in exactly one way: shorts are disabled. That single change is worth +0.171R against -0.118R out of sample."
 }

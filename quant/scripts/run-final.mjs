@@ -7,7 +7,7 @@
 // one of them including the losers, and checks whether the edge is decaying on
 // the most recent slice of unseen data.
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { runIn, M, brief, RISK, SOLO_RISK, PERIODS } from '../src/research.js';
 import * as S from '../src/backtest/strategies.js';
@@ -171,4 +171,23 @@ writeResult('dashboard', {
   verdicts,
 });
 writeResult('trades-final', { trades: slimTrades(pTrades) }, { strategy: primary, period: label(PERIODS.finalTest) });
+
+// Phase 27 — record what was actually carried into the final test, whatever the
+// verdict turned out to be.
+writeFileSync(join(ROOT, 'config', 'strategy-final.json'), JSON.stringify({
+  id: 'final',
+  description: 'The configuration carried into the final test, frozen beforehand. Recorded regardless of the verdict.',
+  primary,
+  rationale: frozen.rationale,
+  registered: Object.keys(STRATEGIES).filter((k) => !k.startsWith('control-')),
+  controls: Object.keys(STRATEGIES).filter((k) => k.startsWith('control-')),
+  periods: Object.fromEntries(Object.entries(PERIODS).map(([k, v]) => [k, `${label(v)} (${v.feed})`])),
+  execution: 'realistic',
+  risk: RISK,
+  verdict: overall.verdict,
+  outOfSample: { ...brief(oosM), ci95: oosSig.ci95?.map((x) => r(x, 4)) },
+  finalTest: brief(finalMetrics[primary]),
+  caveat: 'Walk-forward consistency is 35% on the 2012-2019 era against 75% on 2020-2025. The evidence is era-specific.',
+  evaluatedAt: new Date().toISOString(),
+}, null, 2));
 console.log('\n-> quant/results/final-test.json, dashboard.json, trades-final.json');
