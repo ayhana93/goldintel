@@ -21,49 +21,37 @@ function recipientFor(user) {
 
 function buildEmail(a, setup) {
   const f = (v) => (v != null ? v.toFixed(1) : '—');
-  const pct = (v) => (v != null ? `${v.toFixed(1)}%` : '—');
-  const r = (v) => (v != null ? `${v >= 0 ? '+' : ''}${v.toFixed(3)}R` : '—');
   const emoji = setup.direction === 'LONG' ? '🟢' : '🔴';
-  const oos = setup.history?.outOfSample;
   const plan = setup.plan;
+  const oos = setup.history?.outOfSample;
+  const tierLabel = String(setup.tier).toUpperCase() === 'SCALP' ? 'Scalp' : 'Swing';
 
-  const subject = `📝 PAPER · XAU/USD ${setup.direction} · ${setup.name} · tier ${setup.tier}`;
+  // Probability the setup plays out as described. Prefer the measured out-of-sample
+  // win rate (real historical hit rate); fall back to the evidence score with an
+  // honest note when no history exists.
+  let probLine;
+  if (oos && oos.trades > 0) {
+    probLine = `Вероятност да се реализира: ${oos.winRate.toFixed(0)}%  (на база ${oos.trades} исторически теста)`;
+  } else {
+    probLine = `Вероятност да се реализира: не може да се оцени (няма исторически данни). Сигнал скор: ${setup.evidence}/100`;
+  }
+
+  const subject = `${tierLabel} ${emoji} XAU/USD ${setup.direction}`;
   const body = [
-    'GOLD SIGNAL — XAU/USD — PAPER TRADING ONLY',
+    'GOLD SIGNAL — XAU/USD',
     '',
-    `${emoji} ${setup.direction}   Setup: ${setup.name} (${setup.id})`,
-    `Evidence tier: ${setup.tier}`,
+    `${tierLabel}`,
+    `Open ${setup.direction}`,
     '',
-    '— WHAT THE EVIDENCE SAYS NOW —',
-    `Evidence score: ${setup.evidence}/100  (weight of directional evidence, NOT a probability)`,
-    `Regime: ${a.regime}   Volatility: ${a.volState}   Session: ${a.session}`,
-    `News risk: ${a.newsRisk?.level ?? '—'}`,
+    `TP1: ${f(plan.tp1)}`,
+    `TP2: ${f(plan.tp2)}`,
+    `TP3: ${f(plan.tp3)}`,
     '',
-    '— WHAT THE HISTORY SAYS ABOUT THIS SETUP —',
-    oos
-      ? [
-          `Out-of-sample sample size: ${oos.trades} trades`,
-          `Out-of-sample win rate:    ${pct(oos.winRate)}`,
-          `Out-of-sample expectancy:  ${r(oos.expectancy)} per trade, after realistic costs`,
-          `Out-of-sample profit factor: ${oos.profitFactor ?? '—'}`,
-          `Max drawdown:              ${oos.maxDrawdownR ?? '—'}R`,
-          `p(edge <= 0):              ${oos.p ?? '—'}`,
-        ].join('\n')
-      : 'No measured out-of-sample history for this setup.',
+    `STOP LOSS: ${f(plan.sl)}`,
     '',
-    '— THE PLAN —',
-    `Reference price (last CLOSED H1 close): ${f(a.price)}`,
-    `Live quote at signal time: ${f(a.livePrice)}`,
-    `Stop loss: ${f(plan.sl)}   (risk ${f(plan.risk)} per ounce)`,
-    `TP1: ${f(plan.tp1)} (1R)   TP2: ${f(plan.tp2)} (2R)   TP3: ${f(plan.tp3)} (3R)`,
-    `Invalidation: ${setup.invalidation ?? '—'}`,
-    `Valid until: ${new Date(a.signalValidUntil).toISOString()} (re-evaluated on the next H1 close)`,
+    probLine,
     '',
-    '— WHY THIS IS PAPER ONLY —',
-    `System verdict: ${EDGE_STATS.verdict}`,
-    EDGE_STATS.gating.swingReason,
-    '',
-    'This is research output, not financial advice, and not a recommendation to trade.',
+    'Paper trading · не е финансов съвет.',
   ].join('\n');
   return { subject, body };
 }
