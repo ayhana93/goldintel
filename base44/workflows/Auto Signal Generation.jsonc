@@ -5,9 +5,9 @@
       "trigger_type": "scheduled",
       "events": [],
       "schedule_mode": "recurring",
-      "cron_expression": "*/5 * * * *",
+      "cron_expression": "2 * * * *",
       "one_time_date": null,
-      "timezone": "Europe/Sofia",
+      "timezone": "UTC",
       "interval_value": null,
       "interval_unit": null,
       "interval_anchor": null,
@@ -20,7 +20,7 @@
     "document": {
       "dsl": "1.0.0",
       "name": "auto_signal_generation",
-      "version": "1.0",
+      "version": "2.0",
       "namespace": "base44"
     },
     "do": [
@@ -31,15 +31,29 @@
             "function_name": "generateSignals",
             "args": {}
           },
+          "then": "resolve_paper_trades",
+          "x-base44": {
+            "title": "Generate signals",
+            "description": "Analyse closed candles and record any setup that clears its evidence tier"
+          }
+        }
+      },
+      {
+        "resolve_paper_trades": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "resolvePaperTrades",
+            "args": {}
+          },
           "then": "end",
           "x-base44": {
-            "title": "\u0413\u0435\u043d\u0435\u0440\u0438\u0440\u0430\u0439 \u0441\u0438\u0433\u043d\u0430\u043b\u0438",
-            "description": "\u0410\u043d\u0430\u043b\u0438\u0437 + \u0438\u043c\u0435\u0439\u043b \u043f\u0440\u0438 \u043d\u043e\u0432 \u0441\u0438\u0433\u043d\u0430\u043b"
+            "title": "Resolve paper trades",
+            "description": "Walk open paper trades forward through closed candles and record MAE, MFE and realized R"
           }
         }
       }
     ]
   },
-  "description": "\u041f\u0440\u043e\u0432\u0435\u0440\u044f\u0432\u0430 \u043f\u0430\u0437\u0430\u0440\u0430 \u043d\u0430 \u0432\u0441\u0435\u043a\u0438 5 \u043c\u0438\u043d\u0443\u0442\u0438, \u0433\u0435\u043d\u0435\u0440\u0438\u0440\u0430 XAU/USD \u0441\u0438\u0433\u043d\u0430\u043b\u0438 \u0438 \u0438\u0437\u043f\u0440\u0430\u0449\u0430 \u0438\u043c\u0435\u0439\u043b \u0438\u0437\u0432\u0435\u0441\u0442\u0438\u044f \u2014 \u0440\u0430\u0431\u043e\u0442\u0438 \u0438 \u043a\u043e\u0433\u0430\u0442\u043e \u043f\u0440\u0438\u043b\u043e\u0436\u0435\u043d\u0438\u0435\u0442\u043e \u0435 \u0437\u0430\u0442\u0432\u043e\u0440\u0435\u043d\u043e.",
+  "description": "Runs two minutes after each hour, once the H1 candle has closed. Decisions only change on a closed H1 bar, so running more often produced repaints rather than information. Generates signals, then resolves open paper trades so the system accumulates falsifiable evidence about itself.",
   "name": "Auto Signal Generation"
 }

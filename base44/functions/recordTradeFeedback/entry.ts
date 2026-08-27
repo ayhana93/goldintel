@@ -1,7 +1,13 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 
-// Records a trader's win/loss feedback on a signal, analyzes it with an LLM
-// into a concise lesson + tags, persists both, and updates the signal status.
+// Records the trader's own outcome on a signal and asks an LLM for a short
+// lesson to go with it.
+//
+// The LLM output is COMMENTARY and is stored as such. It is not evidence, it is
+// not a probability, and nothing in the strategy reads it. The objective record
+// of what a signal did lives in PaperTrade, written by resolvePaperTrades from
+// closed candles - which is why this function no longer writes result_r or
+// overwrites a status that has already been resolved objectively.
 
 const num = (v) => (typeof v === 'number' && isFinite(v) ? v : null);
 const txt = (v, max = 500) => (typeof v === 'string' ? v.slice(0, max) : '');
@@ -41,6 +47,7 @@ export default async function(req) {
     };
 
     const prompt = `You are a trading performance coach analyzing one closed XAU/USD trade outcome.
+Your answer is commentary for the trader to read. It will not be used as evidence, as a probability, or as an input to any trading rule.
 Produce ONE concise, actionable lesson (max 220 chars) the trader can reuse in future similar setups, plus 1-3 short tags (lowercase, hyphenated) capturing the recurring condition.
 
 Signal context: ${JSON.stringify(ctx)}
@@ -77,11 +84,15 @@ Respond with JSON only: {"lesson": string, "tags": string[]}`;
       tags,
     });
 
-    // Update the signal status to reflect the realized outcome
-    const statusMap = { win: 'TP1_HIT', loss: 'STOPPED', breakeven: 'INVALIDATED' };
-    await base44.asServiceRole.entities.Signal.update(signalId, {
-      status: statusMap[outcome],
-    });
+    // Only advance a signal that has not already been resolved objectively by
+    // resolvePaperTrades. The trader's report is about their own execution; the
+    // paper record is about what the rules would have produced, and the two must
+    // not overwrite each other.
+    const RESOLVED = ['TP1_HIT', 'TP2_HIT', 'TP3_HIT', 'STOPPED', 'INVALIDATED', 'EXPIRED'];
+    if (!RESOLVED.includes(signal.status)) {
+      const statusMap = { win: 'TP1_HIT', loss: 'STOPPED', breakeven: 'INVALIDATED' };
+      await base44.asServiceRole.entities.Signal.update(signalId, { status: statusMap[outcome] });
+    }
 
     return Response.json({ ok: true, lesson, tags, feedback });
   } catch (error) {

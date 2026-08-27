@@ -1,0 +1,60 @@
+{
+  "name": "PaperTrade",
+  "type": "object",
+  "description": "A simulated execution of a live signal. Phase 30: every signal the engine produces is traded on paper, with the same spread, slippage and commission assumptions the backtest used, so live behaviour can be compared with backtested expectations before any real capital is involved.",
+  "properties": {
+    "signal_id": { "type": "string", "description": "The Signal this simulates" },
+    "setup_id": { "type": "string", "description": "Which of the eight named setups fired, e.g. C_PULLBACK_LONG" },
+    "setup_name": { "type": "string" },
+    "tier": { "type": "string", "enum": ["A+", "A", "B", "C", "NO_TRADE"], "description": "Evidence tier from out-of-sample statistics at the time the signal was produced" },
+    "direction": { "type": "string", "enum": ["LONG", "SHORT"] },
+    "status": { "type": "string", "enum": ["PENDING", "OPEN", "CLOSED"], "default": "PENDING" },
+
+    "signal_time": { "type": "string", "format": "date-time", "description": "Close time of the H1 bar the decision was made on (UTC)" },
+    "signal_price": { "type": "number", "description": "Close of that bar - the price the plan was built from" },
+    "market_price_at_signal": { "type": "number", "description": "Live quote when the signal was generated, for measuring drift" },
+    "entry_time": { "type": "string", "format": "date-time" },
+    "entry_price": { "type": "number", "description": "Simulated fill, including half-spread and slippage" },
+    "latency_ms": { "type": "number", "description": "Time between the decision bar closing and the signal being produced" },
+
+    "stop_loss": { "type": "number" },
+    "tp1": { "type": "number" },
+    "tp2": { "type": "number" },
+    "tp3": { "type": "number" },
+    "risk_price": { "type": "number", "description": "Stop distance in dollars per ounce" },
+
+    "account_size": { "type": "number" },
+    "risk_pct": { "type": "number" },
+    "units": { "type": "number", "description": "Ounces, sized from account risk / stop distance - never from the score" },
+    "risk_amount": { "type": "number" },
+
+    "assumed_spread": { "type": "number" },
+    "assumed_slippage": { "type": "number" },
+    "assumed_commission_per_unit": { "type": "number" },
+
+    "tp1_hit": { "type": "boolean", "default": false },
+    "tp2_hit": { "type": "boolean", "default": false },
+    "tp3_hit": { "type": "boolean", "default": false },
+    "mae_r": { "type": "number", "description": "Maximum adverse excursion, in R" },
+    "mfe_r": { "type": "number", "description": "Maximum favourable excursion, in R" },
+
+    "exit_time": { "type": "string", "format": "date-time" },
+    "exit_price": { "type": "number" },
+    "exit_reason": { "type": "string", "enum": ["STOP", "STOP_AFTER_TP1", "TP1", "TP2", "TP3", "TIME_EXIT", "EXPIRED", "OPEN"] },
+    "realized_r": { "type": "number" },
+    "realized_pnl": { "type": "number" },
+
+    "evidence_long": { "type": "number" },
+    "evidence_short": { "type": "number" },
+    "regime": { "type": "string" },
+    "vol_state": { "type": "string" },
+    "session": { "type": "string" },
+    "news_risk": { "type": "string" },
+
+    "expected_r": { "type": "number", "description": "Out-of-sample expectancy of this setup at signal time - the backtested expectation this trade will be scored against" },
+    "historical_win_rate": { "type": "number" },
+    "historical_sample": { "type": "number" },
+    "last_checked": { "type": "string", "format": "date-time" }
+  },
+  "required": ["setup_id", "direction", "signal_time", "signal_price"]
+}

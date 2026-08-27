@@ -12,6 +12,8 @@ import HistoryPanel from "@/components/terminal/HistoryPanel";
 import PositionCalculator from "@/components/terminal/PositionCalculator";
 import FeedbackPanel from "@/components/terminal/FeedbackPanel";
 import ActiveSignalsPanel from "@/components/terminal/ActiveSignalsPanel";
+import PaperTradingPanel from "@/components/terminal/PaperTradingPanel";
+import { Link } from "react-router-dom";
 
 export default function Dashboard() {
   const [data, setData] = useState(null);
@@ -80,7 +82,9 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#070a10] text-slate-200">
       <TopBar
-        price={gold?.status === "ok" ? gold.price : null}
+        price={gold?.status === "ok" ? gold.livePrice : null}
+        referencePrice={gold?.referencePrice}
+        referenceTime={gold?.referenceTime}
         previousClose={gold?.previousClose}
         fetchedAt={gold?.fetchedAt}
         onRefresh={refresh}
@@ -88,6 +92,12 @@ export default function Dashboard() {
         onIntervalChange={updateInterval}
       />
       <div className="mx-auto max-w-[1400px] space-y-3 p-3 lg:p-4">
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-slate-500">Live terminal</span>
+            <Link to="/backtest" className="border border-[#2a3348] px-3 py-1 font-mono text-[11px] uppercase tracking-wider text-amber-400 hover:border-amber-500/50">
+              Backtest report →
+            </Link>
+          </div>
           <ActiveSignalsPanel signals={signals} onUpdated={loadHistory} />
           <SignalCard analysis={analysis} />
           <div className="grid gap-3 lg:grid-cols-3">
@@ -95,6 +105,7 @@ export default function Dashboard() {
               {analysis?.available && (
                 <CandleChart timeframes={gold.timeframes} levels={analysis.levels} setup={analysis.setup} />
               )}
+              <PaperTradingPanel />
               <HistoryPanel signals={signals} />
               <FeedbackPanel signals={signals} currentRegime={analysis?.regime} />
             </div>
@@ -107,9 +118,11 @@ export default function Dashboard() {
             </div>
           </div>
           <p className="px-1 pb-4 text-[10px] leading-relaxed text-slate-600">
-            All market data is fetched live from real providers ({gold?.symbol === "GC=F" ? "COMEX gold futures as spot proxy" : "spot feed"}, ICE DXY, US 10Y Treasury).
-            Nothing on this page is fabricated: unavailable feeds are shown as DATA UNAVAILABLE and signal generation is disabled without them.
-            Signals are decision-support information, not financial advice.
+            Market data comes from a development-grade provider ({gold?.symbol === "GC=F" ? "COMEX gold futures as a spot proxy" : "spot feed"}, ICE DXY, US 10Y Treasury),
+            normalised to UTC. Analysis runs on CLOSED candles only, so the same rules produce the same answer at any point within the hour.
+            Nothing here is fabricated: unavailable feeds are shown as DATA UNAVAILABLE and signal generation stops without them.
+            The system is in paper-trading mode — see the <Link to="/backtest" className="text-amber-500 underline">backtest report</Link> for
+            what the strategy actually achieved and why. Research output, not financial advice.
           </p>
         </div>
     </div>

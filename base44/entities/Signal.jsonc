@@ -2,6 +2,69 @@
   "name": "Signal",
   "type": "object",
   "properties": {
+    "setup_id": {
+      "type": "string",
+      "description": "Which named setup fired, e.g. C_PULLBACK_LONG. Empty for score-only signals."
+    },
+    "setup_name": {
+      "type": "string"
+    },
+    "tier": {
+      "type": "string",
+      "enum": [
+        "A+",
+        "A",
+        "B",
+        "C",
+        "NO_TRADE"
+      ],
+      "description": "Evidence tier assigned from out-of-sample backtest statistics, not from wording"
+    },
+    "evidence_score": {
+      "type": "number",
+      "description": "0-100 weight of directional evidence. NOT a probability: long and short always sum to 100, so 50 means no information."
+    },
+    "expected_r": {
+      "type": "number",
+      "description": "Out-of-sample expectancy of this setup in R, from quant/ backtests"
+    },
+    "historical_win_rate": {
+      "type": "number",
+      "description": "Measured out-of-sample win rate of this setup, as a percentage"
+    },
+    "historical_sample": {
+      "type": "number",
+      "description": "Number of out-of-sample trades behind the statistics above"
+    },
+    "historical_profit_factor": {
+      "type": "number"
+    },
+    "reference_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Close time of the CLOSED H1 bar the decision was made on (UTC)"
+    },
+    "live_price_at_signal": {
+      "type": "number",
+      "description": "Live quote when the signal was produced, for measuring drift from the reference close"
+    },
+    "session": {
+      "type": "string"
+    },
+    "vol_state": {
+      "type": "string"
+    },
+    "news_risk": {
+      "type": "string"
+    },
+    "valid_until": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The signal is re-evaluated on the next H1 close; after this it is stale by construction"
+    },
+    "data_source": {
+      "type": "string"
+    },
     "setup_key": {
       "type": "string",
       "description": "Unique key identifying the underlying setup, used to prevent duplicate signals"
@@ -54,7 +117,8 @@
       "type": "number"
     },
     "confidence": {
-      "type": "number"
+      "type": "number",
+      "description": "DEPRECATED - kept so existing records still parse. Use evidence_score. This was never a probability."
     },
     "regime": {
       "type": "string"

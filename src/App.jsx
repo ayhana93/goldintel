@@ -1,3 +1,4 @@
+import { Suspense, lazy } from 'react';
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
@@ -14,6 +15,9 @@ import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
+// The backtest report bundles the generated result set, so it is code-split:
+// the live terminal should not pay for a page most visits never open.
+const BacktestDashboard = lazy(() => import('./pages/BacktestDashboard'));
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -48,6 +52,14 @@ const AuthenticatedApp = () => {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route path="/" element={<Dashboard />} />
+        <Route
+          path="/backtest"
+          element={
+            <Suspense fallback={<div className="min-h-screen bg-[#070a10] p-6 font-mono text-xs text-slate-500">Loading backtest report…</div>}>
+              <BacktestDashboard />
+            </Suspense>
+          }
+        />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

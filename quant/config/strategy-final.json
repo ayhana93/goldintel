@@ -1,0 +1,52 @@
+{
+  "id": "final",
+  "description": "The configuration carried into the final test, frozen beforehand. Recorded regardless of the verdict.",
+  "primary": "production-baseline",
+  "registered": [
+    {
+      "id": "production-baseline",
+      "description": "GoldIntel as shipped"
+    },
+    {
+      "id": "baseline-no-macro",
+      "description": "GoldIntel score with the macro component removed and weights renormalized"
+    },
+    {
+      "id": "setup-candidate",
+      "description": "all-eligible|swing|R 1.5/2.5/4"
+    }
+  ],
+  "strategy": {
+    "label": "all-eligible|swing|R 1.5/2.5/4",
+    "enabled": [
+      "B_TREND_CONT_SHORT",
+      "C_PULLBACK_LONG"
+    ],
+    "stopPolicy": "swing",
+    "targetPolicy": "fixedR",
+    "targetCfg": {
+      "rMultiples": [
+        1.5,
+        2.5,
+        4
+      ]
+    }
+  },
+  "noMacroWeights": {
+    "trend": 29.411764705882355,
+    "structure": 29.411764705882355,
+    "momentum": 14.117647058823529,
+    "support_resistance": 15.294117647058824,
+    "price_action": 11.76470588235294,
+    "macro": 0
+  },
+  "risk": {
+    "accountSize": 10000,
+    "riskPerTradePct": 1,
+    "maxConcurrentTrades": 2,
+    "maxDailyLossPct": 3,
+    "maxWeeklyLossPct": 6
+  },
+  "verdict": "NO EDGE",
+  "evaluatedAt": "2026-08-27T09:42:50.735Z"
+}

@@ -1,0 +1,26 @@
+{
+  "id": "baseline",
+  "description": "Production GoldIntel engine reproduced as shipped: 0-100 evidence score, threshold 70 for swing and 58 for scalp, production stop and target construction.",
+  "swing": {
+    "threshold": 70,
+    "stopPolicy": "production",
+    "targetPolicy": "production",
+    "minRR": 2,
+    "rrLeg": "rr3",
+    "weights": { "trend": 25, "structure": 25, "momentum": 12, "support_resistance": 13, "price_action": 10, "macro": 15 }
+  },
+  "scalp": {
+    "threshold": 58,
+    "minRR": 1,
+    "rrLeg": "rr3"
+  },
+  "risk": {
+    "accountSize": 10000,
+    "riskPerTradePct": 1,
+    "maxDailyLossPct": 3,
+    "maxWeeklyLossPct": 6,
+    "maxConcurrentTrades": 2,
+    "maxConsecutiveLosses": 4,
+    "cooldownHours": 24
+  }
+}

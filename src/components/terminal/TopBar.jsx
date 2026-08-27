@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function TopBar({ price, previousClose, fetchedAt, onRefresh, loading, intervalSec, onIntervalChange }) {
+export default function TopBar({ price, referencePrice, referenceTime, previousClose, fetchedAt, onRefresh, loading, intervalSec, onIntervalChange }) {
   const change = price != null && previousClose != null ? price - previousClose : null;
   const pct = change != null ? (change / previousClose) * 100 : null;
   const ageSec = fetchedAt ? Math.round((Date.now() - fetchedAt) / 1000) : null;
@@ -24,6 +24,12 @@ export default function TopBar({ price, previousClose, fetchedAt, onRefresh, loa
         )}
       </div>
       <div className="flex items-center gap-3">
+        {referencePrice != null && (
+          <span className="font-mono text-[11px] text-slate-500" title="The close of the last CLOSED H1 candle — the price every signal is built from">
+            ref close {referencePrice.toFixed(2)}
+            {referenceTime ? ` @ ${new Date(referenceTime).toISOString().slice(11, 16)}Z` : ""}
+          </span>
+        )}
         {ageSec != null && (
           <span className={`font-mono text-[11px] ${stale ? "text-red-400" : "text-slate-500"}`}>
             {stale ? "DATA STALE · " : ""}updated {ageSec}s ago
