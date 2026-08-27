@@ -3,8 +3,15 @@
 XAU/USD decision-support terminal, plus the research stack that measures whether
 its strategy actually works.
 
-**Current verdict on the strategy: NO EDGE.** The system is in paper-trading
-mode. See [`docs/EDGE_REPORT.md`](docs/EDGE_REPORT.md) for the numbers and
+**Current verdict: POSSIBLE EDGE** — for the long side only, and only in the
+recent era. Out of sample (2020–2025, 355 trades) the long-only configuration
+returns +0.171R per trade with a profit factor of 1.40 and a 95% interval of
+[+0.048, +0.298]. It was flat across 2012–2019.
+
+Shorts and the scalp tier are disabled in code, both with the numbers attached.
+The system remains in paper trading; no broker is connected.
+
+See [`docs/EDGE_REPORT.md`](docs/EDGE_REPORT.md) for the numbers and
 [`docs/STRATEGY.md`](docs/STRATEGY.md) for what it does in plain language.
 
 ## Documentation
@@ -34,9 +41,9 @@ docs/           the documents above
 ```bash
 npm run dev          # frontend against the hosted backend
 base44 dev           # full local environment
-npm test             # 81 tests
+npm test             # 93 tests
 npm run lint
-npm run quant:data   # rebuild the research dataset (36 MB, not committed)
+npm run quant:data   # rebuild both research data feeds (not committed)
 ```
 
 ---

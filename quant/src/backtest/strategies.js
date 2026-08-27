@@ -163,6 +163,59 @@ export function randomEntryBaseline(cfg = {}) {
 }
 
 /**
+ * Random entry with a CONTROLLED long/short mix.
+ *
+ * The plain random control is 50/50 by construction, which makes it a poor
+ * comparison for a strategy that ended up 85% long in a market that rose 136%.
+ * This control takes the same directional bias and the same exits, so whatever
+ * it earns is what the bias alone was worth. Anything the strategy earns ABOVE
+ * this is attributable to its entry timing rather than to its lean.
+ */
+export function matchedRandomBaseline(cfg = {}) {
+  const { probability = 0.02, longProbability = 0.5, seed = 4242,
+          stopCfg = { atrMult: 1.5 }, targetCfg = { rMultiples: [1, 2, 3] } } = cfg;
+  let state = seed >>> 0;
+  const rnd = () => {
+    state ^= state << 13; state >>>= 0;
+    state ^= state >> 17;
+    state ^= state << 5; state >>>= 0;
+    return state / 4294967296;
+  };
+  return ({ price, atr, levels, features }) => {
+    if (rnd() > probability) return [];
+    const direction = rnd() < longProbability ? 'LONG' : 'SHORT';
+    const plan = buildPlan({ price, direction, atr, volRatio: features.volRatio, levels, stopPolicy: 'atr', targetPolicy: 'fixedR', stopCfg, targetCfg });
+    return plan ? [{ setupId: 'CTRL_MATCHED_RANDOM', direction, tier: 'swing', plan }] : [];
+  };
+}
+
+/**
+ * The crudest possible trend filter: take every bar in the direction of the
+ * daily EMA bias, with the standard exits. If the strategy cannot beat this,
+ * its eight setups are an expensive way to express "follow the daily trend".
+ */
+export function dailyBiasBaseline(cfg = {}) {
+  const { probability = 0.02, seed = 99, allowShort = true,
+          stopCfg = { atrMult: 1.5 }, targetCfg = { rMultiples: [1, 2, 3] } } = cfg;
+  let state = seed >>> 0;
+  const rnd = () => {
+    state ^= state << 13; state >>>= 0;
+    state ^= state >> 17;
+    state ^= state << 5; state >>>= 0;
+    return state / 4294967296;
+  };
+  return ({ price, atr, levels, features }) => {
+    if (rnd() > probability) return [];
+    let direction = null;
+    if (features.d1Bias === 'bullish') direction = 'LONG';
+    else if (features.d1Bias === 'bearish' && allowShort) direction = 'SHORT';
+    if (!direction) return [];
+    const plan = buildPlan({ price, direction, atr, volRatio: features.volRatio, levels, stopPolicy: 'atr', targetPolicy: 'fixedR', stopCfg, targetCfg });
+    return plan ? [{ setupId: 'CTRL_DAILY_BIAS', direction, tier: 'swing', plan }] : [];
+  };
+}
+
+/**
  * Minutes until the next event at or after `t`. Binary search, so a filter that
  * runs on every bar of a decade does not become the cost of the study.
  */

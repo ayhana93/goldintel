@@ -1,40 +1,34 @@
+
+!.vscode/extensions.json
+# Editor directories and files
+# Logs
+# Trade-level development output: 2 MB, regenerable with run-study.mjs, and
+# quant research data: raw vendor files are re-fetchable via quant/scripts/fetch-data.mjs
+# read by nothing. The summary statistics it feeds are committed in study.json.
 #env
+*.local
+*.log
+*.njsproj
+*.ntvs*
+*.sln
+*.suo
+*.sw?
+.DS_Store
 .env
 .env.*
-
-# Logs
+.idea
+.vite
+.vscode/*
 /logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-node_modules
+base44/.app.jsonc
 dist
 dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-.env
-.vite
-base44/.app.jsonc
-
-# quant research data: raw vendor files are re-fetchable via quant/scripts/fetch-data.mjs
+lerna-debug.log*
+node_modules
+npm-debug.log*
+pnpm-debug.log*
 quant/data/cache/
 quant/data/normalized/
-
-# Trade-level development output: 2 MB, regenerable with run-study.mjs, and
-# read by nothing. The summary statistics it feeds are committed in study.json.
 quant/results/trades-development.json
+yarn-debug.log*
+yarn-error.log*

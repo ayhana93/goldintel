@@ -3,12 +3,16 @@
 How the engine works, what it assumes, and why you should believe its output.
 
 ```
-npm run quant:data                        # rebuild the dataset (36 MB, not committed)
-node quant/scripts/run-study.mjs          # phases 6-16, 21, 26 — development + validation
-node quant/scripts/run-validate.mjs       # phases 17-19, 27-29 — selection, walk-forward, Monte Carlo
-node quant/scripts/run-final.mjs          # phase 18/29/35 — the single final test
+npm run quant:data                        # rebuild both feeds (not committed)
+node quant/scripts/check-feeds.mjs        # data provenance measurements
+node quant/scripts/verify-published.mjs   # reproduce previously published figures
+node quant/scripts/run-study.mjs          # news, sessions, correlation, ablation, scalp
+node quant/scripts/run-decompose.mjs      # Phase 36 setup decomposition
+node quant/scripts/run-targets.mjs        # stop and target selection from the data
+node quant/scripts/run-validate.mjs       # candidates, walk-forward, Monte Carlo, sensitivity
+node quant/scripts/run-final.mjs          # the final evaluation and dashboard data
 node quant/scripts/export-live-stats.mjs  # regenerate the statistics the app displays
-npm test                                  # 81 tests
+npm test                                  # 93 tests
 ```
 
 Everything written to `quant/results/` records the code revision, a fingerprint
@@ -102,7 +106,19 @@ That last number is load-bearing. The best setup in this study has 89 trades on
 the development period and a flattering average; without the p-value it would
 read as a discovery instead of as a sample that has not yet said anything.
 
-## 7. Known limitations
+## 7. How precisely can any of this be quoted?
+
+Not as precisely as the decimals suggest. Running the same strategy over the same
+window against two independent data vendors moves measured expectancy by about
+**±0.05R** outside a crisis, and ±0.12R if the March–October 2020 dislocation is
+included (see `docs/DATA_SOURCES.md`).
+
+That band is a working tool, not a disclaimer. A stop-and-target grid in this
+project selected a configuration worth +0.016R more than the shipped one on
+development+validation data. It was **not adopted**: an improvement a third the
+size of the measurement error is not an improvement.
+
+## 8. Known limitations
 
 1. **No bid/ask history.** Spread is parametric, not observed. Real spreads widen
    more than any fixed multiple during a genuine shock.

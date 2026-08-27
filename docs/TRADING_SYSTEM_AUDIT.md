@@ -430,3 +430,114 @@ snapshot of an unfinished computation, which is why the history cannot be replay
     weekly kill switches and a concurrent-position cap, all backtestable.
 14. Tighten authorisation on `generateSignals`, validate `notifySignal` input server-side, move
     the recipient to configuration, and align SDK versions.
+
+---
+
+# Addendum — Phase 0 re-audit
+
+The repository had already been through one overhaul when this audit was
+repeated. The brief for the second pass was explicit: **do not trust the
+generated statistics merely because they exist.** This section records what was
+checked, what held, and what did not.
+
+## A1. Were the committed statistics real?
+
+`quant/scripts/verify-published.mjs` reproduces every headline figure in
+`base44/shared/edgeStats.ts` from source, on the same feed and the same periods
+they were originally produced under.
+
+**Result: 30 of 30 figures reproduced within tolerance**, including trade counts
+exactly and expectancies to four decimal places.
+
+| Figure | Published | Reproduced |
+| --- | --- | --- |
+| Baseline swing, final test — trades | 93 | 93 |
+| Baseline swing, final test — expectancy | −0.0283R | −0.0283R |
+| Scalp, final test — trades | 726 | 726 |
+| C_PULLBACK_LONG — OOS expectancy | +0.2137R | +0.2137R |
+| C_PULLBACK_LONG — OOS p | 0.0237 | 0.0237 |
+| …26 more | | |
+
+The pipeline is deterministic and the previous numbers were not fabricated. That
+establishes internal consistency, **not** correctness — reproducing a computation
+proves only that the computation is stable.
+
+## A2. What the previous conclusion actually depended on
+
+The previous verdict of NO EDGE rested on a final test ending **2022-03-04**. At
+the time of this re-audit gold trades near \$4,600, against \$1,970 at the end of
+that test. The conclusion was correct for the data it had and stale for the
+market it would be deployed into.
+
+**This is the most important finding of the re-audit** and it is a process
+finding rather than a code finding: a validation protocol has a shelf life, and
+nothing in the repository tracked it.
+
+## A3. Data provenance, re-verified
+
+| Check | Method | Result |
+| --- | --- | --- |
+| Feed timezone | NFP volatility spike, per feed, per DST season | Both feeds EET/EEST, confirmed independently |
+| Feed agreement | Same instrument, same hours, two publishers | 0.979 return correlation post-2020; **0.314 during Mar–Oct 2020** |
+| Dollar proxy | 5-member versus 4-member basket on the legacy feed | Direction the engine acts on differs in 12.2% of hours |
+
+The COVID finding was new and consequential: during that window the two feeds
+disagree by \$2.50 on average. Any result driven by those months is a property of
+the vendor, not the market.
+
+The re-audit also established a **±0.05R feed-uncertainty band** on every
+expectancy figure. Several apparent improvements in the previous work — and one
+in this pass — are smaller than that band and were rejected on that basis.
+
+## A4. Defects found in the previous pass's own code
+
+| Defect | Impact | Fixed |
+| --- | --- | --- |
+| Sensitivity classifier conflated a monotone parameter response with an isolated peak | Flagged `OVERFIT_RISK = HIGH` on a genuine, consistent relationship | Yes — three distinct shapes, documented |
+| `dataFingerprint` assumed a flat manifest | Crashed once the manifest grew a second feed | Yes |
+| Look-ahead tests hardcoded a feed-agnostic loader | Silently tested the wrong period after the split changed | Yes — feed is explicit in the fixtures |
+| JSDoc `@param name { a, b }` parsed as a type annotation | Nine spurious typecheck errors | Yes |
+
+None of these changed a published number except the sensitivity flag, and that
+change is argued on its merits in `docs/WALK_FORWARD.md` rather than assumed.
+
+## A5. What held up from the first pass
+
+- The closed-candle engine, swing confirmation timing and truncation invariance.
+  All still pass, now across two feeds.
+- The execution model, risk engine and metric definitions.
+- The scalp conclusion. On 4,072 *new* out-of-sample trades the scalp tier
+  returns −0.235R. The original verdict was right and is now overdetermined.
+- The finding that the news filter changes nothing at hourly decision frequency.
+- The correlation finding: momentum and price action still correlate 0.73, and no
+  component correlates above 0.033 with the forward 24-hour return.
+
+## A6. What changed in the conclusion, and why
+
+| | Previous pass | This pass |
+| --- | --- | --- |
+| Final test | 2021-01 → 2022-03 | 2023-01 → 2025-12 |
+| Best configuration | production baseline | **long signals only** |
+| Out-of-sample expectancy | −0.028R | **+0.171R** |
+| Verdict | NO EDGE | **POSSIBLE EDGE** |
+
+Two changes drove it: three years of unseen recent data, and disabling the short
+side — which the *previous* data already supported and the previous pass did not
+act on. Shorts were negative on development and validation in both passes.
+
+That is the substantive self-criticism of the earlier work: it had the evidence to
+separate the two directions and reported an aggregate instead.
+
+## A7. Open weaknesses after this pass
+
+1. **Era dependence.** 35% of quarters profitable in 2012–2019 against 75% in
+   2020–2025. Unresolved, and the reason the verdict is not PROVEN EDGE.
+2. **The 10-year yield leg is still absent** from the backtest, and the dollar
+   proxy still omits the yen.
+3. **2026 data is not obtainable** in this environment beyond a few days, so
+   forward validation depends on live paper trading.
+4. **One instrument.** Nothing here says whether the approach generalises.
+5. **The shipped evidence threshold of 70 is demonstrably not optimal** —
+   development and validation both favour ~74 — but changing it after observing
+   the final test would be data snooping, so it is registered for the next cycle
+   rather than adopted.

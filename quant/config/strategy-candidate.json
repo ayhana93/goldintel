@@ -1,83 +1,48 @@
 {
   "id": "candidate",
-  "description": "Selected on the development period only, using per-setup expectancy and a stop/target grid. Frozen before the final test period was opened.",
-  "chosenLabel": "all-eligible|swing|R 1.5/2.5/4",
-  "strategy": {
-    "label": "all-eligible|swing|R 1.5/2.5/4",
-    "enabled": [
-      "B_TREND_CONT_SHORT",
-      "C_PULLBACK_LONG"
-    ],
-    "stopPolicy": "swing",
-    "targetPolicy": "fixedR",
-    "targetCfg": {
-      "rMultiples": [
-        1.5,
-        2.5,
-        4
-      ]
-    }
-  },
-  "risk": {
-    "accountSize": 10000,
-    "riskPerTradePct": 1,
-    "maxConcurrentTrades": 1,
-    "maxDailyLossPct": 3,
-    "maxWeeklyLossPct": 6
-  },
-  "execution": "realistic",
-  "registeredForFinalTest": [
-    {
-      "id": "production-baseline",
-      "description": "GoldIntel as shipped"
-    },
-    {
-      "id": "baseline-no-macro",
-      "description": "GoldIntel score with the macro component removed and weights renormalized"
-    },
-    {
-      "id": "setup-candidate",
-      "description": "all-eligible|swing|R 1.5/2.5/4"
-    }
-  ],
-  "primary": "production-baseline",
-  "noMacroWeights": {
-    "trend": 29.411764705882355,
-    "structure": 29.411764705882355,
-    "momentum": 14.117647058823529,
-    "support_resistance": 15.294117647058824,
-    "price_action": 11.76470588235294,
-    "macro": 0
-  },
-  "selection": {
-    "method": "per-setup expectancy on development, then stop x target grid on development",
-    "eligibleSetups": [
-      {
-        "id": "B_TREND_CONT_SHORT",
-        "trades": 407,
-        "winRate": 53.0713,
-        "expectancy": 0.0038,
-        "profitFactor": 1.0079,
-        "netR": 1.5395,
-        "maxDrawdownR": 17.0165,
-        "t": 0.0732,
-        "p": 0.468,
-        "survivesBonferroni": false
-      },
-      {
-        "id": "C_PULLBACK_LONG",
-        "trades": 89,
-        "winRate": 64.0449,
-        "expectancy": 0.192,
-        "profitFactor": 1.5228,
-        "netR": 17.0836,
-        "maxDrawdownR": 4.9126,
-        "t": 1.8076,
-        "p": 0.0363,
-        "survivesBonferroni": false
+  "primary": "baseline-long-only",
+  "rationale": "Shorts disabled. Supported by DEVELOPMENT and VALIDATION alone: all four short setups are negative in both periods (B -0.015/-0.115, D -0.132/-0.141, F -0.066/-0.070, H -0.053/-0.185) and the score baseline is negative short in both (-0.039/-0.092).",
+  "candidates": {
+    "production-baseline": {
+      "rationale": "The shipped engine, unchanged. Not selected — it is the control everything else is measured against.",
+      "risk": {
+        "accountSize": 10000,
+        "riskPerTradePct": 1,
+        "maxConcurrentTrades": 2,
+        "maxDailyLossPct": 3,
+        "maxWeeklyLossPct": 6
       }
-    ],
-    "bonferroniThreshold": 0.00625,
-    "candidatesEvaluated": 32
-  }
+    },
+    "baseline-long-only": {
+      "rationale": "Shorts disabled. Supported by DEVELOPMENT and VALIDATION alone: all four short setups are negative in both periods (B -0.015/-0.115, D -0.132/-0.141, F -0.066/-0.070, H -0.053/-0.185) and the score baseline is negative short in both (-0.039/-0.092).",
+      "risk": {
+        "accountSize": 10000,
+        "riskPerTradePct": 1,
+        "maxConcurrentTrades": 2,
+        "maxDailyLossPct": 3,
+        "maxWeeklyLossPct": 6
+      }
+    },
+    "setups-long-only": {
+      "rationale": "The four long setups, same reasoning as above, expressed through explicit setups rather than the score.",
+      "risk": {
+        "accountSize": 10000,
+        "riskPerTradePct": 1,
+        "maxConcurrentTrades": 1,
+        "maxDailyLossPct": 3,
+        "maxWeeklyLossPct": 6
+      }
+    },
+    "setup-C-only": {
+      "rationale": "The single setup positive on development and validation, and the only one whose edge survives removing its five best trades.",
+      "risk": {
+        "accountSize": 10000,
+        "riskPerTradePct": 1,
+        "maxConcurrentTrades": 1,
+        "maxDailyLossPct": 3,
+        "maxWeeklyLossPct": 6
+      }
+    }
+  },
+  "frozenAt": "2026-08-27T16:19:47.758Z"
 }

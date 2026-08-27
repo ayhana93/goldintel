@@ -1,114 +1,201 @@
 {
-  "generatedAt": "2026-08-27T09:13:50.962Z",
-  "base": "https://raw.githubusercontent.com/ejtraderLabs/historical-data/main",
-  "files": [
-    {
-      "symbol": "XAUUSD",
-      "timeframe": "M15",
-      "url": "https://raw.githubusercontent.com/ejtraderLabs/historical-data/main/XAUUSD/XAUUSDm15.csv",
-      "sha256": "4a179fd47494169508165ae74e5d7c642647ace83cb048947193770927621d9e",
-      "bars": 230400,
-      "firstUtc": "2012-05-15T05:00:00.000Z",
-      "lastUtc": "2022-03-04T21:45:00.000Z",
+  "generatedAt": "2026-08-27T16:07:17.590Z",
+  "feeds": {
+    "legacy": {
+      "id": "ejtraderLabs/historical-data",
+      "base": "https://raw.githubusercontent.com/ejtraderLabs/historical-data/main",
       "sourceTimezone": "EET/EEST (UTC+2 / UTC+3)",
       "normalizedTimezone": "UTC",
-      "priceScaleDivisor": 100
+      "files": [
+        {
+          "symbol": "XAUUSD",
+          "timeframe": "M15",
+          "url": "https://raw.githubusercontent.com/ejtraderLabs/historical-data/main/XAUUSD/XAUUSDm15.csv",
+          "sha256": "4a179fd47494169508165ae74e5d7c642647ace83cb048947193770927621d9e",
+          "bars": 230400,
+          "firstUtc": "2012-05-15T05:00:00.000Z",
+          "lastUtc": "2022-03-04T21:45:00.000Z",
+          "priceScaleDivisor": 100
+        },
+        {
+          "symbol": "XAUUSD",
+          "timeframe": "H1",
+          "url": "https://raw.githubusercontent.com/ejtraderLabs/historical-data/main/XAUUSD/XAUUSDh1.csv",
+          "sha256": "4c9ff7b1e7b3381f60444eb84b3a4f4524c8ec82af46d11fe8dd15e37eb83c1a",
+          "bars": 57600,
+          "firstUtc": "2012-05-17T05:00:00.000Z",
+          "lastUtc": "2022-03-04T21:00:00.000Z",
+          "priceScaleDivisor": 100
+        },
+        {
+          "symbol": "XAUUSD",
+          "timeframe": "H4",
+          "url": "https://raw.githubusercontent.com/ejtraderLabs/historical-data/main/XAUUSD/XAUUSDh4.csv",
+          "sha256": "db5a98c6a1f3c37cc63a18dfc1a9f15e134dc28e352e57ab44a86ceb0b9bc454",
+          "bars": 14400,
+          "firstUtc": "2012-10-26T01:00:00.000Z",
+          "lastUtc": "2022-03-04T18:00:00.000Z",
+          "priceScaleDivisor": 100
+        },
+        {
+          "symbol": "XAUUSD",
+          "timeframe": "D1",
+          "url": "https://raw.githubusercontent.com/ejtraderLabs/historical-data/main/XAUUSD/XAUUSDd1.csv",
+          "sha256": "d3da2122fded57f0c78afb38db580565052cd85cff30581e5f812fa5b0b0a305",
+          "bars": 2400,
+          "firstUtc": "2012-11-13T22:00:00.000Z",
+          "lastUtc": "2022-03-03T22:00:00.000Z",
+          "priceScaleDivisor": 100
+        },
+        {
+          "symbol": "EURUSD",
+          "timeframe": "H1",
+          "url": "https://raw.githubusercontent.com/ejtraderLabs/historical-data/main/EURUSD/EURUSDh1.csv",
+          "sha256": "1b29ca23bdc7b2645ae48a0ccb06108263b69e586bdc7d0ba40e66d1e5966eb9",
+          "bars": 57600,
+          "firstUtc": "2012-11-15T22:00:00.000Z",
+          "lastUtc": "2022-03-04T21:00:00.000Z",
+          "priceScaleDivisor": 100000
+        },
+        {
+          "symbol": "USDJPY",
+          "timeframe": "H1",
+          "url": "https://raw.githubusercontent.com/ejtraderLabs/historical-data/main/USDJPY/USDJPYh1.csv",
+          "sha256": "4bdca353ee0403727fc0eae621ff8206f5c06d7323b0126923d2a456abc21dbe",
+          "bars": 57600,
+          "firstUtc": "2012-11-16T10:00:00.000Z",
+          "lastUtc": "2022-03-04T21:00:00.000Z",
+          "priceScaleDivisor": 1000
+        },
+        {
+          "symbol": "GBPUSD",
+          "timeframe": "H1",
+          "url": "https://raw.githubusercontent.com/ejtraderLabs/historical-data/main/GBPUSD/GBPUSDh1.csv",
+          "sha256": "affda7b6e6f4ea505e46f714de37a51bf5d466efb78c3247c5900a0f0a85d3d7",
+          "bars": 57600,
+          "firstUtc": "2012-11-16T03:00:00.000Z",
+          "lastUtc": "2022-03-04T21:00:00.000Z",
+          "priceScaleDivisor": 100000
+        },
+        {
+          "symbol": "USDCAD",
+          "timeframe": "H1",
+          "url": "https://raw.githubusercontent.com/ejtraderLabs/historical-data/main/USDCAD/USDCADh1.csv",
+          "sha256": "ef4ff565e11a471b8bda76538433cde0e7d740c7b2b78ccb346cd9a0a4748461",
+          "bars": 57600,
+          "firstUtc": "2012-11-16T16:00:00.000Z",
+          "lastUtc": "2022-03-04T21:00:00.000Z",
+          "priceScaleDivisor": 100000
+        },
+        {
+          "symbol": "USDCHF",
+          "timeframe": "H1",
+          "url": "https://raw.githubusercontent.com/ejtraderLabs/historical-data/main/USDCHF/USDCHFh1.csv",
+          "sha256": "82e3f4cb1106d52e686bfb7c15ea085098f2c79196eac2531c3fe343fe8acd3d",
+          "bars": 57600,
+          "firstUtc": "2012-11-15T12:00:00.000Z",
+          "lastUtc": "2022-03-04T21:00:00.000Z",
+          "priceScaleDivisor": 100000
+        }
+      ]
     },
-    {
-      "symbol": "XAUUSD",
-      "timeframe": "H1",
-      "url": "https://raw.githubusercontent.com/ejtraderLabs/historical-data/main/XAUUSD/XAUUSDh1.csv",
-      "sha256": "4c9ff7b1e7b3381f60444eb84b3a4f4524c8ec82af46d11fe8dd15e37eb83c1a",
-      "bars": 57600,
-      "firstUtc": "2012-05-17T05:00:00.000Z",
-      "lastUtc": "2022-03-04T21:00:00.000Z",
+    "modern": {
+      "id": "ts4blader/market_data",
+      "base": "https://media.githubusercontent.com/media/ts4blader/market_data/main",
       "sourceTimezone": "EET/EEST (UTC+2 / UTC+3)",
       "normalizedTimezone": "UTC",
-      "priceScaleDivisor": 100
-    },
-    {
-      "symbol": "XAUUSD",
-      "timeframe": "H4",
-      "url": "https://raw.githubusercontent.com/ejtraderLabs/historical-data/main/XAUUSD/XAUUSDh4.csv",
-      "sha256": "db5a98c6a1f3c37cc63a18dfc1a9f15e134dc28e352e57ab44a86ceb0b9bc454",
-      "bars": 14400,
-      "firstUtc": "2012-10-26T01:00:00.000Z",
-      "lastUtc": "2022-03-04T18:00:00.000Z",
-      "sourceTimezone": "EET/EEST (UTC+2 / UTC+3)",
-      "normalizedTimezone": "UTC",
-      "priceScaleDivisor": 100
-    },
-    {
-      "symbol": "XAUUSD",
-      "timeframe": "D1",
-      "url": "https://raw.githubusercontent.com/ejtraderLabs/historical-data/main/XAUUSD/XAUUSDd1.csv",
-      "sha256": "d3da2122fded57f0c78afb38db580565052cd85cff30581e5f812fa5b0b0a305",
-      "bars": 2400,
-      "firstUtc": "2012-11-13T22:00:00.000Z",
-      "lastUtc": "2022-03-03T22:00:00.000Z",
-      "sourceTimezone": "EET/EEST (UTC+2 / UTC+3)",
-      "normalizedTimezone": "UTC",
-      "priceScaleDivisor": 100
-    },
-    {
-      "symbol": "EURUSD",
-      "timeframe": "H1",
-      "url": "https://raw.githubusercontent.com/ejtraderLabs/historical-data/main/EURUSD/EURUSDh1.csv",
-      "sha256": "1b29ca23bdc7b2645ae48a0ccb06108263b69e586bdc7d0ba40e66d1e5966eb9",
-      "bars": 57600,
-      "firstUtc": "2012-11-15T22:00:00.000Z",
-      "lastUtc": "2022-03-04T21:00:00.000Z",
-      "sourceTimezone": "EET/EEST (UTC+2 / UTC+3)",
-      "normalizedTimezone": "UTC",
-      "priceScaleDivisor": 100000
-    },
-    {
-      "symbol": "USDJPY",
-      "timeframe": "H1",
-      "url": "https://raw.githubusercontent.com/ejtraderLabs/historical-data/main/USDJPY/USDJPYh1.csv",
-      "sha256": "4bdca353ee0403727fc0eae621ff8206f5c06d7323b0126923d2a456abc21dbe",
-      "bars": 57600,
-      "firstUtc": "2012-11-16T10:00:00.000Z",
-      "lastUtc": "2022-03-04T21:00:00.000Z",
-      "sourceTimezone": "EET/EEST (UTC+2 / UTC+3)",
-      "normalizedTimezone": "UTC",
-      "priceScaleDivisor": 1000
-    },
-    {
-      "symbol": "GBPUSD",
-      "timeframe": "H1",
-      "url": "https://raw.githubusercontent.com/ejtraderLabs/historical-data/main/GBPUSD/GBPUSDh1.csv",
-      "sha256": "affda7b6e6f4ea505e46f714de37a51bf5d466efb78c3247c5900a0f0a85d3d7",
-      "bars": 57600,
-      "firstUtc": "2012-11-16T03:00:00.000Z",
-      "lastUtc": "2022-03-04T21:00:00.000Z",
-      "sourceTimezone": "EET/EEST (UTC+2 / UTC+3)",
-      "normalizedTimezone": "UTC",
-      "priceScaleDivisor": 100000
-    },
-    {
-      "symbol": "USDCAD",
-      "timeframe": "H1",
-      "url": "https://raw.githubusercontent.com/ejtraderLabs/historical-data/main/USDCAD/USDCADh1.csv",
-      "sha256": "ef4ff565e11a471b8bda76538433cde0e7d740c7b2b78ccb346cd9a0a4748461",
-      "bars": 57600,
-      "firstUtc": "2012-11-16T16:00:00.000Z",
-      "lastUtc": "2022-03-04T21:00:00.000Z",
-      "sourceTimezone": "EET/EEST (UTC+2 / UTC+3)",
-      "normalizedTimezone": "UTC",
-      "priceScaleDivisor": 100000
-    },
-    {
-      "symbol": "USDCHF",
-      "timeframe": "H1",
-      "url": "https://raw.githubusercontent.com/ejtraderLabs/historical-data/main/USDCHF/USDCHFh1.csv",
-      "sha256": "82e3f4cb1106d52e686bfb7c15ea085098f2c79196eac2531c3fe343fe8acd3d",
-      "bars": 57600,
-      "firstUtc": "2012-11-15T12:00:00.000Z",
-      "lastUtc": "2022-03-04T21:00:00.000Z",
-      "sourceTimezone": "EET/EEST (UTC+2 / UTC+3)",
-      "normalizedTimezone": "UTC",
-      "priceScaleDivisor": 100000
+      "files": [
+        {
+          "symbol": "XAUUSD",
+          "timeframe": "M15",
+          "url": "https://media.githubusercontent.com/media/ts4blader/market_data/main/XAUUSD/XAUUSD_M15.csv",
+          "sha256": "97dc307a1b3a7aa961cb25ecb0701ce05493ceabb14d44a5b46095836cf3c591",
+          "bars": 139918,
+          "firstUtc": "2020-01-01T23:00:00.000Z",
+          "lastUtc": "2025-12-31T21:45:00.000Z",
+          "priceScaleDivisor": 1
+        },
+        {
+          "symbol": "XAUUSD",
+          "timeframe": "H1",
+          "url": "https://media.githubusercontent.com/media/ts4blader/market_data/main/XAUUSD/XAUUSD_H1.csv",
+          "sha256": "aec7009ac41c549bd86d5e249889b6e358676df1762baffc88d6afb1f688d3d0",
+          "bars": 35024,
+          "firstUtc": "2020-01-01T23:00:00.000Z",
+          "lastUtc": "2025-12-31T21:00:00.000Z",
+          "priceScaleDivisor": 1
+        },
+        {
+          "symbol": "XAUUSD",
+          "timeframe": "H4",
+          "url": "https://media.githubusercontent.com/media/ts4blader/market_data/main/XAUUSD/XAUUSD_H4.csv",
+          "sha256": "8e924230df0a9764d9e62643ca30484e4beeeec968f4cd96ad1cb40ac31ba526",
+          "bars": 9159,
+          "firstUtc": "2020-01-01T22:00:00.000Z",
+          "lastUtc": "2025-12-31T18:00:00.000Z",
+          "priceScaleDivisor": 1
+        },
+        {
+          "symbol": "XAUUSD",
+          "timeframe": "D1",
+          "url": "https://media.githubusercontent.com/media/ts4blader/market_data/main/XAUUSD/XAUUSD_D1.csv",
+          "sha256": "1c66a195723b44580fe2b92efb50164f0571ed722cc4330478050a0d8556968b",
+          "bars": 1529,
+          "firstUtc": "2020-01-01T22:00:00.000Z",
+          "lastUtc": "2025-12-30T22:00:00.000Z",
+          "priceScaleDivisor": 1
+        },
+        {
+          "symbol": "EURUSD",
+          "timeframe": "H1",
+          "url": "https://media.githubusercontent.com/media/ts4blader/market_data/main/EURUSD/EURUSD_H1.csv",
+          "sha256": "3a129445b95bf0432b249ac311438e917a6c20c8294959eb98b8c0f1e65d4b27",
+          "bars": 37348,
+          "firstUtc": "2020-01-01T22:00:00.000Z",
+          "lastUtc": "2025-12-31T21:00:00.000Z",
+          "priceScaleDivisor": 1
+        },
+        {
+          "symbol": "GBPUSD",
+          "timeframe": "H1",
+          "url": "https://media.githubusercontent.com/media/ts4blader/market_data/main/GBPUSD/GBPUSD_H1.csv",
+          "sha256": "762789301c6fd3aca1266e8da10f393fd09f3dc2c26a820d4350038b7f663739",
+          "bars": 37331,
+          "firstUtc": "2020-01-01T22:00:00.000Z",
+          "lastUtc": "2025-12-31T21:00:00.000Z",
+          "priceScaleDivisor": 1
+        },
+        {
+          "symbol": "USDCAD",
+          "timeframe": "H1",
+          "url": "https://media.githubusercontent.com/media/ts4blader/market_data/main/USDCAD/USDCAD_H1.csv",
+          "sha256": "64e4a8f661b98acf68263d6afbd9ee775ac1a31904c5449ce05e341e0d05983e",
+          "bars": 37345,
+          "firstUtc": "2020-01-01T22:00:00.000Z",
+          "lastUtc": "2025-12-31T21:00:00.000Z",
+          "priceScaleDivisor": 1
+        },
+        {
+          "symbol": "USDCHF",
+          "timeframe": "H1",
+          "url": "https://media.githubusercontent.com/media/ts4blader/market_data/main/USDCHF/USDCHF_H1.csv",
+          "sha256": "759c2b6fa46fc04a2ed520fd69d2fe4111de734ffa1f3d179bffb92602931794",
+          "bars": 37345,
+          "firstUtc": "2020-01-01T22:00:00.000Z",
+          "lastUtc": "2025-12-31T21:00:00.000Z",
+          "priceScaleDivisor": 1
+        },
+        {
+          "symbol": "AUDUSD",
+          "timeframe": "H1",
+          "url": "https://media.githubusercontent.com/media/ts4blader/market_data/main/AUDUSD/AUDUSD_H1.csv",
+          "sha256": "de481ada79eada5fd793a1cf2d98650b4b8baefef27eceb4252c95713b21da14",
+          "bars": 37348,
+          "firstUtc": "2020-01-01T22:00:00.000Z",
+          "lastUtc": "2025-12-31T21:00:00.000Z",
+          "priceScaleDivisor": 1
+        }
+      ]
     }
-  ]
+  }
 }

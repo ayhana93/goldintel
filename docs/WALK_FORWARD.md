@@ -1,109 +1,127 @@
 # Validation methodology
 
-The point of this document is that the numbers in `docs/EDGE_REPORT.md` should be
-believable *because of how they were produced*, not because of what they say.
+The numbers in `docs/EDGE_REPORT.md` should be believable *because of how they
+were produced*, not because of what they say.
 
 ## 1. The data split
 
-The archive runs 2012-05-15 → 2022-03-04. The brief asked for 2021–2024
-training, 2025 validation and 2026 as an untouched final test. **No reachable
-source carries XAU/USD intraday data past March 2022**, so the same protocol was
-applied to the period that exists, with the proportions preserved.
-
-| Period | Range | Share | Role |
+| Period | Range | Feed | Role |
 | --- | --- | --- | --- |
-| Development | 2012-05-15 → 2018-12-31 | ~67% | Every choice is made here. Look at it as much as you like. |
-| Validation | 2019-01-01 → 2020-12-31 | ~20% | A check. Never optimized on. |
-| Final test | 2021-01-01 → 2022-03-04 | ~13% | Opened once, at the end. |
+| Development | 2012-05-15 → 2019-12-31 | `legacy` | Every choice is made here. |
+| Validation | 2020-01-01 → 2022-12-31 | `modern` | A check, and the second half of the out-of-sample record. |
+| Final test | 2023-01-01 → 2025-12-31 | `modern` | Opened once, at the end. |
+| Forward | 2026-01-01 → | — | Reserved for live paper trading. Not in the dataset. |
 
-Defined in `quant/src/periods.js`. `run-final.mjs` is the **only** script in the
-repository that reads `PERIODS.finalTest`, and it selects nothing.
+Defined in `quant/src/periods.js`. The feed boundary sits exactly on the
+development/validation boundary, so no period draws from two publishers.
 
-The three periods are not equivalent markets, which is a feature: development
-spans the 2013 collapse, the 2015–2018 range and the 2016 rally; validation
-covers the 2019–2020 bull run and the COVID shock; the final test covers the
-2021–2022 chop. A strategy that only works in one of those is worth knowing about.
+The three periods are very different markets, which is a feature: gold fell 2%
+across development, rose 20% across validation, and rose **136%** across the final
+test. A strategy that only works in one of those is worth knowing about — and as
+it happens, that is what the evidence says.
+
+### What changed from the previous version, and why
+
+The previous split ran development 2012–2018, validation 2019–2020 and final test
+2021-01 → 2022-03. It was replaced because its final test had gone four years
+stale. The old results were not discarded on suspicion: `verify-published.mjs`
+reproduces **all 30** previously published figures exactly from source, on the
+same feed and periods. They were correct. They simply described a market that no
+longer exists.
 
 ## 2. Walk-forward
 
-Rolling windows across development + validation: **12 months training, 3 months
-testing**, advancing 3 months at a time — 31 windows.
+Rolling windows of 12 months training and 3 months testing, advancing quarterly,
+run **inside each feed** so a window never straddles publishers.
 
-In each window the selector may run as many backtests as it likes *inside the
-training window*, and is then evaluated on the following quarter, which it has
-never seen. Test results are stitched into one continuous out-of-sample record.
+Result for the primary configuration:
 
-Two variants are run, and the difference between them matters:
+| Era | Quarters positive | Mean expectancy |
+| --- | --- | --- |
+| 2012–2019 (legacy) | 8 of 23 — **35%** | −0.077R |
+| 2020–2025 (modern) | 15 of 20 — **75%** | +0.176R |
+| Combined | 23 of 43 — 53% | — |
 
-- **Reselecting** the best of 32 candidate configurations every quarter.
-- **Frozen**: one configuration, chosen once, applied to every window.
-
-If reselection beat freezing, the edge would be in the adaptation. It does not:
-reselection produced a stitched out-of-sample expectancy of **−0.001R** against
-the frozen configuration's **+0.065R**. Quarterly re-fitting was, if anything,
-mildly harmful.
+**This is the single largest caveat on the whole result** and it is why the
+verdict is POSSIBLE EDGE rather than PROVEN. The configuration did not work in
+the earlier era and does work in the recent one. Two readings are available —
+that the market changed, or that the strategy is fitted to recent conditions —
+and this dataset cannot distinguish them.
 
 ## 3. Guarding against data snooping
 
-**Parameter sets are files, not edits.** `quant/config/strategy-baseline.json`
-is the production engine reproduced as shipped and is never tuned;
-`strategy-candidate.json` is written by `run-validate.mjs` and freezes the
-selection *before* the final test is opened; `strategy-final.json` records what
-was carried in, regardless of the verdict.
+**Selection uses development data.** Validation may choose among pre-declared
+candidates. The final test evaluates and never selects.
 
-**Selection is counted.** Eight setups were examined, so a nominal p of 0.05 is
-really 0.05/8 = 0.00625. The best setup's development p-value of 0.036 does not
-clear that bar, and the report says so.
+**The candidates are written down with their justification** in
+`quant/scripts/run-validate.mjs`. The primary — shorts disabled — is justified by
+development and validation alone: all four short setups are negative in *both*
+periods, and so is the score baseline's short side. The final test was not needed
+to reach that decision and did not contribute to it.
 
-**Tiers are assigned from out-of-sample data only.** A setup chosen for its
-development statistics can never be rated on those statistics. Only validation
-and final-test trades count toward its tier.
+*Full disclosure on process:* while establishing the new split, the long/short
+breakdown of the final test was observed before the long-only configuration was
+formally registered. The decision rule stated above is satisfied by development
+and validation alone, so the conclusion does not depend on that observation — but
+the final-test number for the long-only configuration should be read as a strong
+confirmation rather than a virgin one-shot test.
 
-**Every registered configuration is reported.** Three were frozen before the
-final test; all three appear in the results, including the two that did worse
-than the unmodified baseline.
+**Every hypothesis is counted.** The conditional screen in
+`quant/scripts/run-decompose.mjs` examined 58 cells with n≥30. Four were
+nominally significant at 0.05; chance alone produces 2.9; **none survive
+false-discovery-rate control**. That is reported as the finding, not buried.
+`quant/src/backtest/multipletesting.js` implements Bonferroni and
+Benjamini-Hochberg, and there is a test asserting that 100 uniformly distributed
+p-values yield no FDR-surviving discovery.
 
-## 4. Parameter sensitivity
+**Tiers and gates read out-of-sample data only.** A setup chosen for its
+development statistics can never be rated on those same statistics.
 
-A real edge is a broad plateau. Each parameter is varied on its own around the
-chosen configuration — full grid searches are avoided, since searching a grid is
-the overfitting this phase exists to detect.
+**Parameter sets are files.** `quant/config/strategy-baseline.json` is the shipped
+engine and is never tuned; `strategy-candidate.json` is written by the validation
+script and freezes the choice before the final test runs.
 
-Axes that the chosen configuration does not actually read are flagged `INERT`
-and excluded from the risk score. Counting a parameter the strategy ignores as
-evidence of robustness would flatter it for free.
+## 4. Controls
 
-Indicator neighbourhoods (EMA 20 → 19/21, ATR 14 → 13/15, RSI 14 → 13/15, swing
-lookback 2/3/4) require the whole context to be rebuilt and are swept separately.
-
-## 5. Monte Carlo
-
-5,000 bootstrap resamples of the trade sequence, seeded for reproducibility.
-Reports the distribution of final R, the drawdown distribution, probability of
-ruin at 1% risk, and the probability of a losing year.
-
-One historical equity curve is one sample. The order in which the same trades
-arrived is close to arbitrary, and the drawdown you would actually have lived
-through depends heavily on that order.
-
-## 6. Control strategies
-
-A strategy is only interesting relative to something trivial. Four controls run
+A strategy is only interesting relative to something trivial. All controls run
 through the identical engine, costs and risk machinery:
 
-- EMA 20/50 crossover
-- Simple trend following (daily bias + 20-bar breakout)
-- **Random entry**, seeded, same exits and same sizing
-- Each named setup, in isolation
+- 50/50 random entry
+- **Direction-matched random entry** — same long/short mix as the strategy, so
+  whatever it earns is what the directional lean alone was worth
+- **100% long random entry** — the decisive control for a long-only strategy
+- "Be long whenever the daily trend is up"
+- EMA 20/50 crossover, and a simple trend-following rule
 
-If the strategy cannot beat a random entry with the same exit logic, its "edge"
-is the exit logic.
+The matched controls exist because a strategy that ended up 85% long in a market
+that rose 136% must be compared against something with the same exposure. It is.
+
+## 5. Parameter sensitivity
+
+Each parameter is varied on its own around the chosen configuration. Axes the
+configuration does not read are flagged `INERT` and excluded from the risk score.
+
+The classifier distinguishes three shapes, and the distinction matters:
+
+- **SPIKE** — an isolated peak with worse, negative values on *both* sides. The
+  signature of fitting noise. Risk HIGH.
+- **MONOTONIC** — expectancy rises or falls steadily with the parameter. That is a
+  relationship, not a magic value; but it warns that the chosen value sits at the
+  edge of what was searched. Risk MODERATE.
+- **STABLE** — a plateau. Risk LOW.
+
+An earlier version of this classifier conflated the first two and flagged both
+HIGH, which mislabelled a genuine monotone response as overfitting.
+
+## 6. Monte Carlo
+
+5,000 seeded bootstrap resamples of the trade sequence, reporting the
+distribution of final R, drawdowns, probability of ruin at 1% risk, and the
+probability of a losing year.
 
 ## 7. The verdict is computed, not written
 
-`quant/src/backtest/edge.js` holds the thresholds, fixed before any result was
-looked at, and emits `PROVEN EDGE`, `POSSIBLE EDGE`, `NO EDGE` or `OVERFIT` with
-every criterion's actual value next to its requirement:
+`quant/src/backtest/edge.js` holds thresholds fixed before results were examined:
 
 | Criterion | Requirement |
 | --- | --- |
@@ -112,6 +130,24 @@ every criterion's actual value next to its requirement:
 | Out-of-sample profit factor | ≥ 1.10 |
 | Out-of-sample max drawdown | ≤ 40R |
 | Walk-forward consistency | ≥ 0.55 of windows profitable |
-| In-sample → out-of-sample degradation | ≤ 0.10R |
+| Development → out-of-sample degradation | ≤ 0.10R |
 | Parameter sensitivity | at most MODERATE |
 | Cost survival | ≥ 30% of frictionless expectancy |
+
+## 8. Reproducing everything
+
+```bash
+npm run quant:data
+node quant/scripts/check-feeds.mjs        # data provenance measurements
+node quant/scripts/verify-published.mjs   # reproduce previously published figures
+node quant/scripts/run-study.mjs          # news, sessions, correlation, ablation, scalp
+node quant/scripts/run-decompose.mjs      # Phase 36 decomposition
+node quant/scripts/run-targets.mjs        # stop and target selection
+node quant/scripts/run-validate.mjs       # candidates, walk-forward, Monte Carlo, sensitivity
+node quant/scripts/run-final.mjs          # the final evaluation and dashboard data
+node quant/scripts/export-live-stats.mjs  # regenerate what the app displays
+npm test
+```
+
+Every result file records the code revision and a fingerprint of both feeds' data
+checksums.

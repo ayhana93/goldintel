@@ -27,7 +27,7 @@ export default function SignalCard({ analysis }) {
   const {
     primary, setups = [], evidence, regime, volState, session, newsRisk,
     price, livePrice, priceDrift, dataQuality, reasonsFor, reasonsAgainst,
-    signalValidUntil, verdict, gating,
+    signalValidUntil, verdict, gating, gateSummary,
   } = analysis;
 
   const isLong = primary?.direction === "LONG";
@@ -118,23 +118,51 @@ export default function SignalCard({ analysis }) {
         </div>
       )}
 
-      {/* Every setup whose conditions hold, including the ones rated NO_TRADE. */}
+      {/* Every setup whose conditions hold, and for each one exactly which gate
+          stopped it. When the answer is no — which it usually is — the reason is
+          the useful part. */}
       {setups.length > 0 && (
         <div className="border-t border-[#1c2230] px-5 py-3">
           <div className="mb-2 font-mono text-[10px] uppercase tracking-widest text-slate-500">
-            All setup conditions currently holding
+            Setup conditions holding right now, and what each one is blocked by
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             {setups.map((s) => (
-              <div key={s.id} className="flex flex-wrap items-center gap-x-3 font-mono text-[11px]">
-                <span className={`border px-1.5 py-px text-[9px] uppercase ${TIER_STYLE[s.tier]}`}>{s.tier}</span>
-                <span className={s.direction === "LONG" ? "text-emerald-400" : "text-red-400"}>{s.direction}</span>
-                <span className="text-slate-300">{s.name}</span>
-                <span className="text-slate-600">
-                  out-of-sample {rMult(s.history?.outOfSample?.expectancy)} over {s.history?.outOfSample?.trades ?? 0} trades
-                </span>
+              <div key={s.id} className="font-mono text-[11px]">
+                <div className="flex flex-wrap items-center gap-x-3">
+                  <span className={`border px-1.5 py-px text-[9px] uppercase ${TIER_STYLE[s.tier]}`}>{s.tier}</span>
+                  <span className={s.direction === "LONG" ? "text-emerald-400" : "text-red-400"}>{s.direction}</span>
+                  <span className="text-slate-300">{s.name}</span>
+                  {s.state === "DISABLED_NEGATIVE_EDGE" && (
+                    <span className="border border-red-500/40 px-1.5 py-px text-[9px] uppercase text-red-400">quarantined</span>
+                  )}
+                  <span className="text-slate-600">
+                    out-of-sample {rMult(s.history?.outOfSample?.expectancy)} over {s.history?.outOfSample?.trades ?? 0} trades
+                  </span>
+                  {s.gate?.tradable
+                    ? <span className="text-emerald-400">✓ all gates passed</span>
+                    : <span className="text-slate-500">blocked: {s.gate?.blockedBy?.join(", ")}</span>}
+                </div>
+                {!s.gate?.tradable && s.gate?.reasons?.length > 0 && (
+                  <div className="mt-0.5 pl-4 text-[10px] leading-relaxed text-slate-600">{s.gate.reasons[0]}</div>
+                )}
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* The gates themselves, so the standard is visible whether or not anything fired. */}
+      {gateSummary && (
+        <div className="border-t border-[#1c2230] bg-[#0d121c] px-5 py-2.5">
+          <div className="mb-1 font-mono text-[10px] uppercase tracking-widest text-slate-500">Standard a signal must clear</div>
+          <div className="font-mono text-[10px] leading-relaxed text-slate-500">
+            Directions allowed: {gateSummary.allowedDirections?.join(", ")} ·
+            at least {gateSummary.thresholds?.minOutOfSampleTrades} out-of-sample trades ·
+            expectancy ≥ {gateSummary.thresholds?.minOutOfSampleExpectancy}R ·
+            profit factor ≥ {gateSummary.thresholds?.minOutOfSampleProfitFactor} ·
+            95% interval excluding zero · evidence ≥ {gateSummary.thresholds?.minEvidenceScore}/100.
+            The evidence score is necessary and never sufficient.
           </div>
         </div>
       )}

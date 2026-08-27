@@ -1,45 +1,27 @@
 {
   "id": "final",
   "description": "The configuration carried into the final test, frozen beforehand. Recorded regardless of the verdict.",
-  "primary": "production-baseline",
+  "primary": "baseline-long-only",
+  "rationale": "Shorts disabled. Supported by DEVELOPMENT and VALIDATION alone: all four short setups are negative in both periods (B -0.015/-0.115, D -0.132/-0.141, F -0.066/-0.070, H -0.053/-0.185) and the score baseline is negative short in both (-0.039/-0.092).",
   "registered": [
-    {
-      "id": "production-baseline",
-      "description": "GoldIntel as shipped"
-    },
-    {
-      "id": "baseline-no-macro",
-      "description": "GoldIntel score with the macro component removed and weights renormalized"
-    },
-    {
-      "id": "setup-candidate",
-      "description": "all-eligible|swing|R 1.5/2.5/4"
-    }
+    "baseline-long-only",
+    "production-baseline",
+    "setups-long-only",
+    "setup-C-only",
+    "production-scalp"
   ],
-  "strategy": {
-    "label": "all-eligible|swing|R 1.5/2.5/4",
-    "enabled": [
-      "B_TREND_CONT_SHORT",
-      "C_PULLBACK_LONG"
-    ],
-    "stopPolicy": "swing",
-    "targetPolicy": "fixedR",
-    "targetCfg": {
-      "rMultiples": [
-        1.5,
-        2.5,
-        4
-      ]
-    }
+  "controls": [
+    "control-random-100pct-long",
+    "control-random-5050",
+    "control-long-when-d1-bullish",
+    "control-ema-cross"
+  ],
+  "periods": {
+    "development": "2012-05-15 → 2019-12-31 (legacy)",
+    "validation": "2020-01-01 → 2022-12-31 (modern)",
+    "finalTest": "2023-01-01 → 2025-12-31 (modern)"
   },
-  "noMacroWeights": {
-    "trend": 29.411764705882355,
-    "structure": 29.411764705882355,
-    "momentum": 14.117647058823529,
-    "support_resistance": 15.294117647058824,
-    "price_action": 11.76470588235294,
-    "macro": 0
-  },
+  "execution": "realistic",
   "risk": {
     "accountSize": 10000,
     "riskPerTradePct": 1,
@@ -47,6 +29,33 @@
     "maxDailyLossPct": 3,
     "maxWeeklyLossPct": 6
   },
-  "verdict": "NO EDGE",
-  "evaluatedAt": "2026-08-27T09:42:50.735Z"
+  "verdict": "POSSIBLE EDGE",
+  "outOfSample": {
+    "trades": 355,
+    "winRate": 55.49,
+    "expectancy": 0.171,
+    "profitFactor": 1.405,
+    "netR": 60.7,
+    "maxDrawdownR": 14.2,
+    "sharpe": 1.1,
+    "p": 0.0016,
+    "t": 2.68,
+    "ci95": [
+      0.0478,
+      0.2976
+    ]
+  },
+  "finalTest": {
+    "trades": 221,
+    "winRate": 56.56,
+    "expectancy": 0.2099,
+    "profitFactor": 1.5,
+    "netR": 46.4,
+    "maxDrawdownR": 13.2,
+    "sharpe": 1.47,
+    "p": 0.0043,
+    "t": 2.54
+  },
+  "caveat": "Walk-forward consistency is 35% on the 2012-2019 era against 75% on 2020-2025. The evidence is era-specific.",
+  "evaluatedAt": "2026-08-27T16:36:16.220Z"
 }

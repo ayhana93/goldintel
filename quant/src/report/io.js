@@ -23,7 +23,12 @@ function dataFingerprint() {
   const p = join(ROOT, 'data', 'MANIFEST.json');
   if (!existsSync(p)) return 'missing';
   const m = JSON.parse(readFileSync(p, 'utf8'));
-  manifestSha = m.files.map((f) => `${f.symbol}_${f.timeframe}:${f.sha256.slice(0, 8)}`).join(' ');
+  // The manifest is grouped by feed; fingerprint every file of every feed so a
+  // result can be tied to the exact bytes of both publishers.
+  const files = m.feeds
+    ? Object.entries(m.feeds).flatMap(([feed, f]) => f.files.map((x) => ({ ...x, feed })))
+    : (m.files ?? []).map((x) => ({ ...x, feed: 'legacy' }));
+  manifestSha = files.map((f) => `${f.feed}:${f.symbol}_${f.timeframe}:${f.sha256.slice(0, 8)}`).join(' ');
   return manifestSha;
 }
 

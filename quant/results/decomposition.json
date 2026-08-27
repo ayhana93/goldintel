@@ -1,0 +1,2630 @@
+{
+  "_provenance": {
+    "generatedAt": "2026-08-27T16:15:06.401Z",
+    "codeRevision": "7e969ce",
+    "dataFingerprint": "legacy:XAUUSD_M15:4a179fd4 legacy:XAUUSD_H1:4c9ff7b1 legacy:XAUUSD_H4:db5a98c6 legacy:XAUUSD_D1:d3da2122 legacy:EURUSD_H1:1b29ca23 legacy:USDJPY_H1:4bdca353 legacy:GBPUSD_H1:affda7b6 legacy:USDCAD_H1:ef4ff565 legacy:USDCHF_H1:82e3f4cb modern:XAUUSD_M15:97dc307a modern:XAUUSD_H1:aec7009a modern:XAUUSD_H4:8e924230 modern:XAUUSD_D1:1c66a195 modern:EURUSD_H1:3a129445 modern:GBPUSD_H1:76278930 modern:USDCAD_H1:64e4a8f6 modern:USDCHF_H1:759c2b6f modern:AUDUSD_H1:de481ada",
+    "note": "Selection used DEVELOPMENT data only. Validation and final test are checks."
+  },
+  "periods": {
+    "development": "2012-05-15 → 2019-12-31 (legacy)",
+    "validation": "2020-01-01 → 2022-12-31 (modern)",
+    "finalTest": "2023-01-01 → 2025-12-31 (modern)"
+  },
+  "perSetup": {
+    "A_TREND_CONT_LONG": {
+      "development": {
+        "trades": 300,
+        "winRate": 48.67,
+        "expectancy": -0.0531,
+        "profitFactor": 0.898,
+        "netR": -15.9,
+        "maxDrawdownR": 33.4,
+        "sharpe": -0.34,
+        "p": 0.8046,
+        "t": -0.87
+      },
+      "validation": {
+        "trades": 165,
+        "winRate": 48.48,
+        "expectancy": -0.0193,
+        "profitFactor": 0.963,
+        "netR": -3.2,
+        "maxDrawdownR": 19.7,
+        "sharpe": -0.14,
+        "p": 0.5946,
+        "t": -0.23
+      },
+      "finalTest": {
+        "trades": 325,
+        "winRate": 53.23,
+        "expectancy": 0.1186,
+        "profitFactor": 1.25,
+        "netR": 38.6,
+        "maxDrawdownR": 13.2,
+        "sharpe": 1.08,
+        "p": 0.0311,
+        "t": 1.87
+      },
+      "outOfSample": {
+        "trades": 490,
+        "winRate": 51.63,
+        "expectancy": 0.0722,
+        "profitFactor": 1.148,
+        "netR": 35.4,
+        "maxDrawdownR": 19.7,
+        "sharpe": 0.59,
+        "p": 0.0831,
+        "t": 1.42,
+        "ci95": [
+          -0.03,
+          0.171
+        ]
+      },
+      "positiveInAllPeriods": false
+    },
+    "B_TREND_CONT_SHORT": {
+      "development": {
+        "trades": 417,
+        "winRate": 52.28,
+        "expectancy": -0.0153,
+        "profitFactor": 0.969,
+        "netR": -6.4,
+        "maxDrawdownR": 19.8,
+        "sharpe": -0.12,
+        "p": 0.6254,
+        "t": -0.3
+      },
+      "validation": {
+        "trades": 126,
+        "winRate": 46.83,
+        "expectancy": -0.1148,
+        "profitFactor": 0.787,
+        "netR": -14.5,
+        "maxDrawdownR": 15.6,
+        "sharpe": -0.78,
+        "p": 0.8916,
+        "t": -1.26
+      },
+      "finalTest": {
+        "trades": 14,
+        "winRate": 57.14,
+        "expectancy": -0.0145,
+        "profitFactor": 0.967,
+        "netR": -0.2,
+        "maxDrawdownR": 4.2,
+        "sharpe": -0.15,
+        "p": 0.5187,
+        "t": -0.06
+      },
+      "outOfSample": {
+        "trades": 140,
+        "winRate": 47.86,
+        "expectancy": -0.1048,
+        "profitFactor": 0.802,
+        "netR": -14.7,
+        "maxDrawdownR": 15.8,
+        "sharpe": -0.65,
+        "p": 0.895,
+        "t": -1.22,
+        "ci95": [
+          -0.273,
+          0.061
+        ]
+      },
+      "positiveInAllPeriods": false
+    },
+    "C_PULLBACK_LONG": {
+      "development": {
+        "trades": 132,
+        "winRate": 63.64,
+        "expectancy": 0.1992,
+        "profitFactor": 1.537,
+        "netR": 26.3,
+        "maxDrawdownR": 4.9,
+        "sharpe": 0.89,
+        "p": 0.0127,
+        "t": 2.25
+      },
+      "validation": {
+        "trades": 48,
+        "winRate": 62.5,
+        "expectancy": 0.3404,
+        "profitFactor": 1.927,
+        "netR": 16.3,
+        "maxDrawdownR": 3.4,
+        "sharpe": 1.26,
+        "p": 0.0188,
+        "t": 2.1
+      },
+      "finalTest": {
+        "trades": 146,
+        "winRate": 52.05,
+        "expectancy": 0.0307,
+        "profitFactor": 1.065,
+        "netR": 4.5,
+        "maxDrawdownR": 13.7,
+        "sharpe": 0.2,
+        "p": 0.3687,
+        "t": 0.35
+      },
+      "outOfSample": {
+        "trades": 194,
+        "winRate": 54.64,
+        "expectancy": 0.1073,
+        "profitFactor": 1.239,
+        "netR": 20.8,
+        "maxDrawdownR": 13.7,
+        "sharpe": 0.58,
+        "p": 0.0811,
+        "t": 1.38,
+        "ci95": [
+          -0.046,
+          0.259
+        ]
+      },
+      "positiveInAllPeriods": true
+    },
+    "D_PULLBACK_SHORT": {
+      "development": {
+        "trades": 174,
+        "winRate": 47.13,
+        "expectancy": -0.1321,
+        "profitFactor": 0.755,
+        "netR": -23,
+        "maxDrawdownR": 22,
+        "sharpe": -0.73,
+        "p": 0.9589,
+        "t": -1.74
+      },
+      "validation": {
+        "trades": 77,
+        "winRate": 49.35,
+        "expectancy": -0.1414,
+        "profitFactor": 0.725,
+        "netR": -10.9,
+        "maxDrawdownR": 15.7,
+        "sharpe": -1,
+        "p": 0.9013,
+        "t": -1.3
+      },
+      "finalTest": {
+        "trades": 2,
+        "winRate": 50,
+        "expectancy": -0.2954,
+        "profitFactor": 0.418,
+        "netR": -0.6,
+        "maxDrawdownR": 0,
+        "sharpe": -4.67,
+        "p": null,
+        "t": null
+      },
+      "outOfSample": {
+        "trades": 79,
+        "winRate": 49.37,
+        "expectancy": -0.1453,
+        "profitFactor": 0.718,
+        "netR": -11.5,
+        "maxDrawdownR": 15.7,
+        "sharpe": -0.84,
+        "p": 0.9102,
+        "t": -1.36,
+        "ci95": [
+          -0.347,
+          0.062
+        ]
+      },
+      "positiveInAllPeriods": false
+    },
+    "E_RANGE_REV_LONG": {
+      "development": {
+        "trades": 451,
+        "winRate": 48.12,
+        "expectancy": -0.111,
+        "profitFactor": 0.792,
+        "netR": -50.1,
+        "maxDrawdownR": 61.2,
+        "sharpe": -0.87,
+        "p": 0.9901,
+        "t": -2.31
+      },
+      "validation": {
+        "trades": 196,
+        "winRate": 51.02,
+        "expectancy": -0.0326,
+        "profitFactor": 0.934,
+        "netR": -6.4,
+        "maxDrawdownR": 18.6,
+        "sharpe": -0.26,
+        "p": 0.6709,
+        "t": -0.44
+      },
+      "finalTest": {
+        "trades": 284,
+        "winRate": 53.52,
+        "expectancy": 0.0683,
+        "profitFactor": 1.145,
+        "netR": 19.4,
+        "maxDrawdownR": 12.6,
+        "sharpe": 0.61,
+        "p": 0.1419,
+        "t": 1.06
+      },
+      "outOfSample": {
+        "trades": 480,
+        "winRate": 52.5,
+        "expectancy": 0.0271,
+        "profitFactor": 1.056,
+        "netR": 13,
+        "maxDrawdownR": 18.6,
+        "sharpe": 0.23,
+        "p": 0.285,
+        "t": 0.56,
+        "ci95": [
+          -0.064,
+          0.121
+        ]
+      },
+      "positiveInAllPeriods": false
+    },
+    "F_RANGE_REV_SHORT": {
+      "development": {
+        "trades": 538,
+        "winRate": 51.49,
+        "expectancy": -0.0664,
+        "profitFactor": 0.866,
+        "netR": -35.7,
+        "maxDrawdownR": 47.3,
+        "sharpe": -0.58,
+        "p": 0.9383,
+        "t": -1.54
+      },
+      "validation": {
+        "trades": 216,
+        "winRate": 49.54,
+        "expectancy": -0.0699,
+        "profitFactor": 0.863,
+        "netR": -15.1,
+        "maxDrawdownR": 23.5,
+        "sharpe": -0.59,
+        "p": 0.8439,
+        "t": -1
+      },
+      "finalTest": {
+        "trades": 63,
+        "winRate": 36.51,
+        "expectancy": -0.3278,
+        "profitFactor": 0.484,
+        "netR": -20.7,
+        "maxDrawdownR": 22.3,
+        "sharpe": -1.72,
+        "p": 0.9952,
+        "t": -2.73
+      },
+      "outOfSample": {
+        "trades": 279,
+        "winRate": 46.59,
+        "expectancy": -0.1281,
+        "profitFactor": 0.763,
+        "netR": -35.8,
+        "maxDrawdownR": 36.3,
+        "sharpe": -0.89,
+        "p": 0.9821,
+        "t": -2.11,
+        "ci95": [
+          -0.247,
+          -0.01
+        ]
+      },
+      "positiveInAllPeriods": false
+    },
+    "G_BREAKOUT_LONG": {
+      "development": {
+        "trades": 387,
+        "winRate": 49.61,
+        "expectancy": -0.0257,
+        "profitFactor": 0.95,
+        "netR": -9.9,
+        "maxDrawdownR": 30.3,
+        "sharpe": -0.18,
+        "p": 0.6788,
+        "t": -0.47
+      },
+      "validation": {
+        "trades": 178,
+        "winRate": 52.81,
+        "expectancy": 0.047,
+        "profitFactor": 1.099,
+        "netR": 8.4,
+        "maxDrawdownR": 18.7,
+        "sharpe": 0.34,
+        "p": 0.2787,
+        "t": 0.59
+      },
+      "finalTest": {
+        "trades": 286,
+        "winRate": 53.5,
+        "expectancy": 0.1127,
+        "profitFactor": 1.24,
+        "netR": 32.2,
+        "maxDrawdownR": 17.4,
+        "sharpe": 0.98,
+        "p": 0.0459,
+        "t": 1.7
+      },
+      "outOfSample": {
+        "trades": 464,
+        "winRate": 53.23,
+        "expectancy": 0.0875,
+        "profitFactor": 1.186,
+        "netR": 40.6,
+        "maxDrawdownR": 24.2,
+        "sharpe": 0.7,
+        "p": 0.0413,
+        "t": 1.71,
+        "ci95": [
+          -0.011,
+          0.189
+        ]
+      },
+      "positiveInAllPeriods": false
+    },
+    "H_BREAKOUT_SHORT": {
+      "development": {
+        "trades": 467,
+        "winRate": 49.25,
+        "expectancy": -0.0529,
+        "profitFactor": 0.898,
+        "netR": -24.7,
+        "maxDrawdownR": 44.6,
+        "sharpe": -0.41,
+        "p": 0.8651,
+        "t": -1.09
+      },
+      "validation": {
+        "trades": 156,
+        "winRate": 44.23,
+        "expectancy": -0.1847,
+        "profitFactor": 0.673,
+        "netR": -28.8,
+        "maxDrawdownR": 29.8,
+        "sharpe": -1.37,
+        "p": 0.9895,
+        "t": -2.33
+      },
+      "finalTest": {
+        "trades": 45,
+        "winRate": 48.89,
+        "expectancy": -0.0673,
+        "profitFactor": 0.87,
+        "netR": -3,
+        "maxDrawdownR": 6.1,
+        "sharpe": -0.27,
+        "p": 0.6743,
+        "t": -0.43
+      },
+      "outOfSample": {
+        "trades": 201,
+        "winRate": 45.27,
+        "expectancy": -0.1584,
+        "profitFactor": 0.714,
+        "netR": -31.8,
+        "maxDrawdownR": 34.9,
+        "sharpe": -0.94,
+        "p": 0.9857,
+        "t": -2.24,
+        "ci95": [
+          -0.293,
+          -0.019
+        ]
+      },
+      "positiveInAllPeriods": false
+    }
+  },
+  "windowStats": {
+    "A_TREND_CONT_LONG": {
+      "windows": 17,
+      "positiveWindows": 7,
+      "consistency": 0.412,
+      "rows": [
+        {
+          "from": "2014-02",
+          "trades": 3,
+          "expectancy": 0.5414
+        },
+        {
+          "from": "2014-05",
+          "trades": 7,
+          "expectancy": 0.0755
+        },
+        {
+          "from": "2014-11",
+          "trades": 5,
+          "expectancy": -0.2013
+        },
+        {
+          "from": "2015-07",
+          "trades": 6,
+          "expectancy": -0.5293
+        },
+        {
+          "from": "2016-01",
+          "trades": 27,
+          "expectancy": 0.1133
+        },
+        {
+          "from": "2016-04",
+          "trades": 27,
+          "expectancy": -0.2198
+        },
+        {
+          "from": "2016-07",
+          "trades": 17,
+          "expectancy": -0.309
+        },
+        {
+          "from": "2017-01",
+          "trades": 26,
+          "expectancy": -0.0616
+        },
+        {
+          "from": "2017-04",
+          "trades": 15,
+          "expectancy": -0.3027
+        },
+        {
+          "from": "2017-07",
+          "trades": 23,
+          "expectancy": 0.0637
+        },
+        {
+          "from": "2017-10",
+          "trades": 10,
+          "expectancy": 0.078
+        },
+        {
+          "from": "2018-01",
+          "trades": 29,
+          "expectancy": -0.2945
+        },
+        {
+          "from": "2018-04",
+          "trades": 4,
+          "expectancy": -0.2105
+        },
+        {
+          "from": "2018-10",
+          "trades": 14,
+          "expectancy": -0.0092
+        },
+        {
+          "from": "2019-01",
+          "trades": 23,
+          "expectancy": -0.0397
+        },
+        {
+          "from": "2019-04",
+          "trades": 22,
+          "expectancy": 0.0994
+        },
+        {
+          "from": "2019-07",
+          "trades": 29,
+          "expectancy": 0.0047
+        }
+      ]
+    },
+    "B_TREND_CONT_SHORT": {
+      "windows": 19,
+      "positiveWindows": 9,
+      "consistency": 0.474,
+      "rows": [
+        {
+          "from": "2013-05",
+          "trades": 29,
+          "expectancy": 0.0708
+        },
+        {
+          "from": "2013-08",
+          "trades": 16,
+          "expectancy": -0.1338
+        },
+        {
+          "from": "2013-11",
+          "trades": 28,
+          "expectancy": 0.187
+        },
+        {
+          "from": "2014-02",
+          "trades": 13,
+          "expectancy": 0.1258
+        },
+        {
+          "from": "2014-05",
+          "trades": 17,
+          "expectancy": -0.0877
+        },
+        {
+          "from": "2014-08",
+          "trades": 32,
+          "expectancy": 0.0688
+        },
+        {
+          "from": "2014-11",
+          "trades": 18,
+          "expectancy": -0.0649
+        },
+        {
+          "from": "2015-01",
+          "trades": 25,
+          "expectancy": -0.0799
+        },
+        {
+          "from": "2015-04",
+          "trades": 41,
+          "expectancy": -0.076
+        },
+        {
+          "from": "2015-07",
+          "trades": 19,
+          "expectancy": 0.0815
+        },
+        {
+          "from": "2015-10",
+          "trades": 21,
+          "expectancy": 0.0277
+        },
+        {
+          "from": "2016-07",
+          "trades": 6,
+          "expectancy": 0.1647
+        },
+        {
+          "from": "2016-10",
+          "trades": 24,
+          "expectancy": -0.0166
+        },
+        {
+          "from": "2017-01",
+          "trades": 8,
+          "expectancy": -0.3681
+        },
+        {
+          "from": "2017-04",
+          "trades": 17,
+          "expectancy": 0.0171
+        },
+        {
+          "from": "2017-10",
+          "trades": 6,
+          "expectancy": -0.1478
+        },
+        {
+          "from": "2018-04",
+          "trades": 27,
+          "expectancy": -0.053
+        },
+        {
+          "from": "2018-07",
+          "trades": 32,
+          "expectancy": 0.0376
+        },
+        {
+          "from": "2019-04",
+          "trades": 10,
+          "expectancy": -0.7936
+        }
+      ]
+    },
+    "C_PULLBACK_LONG": {
+      "windows": 11,
+      "positiveWindows": 7,
+      "consistency": 0.636,
+      "rows": [
+        {
+          "from": "2014-05",
+          "trades": 4,
+          "expectancy": 0.3017
+        },
+        {
+          "from": "2016-01",
+          "trades": 14,
+          "expectancy": 0.3909
+        },
+        {
+          "from": "2016-04",
+          "trades": 15,
+          "expectancy": -0.1768
+        },
+        {
+          "from": "2016-07",
+          "trades": 5,
+          "expectancy": 0.5786
+        },
+        {
+          "from": "2017-01",
+          "trades": 8,
+          "expectancy": 0.2074
+        },
+        {
+          "from": "2017-04",
+          "trades": 12,
+          "expectancy": -0.0533
+        },
+        {
+          "from": "2017-07",
+          "trades": 10,
+          "expectancy": 0.4911
+        },
+        {
+          "from": "2018-01",
+          "trades": 14,
+          "expectancy": -0.1116
+        },
+        {
+          "from": "2019-01",
+          "trades": 13,
+          "expectancy": -0.0789
+        },
+        {
+          "from": "2019-04",
+          "trades": 5,
+          "expectancy": 0.6409
+        },
+        {
+          "from": "2019-07",
+          "trades": 23,
+          "expectancy": 0.267
+        }
+      ]
+    },
+    "D_PULLBACK_SHORT": {
+      "windows": 16,
+      "positiveWindows": 7,
+      "consistency": 0.438,
+      "rows": [
+        {
+          "from": "2013-05",
+          "trades": 14,
+          "expectancy": -0.2791
+        },
+        {
+          "from": "2013-08",
+          "trades": 5,
+          "expectancy": -0.4223
+        },
+        {
+          "from": "2013-11",
+          "trades": 11,
+          "expectancy": 0.395
+        },
+        {
+          "from": "2014-05",
+          "trades": 6,
+          "expectancy": -0.4553
+        },
+        {
+          "from": "2014-08",
+          "trades": 12,
+          "expectancy": 0.0731
+        },
+        {
+          "from": "2014-11",
+          "trades": 9,
+          "expectancy": 0.234
+        },
+        {
+          "from": "2015-01",
+          "trades": 11,
+          "expectancy": -0.1226
+        },
+        {
+          "from": "2015-04",
+          "trades": 10,
+          "expectancy": 0.3604
+        },
+        {
+          "from": "2015-07",
+          "trades": 11,
+          "expectancy": -0.3606
+        },
+        {
+          "from": "2015-10",
+          "trades": 11,
+          "expectancy": 0.3384
+        },
+        {
+          "from": "2016-07",
+          "trades": 4,
+          "expectancy": -0.5401
+        },
+        {
+          "from": "2016-10",
+          "trades": 13,
+          "expectancy": 0.1237
+        },
+        {
+          "from": "2017-04",
+          "trades": 4,
+          "expectancy": -1.0251
+        },
+        {
+          "from": "2017-10",
+          "trades": 5,
+          "expectancy": -1.0305
+        },
+        {
+          "from": "2018-04",
+          "trades": 9,
+          "expectancy": 0.093
+        },
+        {
+          "from": "2018-07",
+          "trades": 17,
+          "expectancy": -0.2228
+        }
+      ]
+    },
+    "E_RANGE_REV_LONG": {
+      "windows": 25,
+      "positiveWindows": 6,
+      "consistency": 0.24,
+      "rows": [
+        {
+          "from": "2013-05",
+          "trades": 9,
+          "expectancy": 0.441
+        },
+        {
+          "from": "2013-08",
+          "trades": 18,
+          "expectancy": -0.1336
+        },
+        {
+          "from": "2013-11",
+          "trades": 6,
+          "expectancy": -0.5197
+        },
+        {
+          "from": "2014-02",
+          "trades": 11,
+          "expectancy": -0.0557
+        },
+        {
+          "from": "2014-05",
+          "trades": 14,
+          "expectancy": -0.2524
+        },
+        {
+          "from": "2014-08",
+          "trades": 3,
+          "expectancy": -0.5315
+        },
+        {
+          "from": "2014-11",
+          "trades": 12,
+          "expectancy": 0.1084
+        },
+        {
+          "from": "2015-01",
+          "trades": 8,
+          "expectancy": -0.4225
+        },
+        {
+          "from": "2015-04",
+          "trades": 8,
+          "expectancy": -0.6638
+        },
+        {
+          "from": "2015-07",
+          "trades": 15,
+          "expectancy": 0.0306
+        },
+        {
+          "from": "2015-10",
+          "trades": 8,
+          "expectancy": -0.0131
+        },
+        {
+          "from": "2016-01",
+          "trades": 21,
+          "expectancy": 0.5791
+        },
+        {
+          "from": "2016-04",
+          "trades": 32,
+          "expectancy": -0.299
+        },
+        {
+          "from": "2016-07",
+          "trades": 25,
+          "expectancy": -0.4547
+        },
+        {
+          "from": "2016-10",
+          "trades": 5,
+          "expectancy": -0.5392
+        },
+        {
+          "from": "2017-01",
+          "trades": 22,
+          "expectancy": -0.1159
+        },
+        {
+          "from": "2017-04",
+          "trades": 17,
+          "expectancy": -0.3322
+        },
+        {
+          "from": "2017-07",
+          "trades": 26,
+          "expectancy": -0.0733
+        },
+        {
+          "from": "2017-10",
+          "trades": 18,
+          "expectancy": 0.1867
+        },
+        {
+          "from": "2018-01",
+          "trades": 31,
+          "expectancy": -0.219
+        },
+        {
+          "from": "2018-04",
+          "trades": 12,
+          "expectancy": -0.1385
+        },
+        {
+          "from": "2018-10",
+          "trades": 23,
+          "expectancy": -0.0781
+        },
+        {
+          "from": "2019-01",
+          "trades": 22,
+          "expectancy": 0.2412
+        },
+        {
+          "from": "2019-04",
+          "trades": 24,
+          "expectancy": -0.2143
+        },
+        {
+          "from": "2019-07",
+          "trades": 23,
+          "expectancy": -0.0402
+        }
+      ]
+    },
+    "F_RANGE_REV_SHORT": {
+      "windows": 25,
+      "positiveWindows": 12,
+      "consistency": 0.48,
+      "rows": [
+        {
+          "from": "2013-05",
+          "trades": 25,
+          "expectancy": 0.115
+        },
+        {
+          "from": "2013-08",
+          "trades": 31,
+          "expectancy": 0.1541
+        },
+        {
+          "from": "2013-11",
+          "trades": 28,
+          "expectancy": 0.108
+        },
+        {
+          "from": "2014-02",
+          "trades": 26,
+          "expectancy": -0.2475
+        },
+        {
+          "from": "2014-05",
+          "trades": 22,
+          "expectancy": -0.2936
+        },
+        {
+          "from": "2014-08",
+          "trades": 27,
+          "expectancy": 0.0649
+        },
+        {
+          "from": "2014-11",
+          "trades": 18,
+          "expectancy": 0.0036
+        },
+        {
+          "from": "2015-01",
+          "trades": 25,
+          "expectancy": 0.1964
+        },
+        {
+          "from": "2015-04",
+          "trades": 26,
+          "expectancy": 0.0034
+        },
+        {
+          "from": "2015-07",
+          "trades": 31,
+          "expectancy": -0.1375
+        },
+        {
+          "from": "2015-10",
+          "trades": 26,
+          "expectancy": -0.1656
+        },
+        {
+          "from": "2016-01",
+          "trades": 4,
+          "expectancy": -1.0213
+        },
+        {
+          "from": "2016-04",
+          "trades": 4,
+          "expectancy": 0.5817
+        },
+        {
+          "from": "2016-07",
+          "trades": 12,
+          "expectancy": -0.1656
+        },
+        {
+          "from": "2016-10",
+          "trades": 24,
+          "expectancy": 0.1089
+        },
+        {
+          "from": "2017-01",
+          "trades": 15,
+          "expectancy": -0.3712
+        },
+        {
+          "from": "2017-04",
+          "trades": 12,
+          "expectancy": -0.0918
+        },
+        {
+          "from": "2017-07",
+          "trades": 5,
+          "expectancy": -0.2584
+        },
+        {
+          "from": "2017-10",
+          "trades": 24,
+          "expectancy": -0.311
+        },
+        {
+          "from": "2018-01",
+          "trades": 3,
+          "expectancy": -0.5315
+        },
+        {
+          "from": "2018-04",
+          "trades": 20,
+          "expectancy": 0.0501
+        },
+        {
+          "from": "2018-07",
+          "trades": 25,
+          "expectancy": 0.238
+        },
+        {
+          "from": "2018-10",
+          "trades": 20,
+          "expectancy": -0.5867
+        },
+        {
+          "from": "2019-01",
+          "trades": 6,
+          "expectancy": 0.0193
+        },
+        {
+          "from": "2019-04",
+          "trades": 15,
+          "expectancy": -0.27
+        }
+      ]
+    },
+    "G_BREAKOUT_LONG": {
+      "windows": 25,
+      "positiveWindows": 8,
+      "consistency": 0.32,
+      "rows": [
+        {
+          "from": "2013-05",
+          "trades": 8,
+          "expectancy": -0.2463
+        },
+        {
+          "from": "2013-08",
+          "trades": 11,
+          "expectancy": -0.0453
+        },
+        {
+          "from": "2013-11",
+          "trades": 5,
+          "expectancy": -0.7195
+        },
+        {
+          "from": "2014-02",
+          "trades": 13,
+          "expectancy": 0.5727
+        },
+        {
+          "from": "2014-05",
+          "trades": 9,
+          "expectancy": -0.5646
+        },
+        {
+          "from": "2014-08",
+          "trades": 4,
+          "expectancy": 0.0717
+        },
+        {
+          "from": "2014-11",
+          "trades": 4,
+          "expectancy": 0.9713
+        },
+        {
+          "from": "2015-01",
+          "trades": 4,
+          "expectancy": -1.0173
+        },
+        {
+          "from": "2015-04",
+          "trades": 5,
+          "expectancy": -0.7282
+        },
+        {
+          "from": "2015-07",
+          "trades": 14,
+          "expectancy": -0.0584
+        },
+        {
+          "from": "2015-10",
+          "trades": 5,
+          "expectancy": 0.0526
+        },
+        {
+          "from": "2016-01",
+          "trades": 26,
+          "expectancy": 0.2602
+        },
+        {
+          "from": "2016-04",
+          "trades": 24,
+          "expectancy": -0.005
+        },
+        {
+          "from": "2016-07",
+          "trades": 14,
+          "expectancy": -0.0048
+        },
+        {
+          "from": "2016-10",
+          "trades": 4,
+          "expectancy": 0.5053
+        },
+        {
+          "from": "2017-01",
+          "trades": 24,
+          "expectancy": -0.1469
+        },
+        {
+          "from": "2017-04",
+          "trades": 12,
+          "expectancy": -0.0618
+        },
+        {
+          "from": "2017-07",
+          "trades": 27,
+          "expectancy": -0.0107
+        },
+        {
+          "from": "2017-10",
+          "trades": 17,
+          "expectancy": -0.0462
+        },
+        {
+          "from": "2018-01",
+          "trades": 23,
+          "expectancy": -0.084
+        },
+        {
+          "from": "2018-04",
+          "trades": 7,
+          "expectancy": -0.8114
+        },
+        {
+          "from": "2018-10",
+          "trades": 21,
+          "expectancy": -0.2833
+        },
+        {
+          "from": "2019-01",
+          "trades": 24,
+          "expectancy": -0.0477
+        },
+        {
+          "from": "2019-04",
+          "trades": 23,
+          "expectancy": 0.2855
+        },
+        {
+          "from": "2019-07",
+          "trades": 22,
+          "expectancy": 0.3154
+        }
+      ]
+    },
+    "H_BREAKOUT_SHORT": {
+      "windows": 24,
+      "positiveWindows": 10,
+      "consistency": 0.417,
+      "rows": [
+        {
+          "from": "2013-05",
+          "trades": 28,
+          "expectancy": 0.1334
+        },
+        {
+          "from": "2013-08",
+          "trades": 27,
+          "expectancy": -0.211
+        },
+        {
+          "from": "2013-11",
+          "trades": 22,
+          "expectancy": 0.0541
+        },
+        {
+          "from": "2014-02",
+          "trades": 18,
+          "expectancy": -0.1829
+        },
+        {
+          "from": "2014-05",
+          "trades": 16,
+          "expectancy": 0.1351
+        },
+        {
+          "from": "2014-08",
+          "trades": 26,
+          "expectancy": 0.3673
+        },
+        {
+          "from": "2014-11",
+          "trades": 18,
+          "expectancy": -0.049
+        },
+        {
+          "from": "2015-01",
+          "trades": 19,
+          "expectancy": 0.035
+        },
+        {
+          "from": "2015-04",
+          "trades": 24,
+          "expectancy": 0.0082
+        },
+        {
+          "from": "2015-07",
+          "trades": 19,
+          "expectancy": -0.3228
+        },
+        {
+          "from": "2015-10",
+          "trades": 20,
+          "expectancy": 0.1554
+        },
+        {
+          "from": "2016-04",
+          "trades": 4,
+          "expectancy": 0.117
+        },
+        {
+          "from": "2016-07",
+          "trades": 13,
+          "expectancy": -0.3607
+        },
+        {
+          "from": "2016-10",
+          "trades": 23,
+          "expectancy": -0.2058
+        },
+        {
+          "from": "2017-01",
+          "trades": 11,
+          "expectancy": -0.2768
+        },
+        {
+          "from": "2017-04",
+          "trades": 11,
+          "expectancy": -0.1595
+        },
+        {
+          "from": "2017-07",
+          "trades": 5,
+          "expectancy": 0.0557
+        },
+        {
+          "from": "2017-10",
+          "trades": 16,
+          "expectancy": -0.495
+        },
+        {
+          "from": "2018-01",
+          "trades": 3,
+          "expectancy": -0.3747
+        },
+        {
+          "from": "2018-04",
+          "trades": 24,
+          "expectancy": -0.2261
+        },
+        {
+          "from": "2018-07",
+          "trades": 26,
+          "expectancy": 0.0122
+        },
+        {
+          "from": "2018-10",
+          "trades": 15,
+          "expectancy": -0.0092
+        },
+        {
+          "from": "2019-01",
+          "trades": 5,
+          "expectancy": -1.0225
+        },
+        {
+          "from": "2019-04",
+          "trades": 13,
+          "expectancy": -0.2295
+        }
+      ]
+    }
+  },
+  "concentration": {
+    "A_TREND_CONT_LONG": {
+      "trades": 300,
+      "netR": -15.92,
+      "top5R": 8.83,
+      "top10pctR": 50.35,
+      "expectancyExcludingTop5": -0.0839,
+      "survivesRemovingTop5": false
+    },
+    "B_TREND_CONT_SHORT": {
+      "trades": 417,
+      "netR": -6.4,
+      "top5R": 9.16,
+      "top10pctR": 70.69,
+      "expectancyExcludingTop5": -0.0377,
+      "survivesRemovingTop5": false
+    },
+    "C_PULLBACK_LONG": {
+      "trades": 132,
+      "netR": 26.3,
+      "top5R": 8.48,
+      "top10pctR": 21.81,
+      "expectancyExcludingTop5": 0.1403,
+      "survivesRemovingTop5": true
+    },
+    "D_PULLBACK_SHORT": {
+      "trades": 174,
+      "netR": -22.99,
+      "top5R": 8.33,
+      "top10pctR": 27.83,
+      "expectancyExcludingTop5": -0.1853,
+      "survivesRemovingTop5": false
+    },
+    "E_RANGE_REV_LONG": {
+      "trades": 451,
+      "netR": -50.07,
+      "top5R": 9.11,
+      "top10pctR": 75.02,
+      "expectancyExcludingTop5": -0.1327,
+      "survivesRemovingTop5": false
+    },
+    "F_RANGE_REV_SHORT": {
+      "trades": 538,
+      "netR": -35.74,
+      "top5R": 8.56,
+      "top10pctR": 88.94,
+      "expectancyExcludingTop5": -0.0831,
+      "survivesRemovingTop5": false
+    },
+    "G_BREAKOUT_LONG": {
+      "trades": 387,
+      "netR": -9.94,
+      "top5R": 8.8,
+      "top10pctR": 65.12,
+      "expectancyExcludingTop5": -0.0491,
+      "survivesRemovingTop5": false
+    },
+    "H_BREAKOUT_SHORT": {
+      "trades": 467,
+      "netR": -24.7,
+      "top5R": 8.53,
+      "top10pctR": 78.53,
+      "expectancyExcludingTop5": -0.0719,
+      "survivesRemovingTop5": false
+    }
+  },
+  "conditionalScreen": {
+    "conditions": [
+      "d1Trend",
+      "volState",
+      "session",
+      "newsProximity",
+      "evidenceBucket"
+    ],
+    "screen": {
+      "hypotheses": 58,
+      "alpha": 0.05,
+      "nominalDiscoveries": 4,
+      "expectedByChance": 2.9,
+      "excessOverChance": 1.1,
+      "survivingFDR": [],
+      "bonferroniThreshold": 0.000862
+    },
+    "cells": [
+      {
+        "key": "A_TREND_CONT_LONG|d1Trend=TRENDING_BULLISH",
+        "p": 0.8046,
+        "expectancy": -0.0531,
+        "trades": 300
+      },
+      {
+        "key": "A_TREND_CONT_LONG|volState=NORMAL",
+        "p": 0.8595,
+        "expectancy": -0.0682,
+        "trades": 286
+      },
+      {
+        "key": "A_TREND_CONT_LONG|session=LONDON",
+        "p": 0.5686,
+        "expectancy": -0.021,
+        "trades": 61
+      },
+      {
+        "key": "A_TREND_CONT_LONG|session=ASIA",
+        "p": 0.4913,
+        "expectancy": 0.0047,
+        "trades": 84
+      },
+      {
+        "key": "A_TREND_CONT_LONG|session=OVERLAP",
+        "p": 0.7073,
+        "expectancy": -0.0674,
+        "trades": 79
+      },
+      {
+        "key": "A_TREND_CONT_LONG|session=NEWYORK",
+        "p": 0.8391,
+        "expectancy": -0.1326,
+        "trades": 63
+      },
+      {
+        "key": "A_TREND_CONT_LONG|newsProximity=OUTSIDE",
+        "p": 0.8259,
+        "expectancy": -0.0581,
+        "trades": 299
+      },
+      {
+        "key": "B_TREND_CONT_SHORT|d1Trend=TRENDING_BEARISH",
+        "p": 0.6254,
+        "expectancy": -0.0153,
+        "trades": 417
+      },
+      {
+        "key": "B_TREND_CONT_SHORT|volState=NORMAL",
+        "p": 0.5687,
+        "expectancy": -0.0076,
+        "trades": 404
+      },
+      {
+        "key": "B_TREND_CONT_SHORT|session=LONDON",
+        "p": 0.3101,
+        "expectancy": 0.0573,
+        "trades": 92
+      },
+      {
+        "key": "B_TREND_CONT_SHORT|session=OVERLAP",
+        "p": 0.7232,
+        "expectancy": -0.0567,
+        "trades": 103
+      },
+      {
+        "key": "B_TREND_CONT_SHORT|session=ASIA",
+        "p": 0.4248,
+        "expectancy": 0.0232,
+        "trades": 85
+      },
+      {
+        "key": "B_TREND_CONT_SHORT|session=NEWYORK",
+        "p": 0.8412,
+        "expectancy": -0.0978,
+        "trades": 108
+      },
+      {
+        "key": "B_TREND_CONT_SHORT|newsProximity=OUTSIDE",
+        "p": 0.6326,
+        "expectancy": -0.017,
+        "trades": 416
+      },
+      {
+        "key": "C_PULLBACK_LONG|d1Trend=PULLBACK",
+        "p": 0.0127,
+        "expectancy": 0.1992,
+        "trades": 132
+      },
+      {
+        "key": "C_PULLBACK_LONG|volState=NORMAL",
+        "p": 0.0127,
+        "expectancy": 0.1992,
+        "trades": 132
+      },
+      {
+        "key": "C_PULLBACK_LONG|session=OVERLAP",
+        "p": 0.0271,
+        "expectancy": 0.318,
+        "trades": 38
+      },
+      {
+        "key": "C_PULLBACK_LONG|session=LONDON",
+        "p": 0.4473,
+        "expectancy": 0.0248,
+        "trades": 38
+      },
+      {
+        "key": "C_PULLBACK_LONG|newsProximity=OUTSIDE",
+        "p": 0.0127,
+        "expectancy": 0.1992,
+        "trades": 132
+      },
+      {
+        "key": "D_PULLBACK_SHORT|d1Trend=PULLBACK",
+        "p": 0.9589,
+        "expectancy": -0.1321,
+        "trades": 174
+      },
+      {
+        "key": "D_PULLBACK_SHORT|volState=NORMAL",
+        "p": 0.9529,
+        "expectancy": -0.1262,
+        "trades": 170
+      },
+      {
+        "key": "D_PULLBACK_SHORT|session=OVERLAP",
+        "p": 0.8278,
+        "expectancy": -0.1575,
+        "trades": 38
+      },
+      {
+        "key": "D_PULLBACK_SHORT|session=LONDON",
+        "p": 0.5169,
+        "expectancy": -0.0041,
+        "trades": 54
+      },
+      {
+        "key": "D_PULLBACK_SHORT|session=NEWYORK",
+        "p": 0.966,
+        "expectancy": -0.2792,
+        "trades": 43
+      },
+      {
+        "key": "D_PULLBACK_SHORT|newsProximity=OUTSIDE",
+        "p": 0.9589,
+        "expectancy": -0.1321,
+        "trades": 174
+      },
+      {
+        "key": "E_RANGE_REV_LONG|d1Trend=OTHER",
+        "p": 0.9802,
+        "expectancy": -0.1457,
+        "trades": 222
+      },
+      {
+        "key": "E_RANGE_REV_LONG|d1Trend=PULLBACK",
+        "p": 0.8752,
+        "expectancy": -0.0768,
+        "trades": 226
+      },
+      {
+        "key": "E_RANGE_REV_LONG|volState=NORMAL",
+        "p": 0.9865,
+        "expectancy": -0.1103,
+        "trades": 430
+      },
+      {
+        "key": "E_RANGE_REV_LONG|session=NEWYORK",
+        "p": 0.8962,
+        "expectancy": -0.1054,
+        "trades": 151
+      },
+      {
+        "key": "E_RANGE_REV_LONG|session=OVERLAP",
+        "p": 0.2423,
+        "expectancy": 0.0894,
+        "trades": 74
+      },
+      {
+        "key": "E_RANGE_REV_LONG|session=ASIA",
+        "p": 0.9802,
+        "expectancy": -0.1922,
+        "trades": 116
+      },
+      {
+        "key": "E_RANGE_REV_LONG|session=LONDON",
+        "p": 0.9729,
+        "expectancy": -0.2039,
+        "trades": 89
+      },
+      {
+        "key": "E_RANGE_REV_LONG|newsProximity=OUTSIDE",
+        "p": 0.9901,
+        "expectancy": -0.1133,
+        "trades": 450
+      },
+      {
+        "key": "F_RANGE_REV_SHORT|d1Trend=OTHER",
+        "p": 0.6435,
+        "expectancy": -0.0256,
+        "trades": 225
+      },
+      {
+        "key": "F_RANGE_REV_SHORT|d1Trend=PULLBACK",
+        "p": 0.9318,
+        "expectancy": -0.0824,
+        "trades": 305
+      },
+      {
+        "key": "F_RANGE_REV_SHORT|volState=NORMAL",
+        "p": 0.9481,
+        "expectancy": -0.0709,
+        "trades": 511
+      },
+      {
+        "key": "F_RANGE_REV_SHORT|session=ASIA",
+        "p": 0.5993,
+        "expectancy": -0.0215,
+        "trades": 143
+      },
+      {
+        "key": "F_RANGE_REV_SHORT|session=OVERLAP",
+        "p": 0.6117,
+        "expectancy": -0.0277,
+        "trades": 98
+      },
+      {
+        "key": "F_RANGE_REV_SHORT|session=LONDON",
+        "p": 0.5667,
+        "expectancy": -0.0155,
+        "trades": 117
+      },
+      {
+        "key": "F_RANGE_REV_SHORT|session=NEWYORK",
+        "p": 0.9612,
+        "expectancy": -0.1361,
+        "trades": 153
+      },
+      {
+        "key": "F_RANGE_REV_SHORT|newsProximity=OUTSIDE",
+        "p": 0.9296,
+        "expectancy": -0.0647,
+        "trades": 537
+      },
+      {
+        "key": "G_BREAKOUT_LONG|d1Trend=OTHER",
+        "p": 0.9127,
+        "expectancy": -0.0986,
+        "trades": 206
+      },
+      {
+        "key": "G_BREAKOUT_LONG|d1Trend=TRENDING_BULLISH",
+        "p": 0.2186,
+        "expectancy": 0.07,
+        "trades": 154
+      },
+      {
+        "key": "G_BREAKOUT_LONG|volState=NORMAL",
+        "p": 0.7601,
+        "expectancy": -0.0396,
+        "trades": 372
+      },
+      {
+        "key": "G_BREAKOUT_LONG|session=ASIA",
+        "p": 0.2179,
+        "expectancy": 0.0831,
+        "trades": 98
+      },
+      {
+        "key": "G_BREAKOUT_LONG|session=LONDON",
+        "p": 0.926,
+        "expectancy": -0.1644,
+        "trades": 79
+      },
+      {
+        "key": "G_BREAKOUT_LONG|session=NEWYORK",
+        "p": 0.4911,
+        "expectancy": 0.0029,
+        "trades": 90
+      },
+      {
+        "key": "G_BREAKOUT_LONG|session=OVERLAP",
+        "p": 0.69,
+        "expectancy": -0.0532,
+        "trades": 111
+      },
+      {
+        "key": "G_BREAKOUT_LONG|newsProximity=OUTSIDE",
+        "p": 0.7006,
+        "expectancy": -0.0295,
+        "trades": 386
+      },
+      {
+        "key": "H_BREAKOUT_SHORT|d1Trend=OTHER",
+        "p": 0.9439,
+        "expectancy": -0.1089,
+        "trades": 228
+      },
+      {
+        "key": "H_BREAKOUT_SHORT|d1Trend=TRENDING_BEARISH",
+        "p": 0.2805,
+        "expectancy": 0.0443,
+        "trades": 209
+      },
+      {
+        "key": "H_BREAKOUT_SHORT|d1Trend=PULLBACK",
+        "p": 0.9612,
+        "expectancy": -0.3038,
+        "trades": 30
+      },
+      {
+        "key": "H_BREAKOUT_SHORT|volState=NORMAL",
+        "p": 0.875,
+        "expectancy": -0.0588,
+        "trades": 446
+      },
+      {
+        "key": "H_BREAKOUT_SHORT|session=OVERLAP",
+        "p": 0.95,
+        "expectancy": -0.1284,
+        "trades": 186
+      },
+      {
+        "key": "H_BREAKOUT_SHORT|session=NEWYORK",
+        "p": 0.3513,
+        "expectancy": 0.0399,
+        "trades": 100
+      },
+      {
+        "key": "H_BREAKOUT_SHORT|session=LONDON",
+        "p": 0.9188,
+        "expectancy": -0.1417,
+        "trades": 97
+      },
+      {
+        "key": "H_BREAKOUT_SHORT|session=ASIA",
+        "p": 0.1853,
+        "expectancy": 0.1096,
+        "trades": 75
+      },
+      {
+        "key": "H_BREAKOUT_SHORT|newsProximity=OUTSIDE",
+        "p": 0.8651,
+        "expectancy": -0.0529,
+        "trades": 467
+      }
+    ],
+    "bySetup": {
+      "A_TREND_CONT_LONG": {
+        "d1Trend": {
+          "TRENDING_BULLISH": {
+            "trades": 300,
+            "winRate": 48.67,
+            "expectancy": -0.0531,
+            "profitFactor": 0.898,
+            "netR": -15.9,
+            "maxDrawdownR": 33.4,
+            "sharpe": -0.34,
+            "p": 0.8046,
+            "t": -0.87
+          }
+        },
+        "volState": {
+          "NORMAL": {
+            "trades": 286,
+            "winRate": 48.25,
+            "expectancy": -0.0682,
+            "profitFactor": 0.871,
+            "netR": -19.5,
+            "maxDrawdownR": 35,
+            "sharpe": -0.43,
+            "p": 0.8595,
+            "t": -1.09
+          }
+        },
+        "session": {
+          "LONDON": {
+            "trades": 61,
+            "winRate": 52.46,
+            "expectancy": -0.021,
+            "profitFactor": 0.955,
+            "netR": -1.3,
+            "maxDrawdownR": 10,
+            "sharpe": -0.07,
+            "p": 0.5686,
+            "t": -0.16
+          },
+          "ASIA": {
+            "trades": 84,
+            "winRate": 52.38,
+            "expectancy": 0.0047,
+            "profitFactor": 1.01,
+            "netR": 0.4,
+            "maxDrawdownR": 11.5,
+            "sharpe": 0.02,
+            "p": 0.4913,
+            "t": 0.04
+          },
+          "OVERLAP": {
+            "trades": 79,
+            "winRate": 46.84,
+            "expectancy": -0.0674,
+            "profitFactor": 0.876,
+            "netR": -5.3,
+            "maxDrawdownR": 17.1,
+            "sharpe": -0.23,
+            "p": 0.7073,
+            "t": -0.55
+          },
+          "NEWYORK": {
+            "trades": 63,
+            "winRate": 42.86,
+            "expectancy": -0.1326,
+            "profitFactor": 0.772,
+            "netR": -8.4,
+            "maxDrawdownR": 11.5,
+            "sharpe": -0.41,
+            "p": 0.8391,
+            "t": -0.97
+          }
+        },
+        "newsProximity": {
+          "OUTSIDE": {
+            "trades": 299,
+            "winRate": 48.49,
+            "expectancy": -0.0581,
+            "profitFactor": 0.889,
+            "netR": -17.4,
+            "maxDrawdownR": 34.9,
+            "sharpe": -0.38,
+            "p": 0.8259,
+            "t": -0.95
+          }
+        },
+        "evidenceBucket": {}
+      },
+      "B_TREND_CONT_SHORT": {
+        "d1Trend": {
+          "TRENDING_BEARISH": {
+            "trades": 417,
+            "winRate": 52.28,
+            "expectancy": -0.0153,
+            "profitFactor": 0.969,
+            "netR": -6.4,
+            "maxDrawdownR": 19.8,
+            "sharpe": -0.12,
+            "p": 0.6254,
+            "t": -0.3
+          }
+        },
+        "volState": {
+          "NORMAL": {
+            "trades": 404,
+            "winRate": 52.72,
+            "expectancy": -0.0076,
+            "profitFactor": 0.984,
+            "netR": -3.1,
+            "maxDrawdownR": 17,
+            "sharpe": -0.06,
+            "p": 0.5687,
+            "t": -0.15
+          }
+        },
+        "session": {
+          "LONDON": {
+            "trades": 92,
+            "winRate": 54.35,
+            "expectancy": 0.0573,
+            "profitFactor": 1.122,
+            "netR": 5.3,
+            "maxDrawdownR": 5.8,
+            "sharpe": 0.2,
+            "p": 0.3101,
+            "t": 0.51
+          },
+          "OVERLAP": {
+            "trades": 103,
+            "winRate": 53.4,
+            "expectancy": -0.0567,
+            "profitFactor": 0.881,
+            "netR": -5.8,
+            "maxDrawdownR": 15.3,
+            "sharpe": -0.24,
+            "p": 0.7232,
+            "t": -0.59
+          },
+          "ASIA": {
+            "trades": 85,
+            "winRate": 54.12,
+            "expectancy": 0.0232,
+            "profitFactor": 1.049,
+            "netR": 2,
+            "maxDrawdownR": 7.1,
+            "sharpe": 0.08,
+            "p": 0.4248,
+            "t": 0.2
+          },
+          "NEWYORK": {
+            "trades": 108,
+            "winRate": 48.15,
+            "expectancy": -0.0978,
+            "profitFactor": 0.815,
+            "netR": -10.6,
+            "maxDrawdownR": 17.4,
+            "sharpe": -0.39,
+            "p": 0.8412,
+            "t": -0.99
+          }
+        },
+        "newsProximity": {
+          "OUTSIDE": {
+            "trades": 416,
+            "winRate": 52.16,
+            "expectancy": -0.017,
+            "profitFactor": 0.965,
+            "netR": -7.1,
+            "maxDrawdownR": 20.5,
+            "sharpe": -0.13,
+            "p": 0.6326,
+            "t": -0.33
+          }
+        },
+        "evidenceBucket": {}
+      },
+      "C_PULLBACK_LONG": {
+        "d1Trend": {
+          "PULLBACK": {
+            "trades": 132,
+            "winRate": 63.64,
+            "expectancy": 0.1992,
+            "profitFactor": 1.537,
+            "netR": 26.3,
+            "maxDrawdownR": 4.9,
+            "sharpe": 0.89,
+            "p": 0.0127,
+            "t": 2.25
+          }
+        },
+        "volState": {
+          "NORMAL": {
+            "trades": 132,
+            "winRate": 63.64,
+            "expectancy": 0.1992,
+            "profitFactor": 1.537,
+            "netR": 26.3,
+            "maxDrawdownR": 4.9,
+            "sharpe": 0.89,
+            "p": 0.0127,
+            "t": 2.25
+          }
+        },
+        "session": {
+          "OVERLAP": {
+            "trades": 38,
+            "winRate": 68.42,
+            "expectancy": 0.318,
+            "profitFactor": 1.987,
+            "netR": 12.1,
+            "maxDrawdownR": 3.6,
+            "sharpe": 0.84,
+            "p": 0.0271,
+            "t": 1.91
+          },
+          "LONDON": {
+            "trades": 38,
+            "winRate": 55.26,
+            "expectancy": 0.0248,
+            "profitFactor": 1.054,
+            "netR": 0.9,
+            "maxDrawdownR": 5.1,
+            "sharpe": 0.06,
+            "p": 0.4473,
+            "t": 0.15
+          }
+        },
+        "newsProximity": {
+          "OUTSIDE": {
+            "trades": 132,
+            "winRate": 63.64,
+            "expectancy": 0.1992,
+            "profitFactor": 1.537,
+            "netR": 26.3,
+            "maxDrawdownR": 4.9,
+            "sharpe": 0.89,
+            "p": 0.0127,
+            "t": 2.25
+          }
+        },
+        "evidenceBucket": {}
+      },
+      "D_PULLBACK_SHORT": {
+        "d1Trend": {
+          "PULLBACK": {
+            "trades": 174,
+            "winRate": 47.13,
+            "expectancy": -0.1321,
+            "profitFactor": 0.755,
+            "netR": -23,
+            "maxDrawdownR": 22,
+            "sharpe": -0.73,
+            "p": 0.9589,
+            "t": -1.74
+          }
+        },
+        "volState": {
+          "NORMAL": {
+            "trades": 170,
+            "winRate": 47.65,
+            "expectancy": -0.1262,
+            "profitFactor": 0.764,
+            "netR": -21.5,
+            "maxDrawdownR": 20.5,
+            "sharpe": -0.69,
+            "p": 0.9529,
+            "t": -1.65
+          }
+        },
+        "session": {
+          "OVERLAP": {
+            "trades": 38,
+            "winRate": 44.74,
+            "expectancy": -0.1575,
+            "profitFactor": 0.721,
+            "netR": -6,
+            "maxDrawdownR": 9.3,
+            "sharpe": -0.4,
+            "p": 0.8278,
+            "t": -0.96
+          },
+          "LONDON": {
+            "trades": 54,
+            "winRate": 57.41,
+            "expectancy": -0.0041,
+            "profitFactor": 0.991,
+            "netR": -0.2,
+            "maxDrawdownR": 5.1,
+            "sharpe": -0.01,
+            "p": 0.5169,
+            "t": -0.03
+          },
+          "NEWYORK": {
+            "trades": 43,
+            "winRate": 39.53,
+            "expectancy": -0.2792,
+            "profitFactor": 0.548,
+            "netR": -12,
+            "maxDrawdownR": 11,
+            "sharpe": -0.8,
+            "p": 0.966,
+            "t": -1.87
+          }
+        },
+        "newsProximity": {
+          "OUTSIDE": {
+            "trades": 174,
+            "winRate": 47.13,
+            "expectancy": -0.1321,
+            "profitFactor": 0.755,
+            "netR": -23,
+            "maxDrawdownR": 22,
+            "sharpe": -0.73,
+            "p": 0.9589,
+            "t": -1.74
+          }
+        },
+        "evidenceBucket": {}
+      },
+      "E_RANGE_REV_LONG": {
+        "d1Trend": {
+          "OTHER": {
+            "trades": 222,
+            "winRate": 45.95,
+            "expectancy": -0.1457,
+            "profitFactor": 0.74,
+            "netR": -32.4,
+            "maxDrawdownR": 41.8,
+            "sharpe": -0.79,
+            "p": 0.9802,
+            "t": -2.11
+          },
+          "PULLBACK": {
+            "trades": 226,
+            "winRate": 50.44,
+            "expectancy": -0.0768,
+            "profitFactor": 0.848,
+            "netR": -17.3,
+            "maxDrawdownR": 32.4,
+            "sharpe": -0.46,
+            "p": 0.8752,
+            "t": -1.14
+          }
+        },
+        "volState": {
+          "NORMAL": {
+            "trades": 430,
+            "winRate": 48.14,
+            "expectancy": -0.1103,
+            "profitFactor": 0.793,
+            "netR": -47.4,
+            "maxDrawdownR": 56.6,
+            "sharpe": -0.84,
+            "p": 0.9865,
+            "t": -2.24
+          }
+        },
+        "session": {
+          "NEWYORK": {
+            "trades": 151,
+            "winRate": 47.68,
+            "expectancy": -0.1054,
+            "profitFactor": 0.803,
+            "netR": -15.9,
+            "maxDrawdownR": 24.7,
+            "sharpe": -0.47,
+            "p": 0.8962,
+            "t": -1.26
+          },
+          "OVERLAP": {
+            "trades": 74,
+            "winRate": 58.11,
+            "expectancy": 0.0894,
+            "profitFactor": 1.207,
+            "netR": 6.6,
+            "maxDrawdownR": 6.9,
+            "sharpe": 0.28,
+            "p": 0.2423,
+            "t": 0.73
+          },
+          "ASIA": {
+            "trades": 116,
+            "winRate": 43.97,
+            "expectancy": -0.1922,
+            "profitFactor": 0.669,
+            "netR": -22.3,
+            "maxDrawdownR": 24.7,
+            "sharpe": -0.77,
+            "p": 0.9802,
+            "t": -2.04
+          },
+          "LONDON": {
+            "trades": 89,
+            "winRate": 44.94,
+            "expectancy": -0.2039,
+            "profitFactor": 0.644,
+            "netR": -18.1,
+            "maxDrawdownR": 20.4,
+            "sharpe": -0.73,
+            "p": 0.9729,
+            "t": -1.93
+          }
+        },
+        "newsProximity": {
+          "OUTSIDE": {
+            "trades": 450,
+            "winRate": 48,
+            "expectancy": -0.1133,
+            "profitFactor": 0.788,
+            "netR": -51,
+            "maxDrawdownR": 61.2,
+            "sharpe": -0.88,
+            "p": 0.9901,
+            "t": -2.35
+          }
+        },
+        "evidenceBucket": {}
+      },
+      "F_RANGE_REV_SHORT": {
+        "d1Trend": {
+          "OTHER": {
+            "trades": 225,
+            "winRate": 51.11,
+            "expectancy": -0.0256,
+            "profitFactor": 0.949,
+            "netR": -5.8,
+            "maxDrawdownR": 22.4,
+            "sharpe": -0.14,
+            "p": 0.6435,
+            "t": -0.36
+          },
+          "PULLBACK": {
+            "trades": 305,
+            "winRate": 52.46,
+            "expectancy": -0.0824,
+            "profitFactor": 0.83,
+            "netR": -25.1,
+            "maxDrawdownR": 25.7,
+            "sharpe": -0.6,
+            "p": 0.9318,
+            "t": -1.5
+          }
+        },
+        "volState": {
+          "NORMAL": {
+            "trades": 511,
+            "winRate": 51.66,
+            "expectancy": -0.0709,
+            "profitFactor": 0.857,
+            "netR": -36.2,
+            "maxDrawdownR": 44.5,
+            "sharpe": -0.61,
+            "p": 0.9481,
+            "t": -1.61
+          }
+        },
+        "session": {
+          "ASIA": {
+            "trades": 143,
+            "winRate": 53.15,
+            "expectancy": -0.0215,
+            "profitFactor": 0.956,
+            "netR": -3.1,
+            "maxDrawdownR": 11.5,
+            "sharpe": -0.09,
+            "p": 0.5993,
+            "t": -0.25
+          },
+          "OVERLAP": {
+            "trades": 98,
+            "winRate": 53.06,
+            "expectancy": -0.0277,
+            "profitFactor": 0.943,
+            "netR": -2.7,
+            "maxDrawdownR": 8.5,
+            "sharpe": -0.1,
+            "p": 0.6117,
+            "t": -0.27
+          },
+          "LONDON": {
+            "trades": 117,
+            "winRate": 53.85,
+            "expectancy": -0.0155,
+            "profitFactor": 0.967,
+            "netR": -1.8,
+            "maxDrawdownR": 10.2,
+            "sharpe": -0.06,
+            "p": 0.5667,
+            "t": -0.17
+          },
+          "NEWYORK": {
+            "trades": 153,
+            "winRate": 49.02,
+            "expectancy": -0.1361,
+            "profitFactor": 0.737,
+            "netR": -20.8,
+            "maxDrawdownR": 31.7,
+            "sharpe": -0.66,
+            "p": 0.9612,
+            "t": -1.75
+          }
+        },
+        "newsProximity": {
+          "OUTSIDE": {
+            "trades": 537,
+            "winRate": 51.58,
+            "expectancy": -0.0647,
+            "profitFactor": 0.87,
+            "netR": -34.7,
+            "maxDrawdownR": 46.3,
+            "sharpe": -0.56,
+            "p": 0.9296,
+            "t": -1.5
+          }
+        },
+        "evidenceBucket": {}
+      },
+      "G_BREAKOUT_LONG": {
+        "d1Trend": {
+          "OTHER": {
+            "trades": 206,
+            "winRate": 47.57,
+            "expectancy": -0.0986,
+            "profitFactor": 0.814,
+            "netR": -20.3,
+            "maxDrawdownR": 24.7,
+            "sharpe": -0.52,
+            "p": 0.9127,
+            "t": -1.38
+          },
+          "TRENDING_BULLISH": {
+            "trades": 154,
+            "winRate": 51.95,
+            "expectancy": 0.07,
+            "profitFactor": 1.143,
+            "netR": 10.8,
+            "maxDrawdownR": 10.6,
+            "sharpe": 0.31,
+            "p": 0.2186,
+            "t": 0.77
+          }
+        },
+        "volState": {
+          "NORMAL": {
+            "trades": 372,
+            "winRate": 49.19,
+            "expectancy": -0.0396,
+            "profitFactor": 0.923,
+            "netR": -14.7,
+            "maxDrawdownR": 30.7,
+            "sharpe": -0.27,
+            "p": 0.7601,
+            "t": -0.72
+          }
+        },
+        "session": {
+          "ASIA": {
+            "trades": 98,
+            "winRate": 55.1,
+            "expectancy": 0.0831,
+            "profitFactor": 1.182,
+            "netR": 8.1,
+            "maxDrawdownR": 7.6,
+            "sharpe": 0.29,
+            "p": 0.2179,
+            "t": 0.76
+          },
+          "LONDON": {
+            "trades": 79,
+            "winRate": 45.57,
+            "expectancy": -0.1644,
+            "profitFactor": 0.704,
+            "netR": -13,
+            "maxDrawdownR": 15.8,
+            "sharpe": -0.55,
+            "p": 0.926,
+            "t": -1.46
+          },
+          "NEWYORK": {
+            "trades": 90,
+            "winRate": 48.89,
+            "expectancy": 0.0029,
+            "profitFactor": 1.006,
+            "netR": 0.3,
+            "maxDrawdownR": 15.9,
+            "sharpe": 0.01,
+            "p": 0.4911,
+            "t": 0.02
+          },
+          "OVERLAP": {
+            "trades": 111,
+            "winRate": 48.65,
+            "expectancy": -0.0532,
+            "profitFactor": 0.898,
+            "netR": -5.9,
+            "maxDrawdownR": 8.2,
+            "sharpe": -0.2,
+            "p": 0.69,
+            "t": -0.53
+          }
+        },
+        "newsProximity": {
+          "OUTSIDE": {
+            "trades": 386,
+            "winRate": 49.48,
+            "expectancy": -0.0295,
+            "profitFactor": 0.942,
+            "netR": -11.4,
+            "maxDrawdownR": 31.8,
+            "sharpe": -0.2,
+            "p": 0.7006,
+            "t": -0.54
+          }
+        },
+        "evidenceBucket": {}
+      },
+      "H_BREAKOUT_SHORT": {
+        "d1Trend": {
+          "OTHER": {
+            "trades": 228,
+            "winRate": 47.37,
+            "expectancy": -0.1089,
+            "profitFactor": 0.797,
+            "netR": -24.8,
+            "maxDrawdownR": 32.1,
+            "sharpe": -0.6,
+            "p": 0.9439,
+            "t": -1.6
+          },
+          "TRENDING_BEARISH": {
+            "trades": 209,
+            "winRate": 52.63,
+            "expectancy": 0.0443,
+            "profitFactor": 1.092,
+            "netR": 9.3,
+            "maxDrawdownR": 14.5,
+            "sharpe": 0.25,
+            "p": 0.2805,
+            "t": 0.59
+          },
+          "PULLBACK": {
+            "trades": 30,
+            "winRate": 40,
+            "expectancy": -0.3038,
+            "profitFactor": 0.502,
+            "netR": -9.1,
+            "maxDrawdownR": 9.6,
+            "sharpe": -0.76,
+            "p": 0.9612,
+            "t": -1.78
+          }
+        },
+        "volState": {
+          "NORMAL": {
+            "trades": 446,
+            "winRate": 48.88,
+            "expectancy": -0.0588,
+            "profitFactor": 0.887,
+            "netR": -26.2,
+            "maxDrawdownR": 46.1,
+            "sharpe": -0.44,
+            "p": 0.875,
+            "t": -1.18
+          }
+        },
+        "session": {
+          "OVERLAP": {
+            "trades": 186,
+            "winRate": 45.16,
+            "expectancy": -0.1284,
+            "profitFactor": 0.77,
+            "netR": -23.9,
+            "maxDrawdownR": 31.9,
+            "sharpe": -0.63,
+            "p": 0.95,
+            "t": -1.67
+          },
+          "NEWYORK": {
+            "trades": 100,
+            "winRate": 54,
+            "expectancy": 0.0399,
+            "profitFactor": 1.085,
+            "netR": 4,
+            "maxDrawdownR": 8.7,
+            "sharpe": 0.14,
+            "p": 0.3513,
+            "t": 0.38
+          },
+          "LONDON": {
+            "trades": 97,
+            "winRate": 46.39,
+            "expectancy": -0.1417,
+            "profitFactor": 0.741,
+            "netR": -13.7,
+            "maxDrawdownR": 20,
+            "sharpe": -0.52,
+            "p": 0.9188,
+            "t": -1.37
+          },
+          "ASIA": {
+            "trades": 75,
+            "winRate": 56,
+            "expectancy": 0.1096,
+            "profitFactor": 1.245,
+            "netR": 8.2,
+            "maxDrawdownR": 5,
+            "sharpe": 0.33,
+            "p": 0.1853,
+            "t": 0.88
+          }
+        },
+        "newsProximity": {
+          "OUTSIDE": {
+            "trades": 467,
+            "winRate": 49.25,
+            "expectancy": -0.0529,
+            "profitFactor": 0.898,
+            "netR": -24.7,
+            "maxDrawdownR": 44.6,
+            "sharpe": -0.41,
+            "p": 0.8651,
+            "t": -1.09
+          }
+        },
+        "evidenceBucket": {}
+      }
+    }
+  },
+  "promising": {
+    "C_PULLBACK_LONG": {
+      "stats": {
+        "development": {
+          "trades": 132,
+          "winRate": 63.64,
+          "expectancy": 0.1992,
+          "profitFactor": 1.537,
+          "netR": 26.3,
+          "maxDrawdownR": 4.9,
+          "sharpe": 0.89,
+          "p": 0.0127,
+          "t": 2.25
+        },
+        "validation": {
+          "trades": 48,
+          "winRate": 62.5,
+          "expectancy": 0.3404,
+          "profitFactor": 1.927,
+          "netR": 16.3,
+          "maxDrawdownR": 3.4,
+          "sharpe": 1.26,
+          "p": 0.0188,
+          "t": 2.1
+        },
+        "finalTest": {
+          "trades": 146,
+          "winRate": 52.05,
+          "expectancy": 0.0307,
+          "profitFactor": 1.065,
+          "netR": 4.5,
+          "maxDrawdownR": 13.7,
+          "sharpe": 0.2,
+          "p": 0.3687,
+          "t": 0.35
+        },
+        "outOfSample": {
+          "trades": 194,
+          "winRate": 54.64,
+          "expectancy": 0.1073,
+          "profitFactor": 1.239,
+          "netR": 20.8,
+          "maxDrawdownR": 13.7,
+          "sharpe": 0.58,
+          "p": 0.0811,
+          "t": 1.38,
+          "ci95": [
+            -0.046,
+            0.259
+          ]
+        },
+        "positiveInAllPeriods": true
+      },
+      "answers": {
+        "positive on the untouched final test": true,
+        "positive after realistic costs": true,
+        "confidence interval compatible with a positive edge": false,
+        "survives most walk-forward windows": true,
+        "edge survives removing its five best trades": true,
+        "out-of-sample sample size at least 100": true
+      },
+      "passed": 5,
+      "total": 6
+    }
+  },
+  "quarantine": {
+    "A_TREND_CONT_LONG": {
+      "state": "ACTIVE",
+      "reason": null,
+      "confidenceIntervalEntirelyNegative": false
+    },
+    "B_TREND_CONT_SHORT": {
+      "state": "DISABLED_NEGATIVE_EDGE",
+      "reason": "140 out-of-sample trades, expectancy -0.1048R, profit factor 0.802.",
+      "confidenceIntervalEntirelyNegative": false
+    },
+    "C_PULLBACK_LONG": {
+      "state": "ACTIVE",
+      "reason": null,
+      "confidenceIntervalEntirelyNegative": false
+    },
+    "D_PULLBACK_SHORT": {
+      "state": "DISABLED_NEGATIVE_EDGE",
+      "reason": "79 out-of-sample trades, expectancy -0.1453R, profit factor 0.718.",
+      "confidenceIntervalEntirelyNegative": false
+    },
+    "E_RANGE_REV_LONG": {
+      "state": "ACTIVE",
+      "reason": null,
+      "confidenceIntervalEntirelyNegative": false
+    },
+    "F_RANGE_REV_SHORT": {
+      "state": "DISABLED_NEGATIVE_EDGE",
+      "reason": "279 out-of-sample trades, expectancy -0.1281R, profit factor 0.763, and the whole 95% interval is below zero.",
+      "confidenceIntervalEntirelyNegative": true
+    },
+    "G_BREAKOUT_LONG": {
+      "state": "ACTIVE",
+      "reason": null,
+      "confidenceIntervalEntirelyNegative": false
+    },
+    "H_BREAKOUT_SHORT": {
+      "state": "DISABLED_NEGATIVE_EDGE",
+      "reason": "201 out-of-sample trades, expectancy -0.1584R, profit factor 0.714, and the whole 95% interval is below zero.",
+      "confidenceIntervalEntirelyNegative": true
+    }
+  },
+  "maeMfe": {
+    "C_PULLBACK_LONG": {
+      "winners": {
+        "n": 84,
+        "maeP50": 0.5342211867805788,
+        "maeP75": 0.6625240094481423,
+        "maeP90": 0.8468114082088856,
+        "mfeP50": 1.8116281584235427
+      },
+      "losers": {
+        "n": 48,
+        "mfeP50": 0.210329385985916,
+        "mfeP75": 0.4746197816722662,
+        "mfeP90": 0.605706901376709,
+        "maeP50": 1.0972174016231837
+      },
+      "mfeReach": [
+        {
+          "r": 0.5,
+          "pct": 71.96969696969697
+        },
+        {
+          "r": 1,
+          "pct": 59.84848484848485
+        },
+        {
+          "r": 1.5,
+          "pct": 40.15151515151515
+        },
+        {
+          "r": 2,
+          "pct": 28.78787878787879
+        },
+        {
+          "r": 2.5,
+          "pct": 21.21212121212121
+        },
+        {
+          "r": 3,
+          "pct": 11.363636363636363
+        },
+        {
+          "r": 4,
+          "pct": 1.5151515151515151
+        },
+        {
+          "r": 5,
+          "pct": 0
+        }
+      ],
+      "maeSurvive": [
+        {
+          "r": 0.25,
+          "pct": 17.424242424242426
+        },
+        {
+          "r": 0.5,
+          "pct": 29.545454545454547
+        },
+        {
+          "r": 0.75,
+          "pct": 54.54545454545454
+        },
+        {
+          "r": 1,
+          "pct": 64.39393939393939
+        }
+      ]
+    }
+  }
+}

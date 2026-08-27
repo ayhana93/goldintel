@@ -1,0 +1,1035 @@
+{
+  "_provenance": {
+    "generatedAt": "2026-08-27T16:21:34.576Z",
+    "codeRevision": "75aa26a",
+    "dataFingerprint": "legacy:XAUUSD_M15:4a179fd4 legacy:XAUUSD_H1:4c9ff7b1 legacy:XAUUSD_H4:db5a98c6 legacy:XAUUSD_D1:d3da2122 legacy:EURUSD_H1:1b29ca23 legacy:USDJPY_H1:4bdca353 legacy:GBPUSD_H1:affda7b6 legacy:USDCAD_H1:ef4ff565 legacy:USDCHF_H1:82e3f4cb modern:XAUUSD_M15:97dc307a modern:XAUUSD_H1:aec7009a modern:XAUUSD_H4:8e924230 modern:XAUUSD_D1:1c66a195 modern:EURUSD_H1:3a129445 modern:GBPUSD_H1:76278930 modern:USDCAD_H1:64e4a8f6 modern:USDCHF_H1:759c2b6f modern:AUDUSD_H1:de481ada",
+    "note": "Stop/target chosen on development+validation; final test reported as a check."
+  },
+  "reachability": {
+    "development": {
+      "trades": 245,
+      "0.5R": 61.6,
+      "1R": 44.9,
+      "1.5R": 32.2,
+      "2R": 24.5,
+      "2.5R": 17.1,
+      "3R": 13.9,
+      "4R": 7.8,
+      "5R": 3.7
+    },
+    "validation": {
+      "trades": 119,
+      "0.5R": 69.7,
+      "1R": 47.1,
+      "1.5R": 37,
+      "2R": 26.9,
+      "2.5R": 16.8,
+      "3R": 16,
+      "4R": 10.1,
+      "5R": 7.6
+    },
+    "finalTest": {
+      "trades": 182,
+      "0.5R": 70.9,
+      "1R": 53.8,
+      "1.5R": 42.3,
+      "2R": 36.8,
+      "2.5R": 27.5,
+      "3R": 22,
+      "4R": 15.4,
+      "5R": 10.4
+    }
+  },
+  "grid": [
+    {
+      "stop": "production",
+      "target": "production (structure, TP3 floored at 5R)",
+      "dev": {
+        "trades": 282,
+        "winRate": 49.29,
+        "expectancy": -0.0066,
+        "profitFactor": 0.986,
+        "netR": -1.9,
+        "maxDrawdownR": 17.2,
+        "sharpe": -0.04,
+        "p": 0.543,
+        "t": -0.1
+      },
+      "val": {
+        "trades": 134,
+        "winRate": 53.73,
+        "expectancy": 0.1068,
+        "profitFactor": 1.25,
+        "netR": 14.3,
+        "maxDrawdownR": 14.2,
+        "sharpe": 0.62,
+        "p": 0.1381,
+        "t": 1.07
+      },
+      "selectionScore": 0.0299
+    },
+    {
+      "stop": "production",
+      "target": "fixed 1 / 2 / 3R",
+      "dev": {
+        "trades": 295,
+        "winRate": 48.81,
+        "expectancy": -0.023,
+        "profitFactor": 0.952,
+        "netR": -6.8,
+        "maxDrawdownR": 20.6,
+        "sharpe": -0.14,
+        "p": 0.6495,
+        "t": -0.39
+      },
+      "val": {
+        "trades": 161,
+        "winRate": 54.04,
+        "expectancy": 0.0446,
+        "profitFactor": 1.104,
+        "netR": 7.2,
+        "maxDrawdownR": 14.8,
+        "sharpe": 0.33,
+        "p": 0.2817,
+        "t": 0.57
+      },
+      "selectionScore": 0.0009
+    },
+    {
+      "stop": "production",
+      "target": "fixed 1.5 / 2.5 / 4R",
+      "dev": {
+        "trades": 274,
+        "winRate": 41.97,
+        "expectancy": -0.0327,
+        "profitFactor": 0.94,
+        "netR": -9,
+        "maxDrawdownR": 18.9,
+        "sharpe": -0.17,
+        "p": 0.6902,
+        "t": -0.46
+      },
+      "val": {
+        "trades": 141,
+        "winRate": 51.06,
+        "expectancy": 0.1982,
+        "profitFactor": 1.443,
+        "netR": 28,
+        "maxDrawdownR": 11.3,
+        "sharpe": 1.13,
+        "p": 0.0268,
+        "t": 1.93
+      },
+      "selectionScore": 0.0458
+    },
+    {
+      "stop": "production",
+      "target": "fixed 2 / 3 / 5R",
+      "dev": {
+        "trades": 259,
+        "winRate": 38.61,
+        "expectancy": -0.0198,
+        "profitFactor": 0.966,
+        "netR": -5.1,
+        "maxDrawdownR": 23.6,
+        "sharpe": -0.09,
+        "p": 0.6057,
+        "t": -0.24
+      },
+      "val": {
+        "trades": 127,
+        "winRate": 44.09,
+        "expectancy": 0.1312,
+        "profitFactor": 1.262,
+        "netR": 16.7,
+        "maxDrawdownR": 13.8,
+        "sharpe": 0.65,
+        "p": 0.1322,
+        "t": 1.11
+      },
+      "selectionScore": 0.0299
+    },
+    {
+      "stop": "production",
+      "target": "fixed 1 / 1.5 / 2R",
+      "dev": {
+        "trades": 328,
+        "winRate": 50.3,
+        "expectancy": -0.0105,
+        "profitFactor": 0.978,
+        "netR": -3.4,
+        "maxDrawdownR": 15.2,
+        "sharpe": -0.07,
+        "p": 0.5682,
+        "t": -0.19
+      },
+      "val": {
+        "trades": 169,
+        "winRate": 55.03,
+        "expectancy": 0.0435,
+        "profitFactor": 1.104,
+        "netR": 7.4,
+        "maxDrawdownR": 12.8,
+        "sharpe": 0.35,
+        "p": 0.2758,
+        "t": 0.6
+      },
+      "selectionScore": 0.0079
+    },
+    {
+      "stop": "production",
+      "target": "fixed 0.75 / 1.5 / 2.5R",
+      "dev": {
+        "trades": 328,
+        "winRate": 55.18,
+        "expectancy": -0.0272,
+        "profitFactor": 0.936,
+        "netR": -8.9,
+        "maxDrawdownR": 22.3,
+        "sharpe": -0.21,
+        "p": 0.705,
+        "t": -0.55
+      },
+      "val": {
+        "trades": 169,
+        "winRate": 60.95,
+        "expectancy": 0.0482,
+        "profitFactor": 1.134,
+        "netR": 8.2,
+        "maxDrawdownR": 13.2,
+        "sharpe": 0.43,
+        "p": 0.2266,
+        "t": 0.73
+      },
+      "selectionScore": -0.0015
+    },
+    {
+      "stop": "production",
+      "target": "structure levels",
+      "dev": {
+        "trades": 282,
+        "winRate": 45.39,
+        "expectancy": -0.004,
+        "profitFactor": 0.992,
+        "netR": -1.1,
+        "maxDrawdownR": 16.9,
+        "sharpe": -0.02,
+        "p": 0.5195,
+        "t": -0.06
+      },
+      "val": {
+        "trades": 145,
+        "winRate": 48.28,
+        "expectancy": 0.0414,
+        "profitFactor": 1.085,
+        "netR": 6,
+        "maxDrawdownR": 17.8,
+        "sharpe": 0.24,
+        "p": 0.3438,
+        "t": 0.41
+      },
+      "selectionScore": 0.0114
+    },
+    {
+      "stop": "structure + ATR buffer",
+      "target": "production (structure, TP3 floored at 5R)",
+      "dev": {
+        "trades": 355,
+        "winRate": 49.3,
+        "expectancy": -0.0269,
+        "profitFactor": 0.947,
+        "netR": -9.6,
+        "maxDrawdownR": 20.6,
+        "sharpe": -0.17,
+        "p": 0.6705,
+        "t": -0.44
+      },
+      "val": {
+        "trades": 169,
+        "winRate": 47.34,
+        "expectancy": 0.0225,
+        "profitFactor": 1.042,
+        "netR": 3.8,
+        "maxDrawdownR": 21,
+        "sharpe": 0.13,
+        "p": 0.4205,
+        "t": 0.23
+      },
+      "selectionScore": -0.011
+    },
+    {
+      "stop": "structure + ATR buffer",
+      "target": "fixed 1 / 2 / 3R",
+      "dev": {
+        "trades": 436,
+        "winRate": 49.77,
+        "expectancy": -0.0354,
+        "profitFactor": 0.93,
+        "netR": -15.4,
+        "maxDrawdownR": 25,
+        "sharpe": -0.26,
+        "p": 0.7595,
+        "t": -0.7
+      },
+      "val": {
+        "trades": 211,
+        "winRate": 48.82,
+        "expectancy": -0.0227,
+        "profitFactor": 0.956,
+        "netR": -4.8,
+        "maxDrawdownR": 20.2,
+        "sharpe": -0.18,
+        "p": 0.6298,
+        "t": -0.3
+      },
+      "selectionScore": -0.0312
+    },
+    {
+      "stop": "structure + ATR buffer",
+      "target": "fixed 1.5 / 2.5 / 4R",
+      "dev": {
+        "trades": 357,
+        "winRate": 38.94,
+        "expectancy": -0.0691,
+        "profitFactor": 0.887,
+        "netR": -24.7,
+        "maxDrawdownR": 35.6,
+        "sharpe": -0.39,
+        "p": 0.8526,
+        "t": -1.04
+      },
+      "val": {
+        "trades": 168,
+        "winRate": 46.43,
+        "expectancy": 0.1127,
+        "profitFactor": 1.207,
+        "netR": 18.9,
+        "maxDrawdownR": 17.2,
+        "sharpe": 0.65,
+        "p": 0.1335,
+        "t": 1.12
+      },
+      "selectionScore": -0.0109
+    },
+    {
+      "stop": "structure + ATR buffer",
+      "target": "fixed 2 / 3 / 5R",
+      "dev": {
+        "trades": 321,
+        "winRate": 32.71,
+        "expectancy": -0.0784,
+        "profitFactor": 0.883,
+        "netR": -25.2,
+        "maxDrawdownR": 33.6,
+        "sharpe": -0.37,
+        "p": 0.8397,
+        "t": -1
+      },
+      "val": {
+        "trades": 163,
+        "winRate": 34.36,
+        "expectancy": 0.0024,
+        "profitFactor": 1.004,
+        "netR": 0.4,
+        "maxDrawdownR": 26.3,
+        "sharpe": 0.01,
+        "p": 0.502,
+        "t": 0.02
+      },
+      "selectionScore": -0.0512
+    },
+    {
+      "stop": "structure + ATR buffer",
+      "target": "fixed 1 / 1.5 / 2R",
+      "dev": {
+        "trades": 529,
+        "winRate": 48.39,
+        "expectancy": -0.0575,
+        "profitFactor": 0.89,
+        "netR": -30.4,
+        "maxDrawdownR": 40.4,
+        "sharpe": -0.48,
+        "p": 0.9042,
+        "t": -1.29
+      },
+      "val": {
+        "trades": 257,
+        "winRate": 49.81,
+        "expectancy": -0.0183,
+        "profitFactor": 0.964,
+        "netR": -4.7,
+        "maxDrawdownR": 21.9,
+        "sharpe": -0.17,
+        "p": 0.611,
+        "t": -0.28
+      },
+      "selectionScore": -0.0447
+    },
+    {
+      "stop": "structure + ATR buffer",
+      "target": "fixed 0.75 / 1.5 / 2.5R",
+      "dev": {
+        "trades": 539,
+        "winRate": 54.55,
+        "expectancy": -0.0744,
+        "profitFactor": 0.839,
+        "netR": -40.1,
+        "maxDrawdownR": 46.8,
+        "sharpe": -0.71,
+        "p": 0.971,
+        "t": -1.89
+      },
+      "val": {
+        "trades": 265,
+        "winRate": 55.47,
+        "expectancy": -0.0466,
+        "profitFactor": 0.897,
+        "netR": -12.3,
+        "maxDrawdownR": 29.2,
+        "sharpe": -0.48,
+        "p": 0.7987,
+        "t": -0.82
+      },
+      "selectionScore": -0.0653
+    },
+    {
+      "stop": "structure + ATR buffer",
+      "target": "structure levels",
+      "dev": {
+        "trades": 388,
+        "winRate": 42.78,
+        "expectancy": -0.0404,
+        "profitFactor": 0.93,
+        "netR": -15.7,
+        "maxDrawdownR": 28.1,
+        "sharpe": -0.24,
+        "p": 0.7364,
+        "t": -0.64
+      },
+      "val": {
+        "trades": 175,
+        "winRate": 41.71,
+        "expectancy": 0.0272,
+        "profitFactor": 1.046,
+        "netR": 4.8,
+        "maxDrawdownR": 18.5,
+        "sharpe": 0.15,
+        "p": 0.4003,
+        "t": 0.25
+      },
+      "selectionScore": -0.0194
+    },
+    {
+      "stop": "swing invalidation",
+      "target": "production (structure, TP3 floored at 5R)",
+      "dev": {
+        "trades": 292,
+        "winRate": 47.6,
+        "expectancy": -0.0414,
+        "profitFactor": 0.917,
+        "netR": -12.1,
+        "maxDrawdownR": 22.3,
+        "sharpe": -0.24,
+        "p": 0.7484,
+        "t": -0.63
+      },
+      "val": {
+        "trades": 143,
+        "winRate": 51.05,
+        "expectancy": 0.0432,
+        "profitFactor": 1.094,
+        "netR": 6.2,
+        "maxDrawdownR": 16.9,
+        "sharpe": 0.26,
+        "p": 0.3368,
+        "t": 0.44
+      },
+      "selectionScore": -0.0136
+    },
+    {
+      "stop": "swing invalidation",
+      "target": "fixed 1 / 2 / 3R",
+      "dev": {
+        "trades": 303,
+        "winRate": 47.85,
+        "expectancy": -0.0381,
+        "profitFactor": 0.922,
+        "netR": -11.5,
+        "maxDrawdownR": 17.6,
+        "sharpe": -0.24,
+        "p": 0.746,
+        "t": -0.65
+      },
+      "val": {
+        "trades": 172,
+        "winRate": 52.91,
+        "expectancy": 0.021,
+        "profitFactor": 1.047,
+        "netR": 3.6,
+        "maxDrawdownR": 13.2,
+        "sharpe": 0.16,
+        "p": 0.3915,
+        "t": 0.27
+      },
+      "selectionScore": -0.0167
+    },
+    {
+      "stop": "swing invalidation",
+      "target": "fixed 1.5 / 2.5 / 4R",
+      "dev": {
+        "trades": 285,
+        "winRate": 40.35,
+        "expectancy": -0.0613,
+        "profitFactor": 0.891,
+        "netR": -17.5,
+        "maxDrawdownR": 23.6,
+        "sharpe": -0.33,
+        "p": 0.8103,
+        "t": -0.89
+      },
+      "val": {
+        "trades": 140,
+        "winRate": 48.57,
+        "expectancy": 0.132,
+        "profitFactor": 1.275,
+        "netR": 18.5,
+        "maxDrawdownR": 11.8,
+        "sharpe": 0.75,
+        "p": 0.1048,
+        "t": 1.28
+      },
+      "selectionScore": 0.0023
+    },
+    {
+      "stop": "swing invalidation",
+      "target": "fixed 2 / 3 / 5R",
+      "dev": {
+        "trades": 274,
+        "winRate": 38.32,
+        "expectancy": -0.0347,
+        "profitFactor": 0.941,
+        "netR": -9.5,
+        "maxDrawdownR": 25.1,
+        "sharpe": -0.17,
+        "p": 0.6795,
+        "t": -0.44
+      },
+      "val": {
+        "trades": 130,
+        "winRate": 43.08,
+        "expectancy": 0.1322,
+        "profitFactor": 1.256,
+        "netR": 17.2,
+        "maxDrawdownR": 13.9,
+        "sharpe": 0.65,
+        "p": 0.1298,
+        "t": 1.11
+      },
+      "selectionScore": 0.019
+    },
+    {
+      "stop": "swing invalidation",
+      "target": "fixed 1 / 1.5 / 2R",
+      "dev": {
+        "trades": 350,
+        "winRate": 49.71,
+        "expectancy": -0.0296,
+        "profitFactor": 0.938,
+        "netR": -10.4,
+        "maxDrawdownR": 16,
+        "sharpe": -0.21,
+        "p": 0.7144,
+        "t": -0.57
+      },
+      "val": {
+        "trades": 184,
+        "winRate": 53.26,
+        "expectancy": 0.0198,
+        "profitFactor": 1.044,
+        "netR": 3.6,
+        "maxDrawdownR": 16,
+        "sharpe": 0.16,
+        "p": 0.3882,
+        "t": 0.28
+      },
+      "selectionScore": -0.0126
+    },
+    {
+      "stop": "swing invalidation",
+      "target": "fixed 0.75 / 1.5 / 2.5R",
+      "dev": {
+        "trades": 352,
+        "winRate": 55.11,
+        "expectancy": -0.0357,
+        "profitFactor": 0.917,
+        "netR": -12.6,
+        "maxDrawdownR": 19.3,
+        "sharpe": -0.28,
+        "p": 0.7692,
+        "t": -0.74
+      },
+      "val": {
+        "trades": 173,
+        "winRate": 58.96,
+        "expectancy": 0.0224,
+        "profitFactor": 1.058,
+        "netR": 3.9,
+        "maxDrawdownR": 11.2,
+        "sharpe": 0.2,
+        "p": 0.3554,
+        "t": 0.34
+      },
+      "selectionScore": -0.0166
+    },
+    {
+      "stop": "swing invalidation",
+      "target": "structure levels",
+      "dev": {
+        "trades": 298,
+        "winRate": 44.97,
+        "expectancy": -0.034,
+        "profitFactor": 0.935,
+        "netR": -10.1,
+        "maxDrawdownR": 19.8,
+        "sharpe": -0.2,
+        "p": 0.7033,
+        "t": -0.53
+      },
+      "val": {
+        "trades": 149,
+        "winRate": 44.97,
+        "expectancy": 0.0022,
+        "profitFactor": 1.004,
+        "netR": 0.3,
+        "maxDrawdownR": 21.8,
+        "sharpe": 0.01,
+        "p": 0.4955,
+        "t": 0.02
+      },
+      "selectionScore": -0.0219
+    },
+    {
+      "stop": "ATR 1.5x",
+      "target": "production (structure, TP3 floored at 5R)",
+      "dev": {
+        "trades": 468,
+        "winRate": 44.02,
+        "expectancy": -0.0573,
+        "profitFactor": 0.9,
+        "netR": -26.8,
+        "maxDrawdownR": 48.8,
+        "sharpe": -0.34,
+        "p": 0.817,
+        "t": -0.91
+      },
+      "val": {
+        "trades": 219,
+        "winRate": 45.66,
+        "expectancy": 0.019,
+        "profitFactor": 1.034,
+        "netR": 4.2,
+        "maxDrawdownR": 19.5,
+        "sharpe": 0.11,
+        "p": 0.4292,
+        "t": 0.19
+      },
+      "selectionScore": -0.0329
+    },
+    {
+      "stop": "ATR 1.5x",
+      "target": "fixed 1 / 2 / 3R",
+      "dev": {
+        "trades": 761,
+        "winRate": 47.83,
+        "expectancy": -0.0895,
+        "profitFactor": 0.833,
+        "netR": -68.1,
+        "maxDrawdownR": 80.7,
+        "sharpe": -0.89,
+        "p": 0.9926,
+        "t": -2.36
+      },
+      "val": {
+        "trades": 358,
+        "winRate": 50.28,
+        "expectancy": -0.0428,
+        "profitFactor": 0.915,
+        "netR": -15.3,
+        "maxDrawdownR": 30.6,
+        "sharpe": -0.45,
+        "p": 0.7782,
+        "t": -0.77
+      },
+      "selectionScore": -0.0745
+    },
+    {
+      "stop": "ATR 1.5x",
+      "target": "fixed 1.5 / 2.5 / 4R",
+      "dev": {
+        "trades": 574,
+        "winRate": 38.33,
+        "expectancy": -0.0825,
+        "profitFactor": 0.87,
+        "netR": -47.3,
+        "maxDrawdownR": 65.5,
+        "sharpe": -0.58,
+        "p": 0.9406,
+        "t": -1.55
+      },
+      "val": {
+        "trades": 260,
+        "winRate": 38.85,
+        "expectancy": -0.0277,
+        "profitFactor": 0.955,
+        "netR": -7.2,
+        "maxDrawdownR": 25.3,
+        "sharpe": -0.2,
+        "p": 0.6309,
+        "t": -0.34
+      },
+      "selectionScore": -0.0654
+    },
+    {
+      "stop": "ATR 1.5x",
+      "target": "fixed 2 / 3 / 5R",
+      "dev": {
+        "trades": 478,
+        "winRate": 34.1,
+        "expectancy": -0.0302,
+        "profitFactor": 0.955,
+        "netR": -14.4,
+        "maxDrawdownR": 48.1,
+        "sharpe": -0.17,
+        "p": 0.6738,
+        "t": -0.45
+      },
+      "val": {
+        "trades": 226,
+        "winRate": 34.51,
+        "expectancy": 0.026,
+        "profitFactor": 1.039,
+        "netR": 5.9,
+        "maxDrawdownR": 21.3,
+        "sharpe": 0.15,
+        "p": 0.4042,
+        "t": 0.26
+      },
+      "selectionScore": -0.0122
+    },
+    {
+      "stop": "ATR 1.5x",
+      "target": "fixed 1 / 1.5 / 2R",
+      "dev": {
+        "trades": 908,
+        "winRate": 49.01,
+        "expectancy": -0.0854,
+        "profitFactor": 0.837,
+        "netR": -77.5,
+        "maxDrawdownR": 88,
+        "sharpe": -0.97,
+        "p": 0.9948,
+        "t": -2.58
+      },
+      "val": {
+        "trades": 437,
+        "winRate": 50.11,
+        "expectancy": -0.0481,
+        "profitFactor": 0.905,
+        "netR": -21,
+        "maxDrawdownR": 42.7,
+        "sharpe": -0.58,
+        "p": 0.8473,
+        "t": -1
+      },
+      "selectionScore": -0.0733
+    },
+    {
+      "stop": "ATR 1.5x",
+      "target": "fixed 0.75 / 1.5 / 2.5R",
+      "dev": {
+        "trades": 909,
+        "winRate": 54.13,
+        "expectancy": -0.0941,
+        "profitFactor": 0.798,
+        "netR": -85.6,
+        "maxDrawdownR": 93.3,
+        "sharpe": -1.18,
+        "p": 0.999,
+        "t": -3.14
+      },
+      "val": {
+        "trades": 436,
+        "winRate": 58.72,
+        "expectancy": -0.0199,
+        "profitFactor": 0.953,
+        "netR": -8.7,
+        "maxDrawdownR": 27.2,
+        "sharpe": -0.27,
+        "p": 0.6809,
+        "t": -0.46
+      },
+      "selectionScore": -0.0701
+    },
+    {
+      "stop": "ATR 1.5x",
+      "target": "structure levels",
+      "dev": {
+        "trades": 545,
+        "winRate": 38.72,
+        "expectancy": -0.0688,
+        "profitFactor": 0.891,
+        "netR": -37.5,
+        "maxDrawdownR": 72.6,
+        "sharpe": -0.43,
+        "p": 0.8689,
+        "t": -1.15
+      },
+      "val": {
+        "trades": 252,
+        "winRate": 42.06,
+        "expectancy": 0.0117,
+        "profitFactor": 1.02,
+        "netR": 2.9,
+        "maxDrawdownR": 19.6,
+        "sharpe": 0.07,
+        "p": 0.4581,
+        "t": 0.12
+      },
+      "selectionScore": -0.0434
+    },
+    {
+      "stop": "volatility adjusted",
+      "target": "production (structure, TP3 floored at 5R)",
+      "dev": {
+        "trades": 494,
+        "winRate": 42.71,
+        "expectancy": -0.1057,
+        "profitFactor": 0.821,
+        "netR": -52.2,
+        "maxDrawdownR": 69.9,
+        "sharpe": -0.67,
+        "p": 0.956,
+        "t": -1.79
+      },
+      "val": {
+        "trades": 224,
+        "winRate": 45.09,
+        "expectancy": 0.0154,
+        "profitFactor": 1.027,
+        "netR": 3.4,
+        "maxDrawdownR": 19.7,
+        "sharpe": 0.09,
+        "p": 0.4433,
+        "t": 0.15
+      },
+      "selectionScore": -0.068
+    },
+    {
+      "stop": "volatility adjusted",
+      "target": "fixed 1 / 2 / 3R",
+      "dev": {
+        "trades": 804,
+        "winRate": 47.76,
+        "expectancy": -0.1021,
+        "profitFactor": 0.81,
+        "netR": -82.1,
+        "maxDrawdownR": 91.8,
+        "sharpe": -1.05,
+        "p": 0.997,
+        "t": -2.79
+      },
+      "val": {
+        "trades": 384,
+        "winRate": 51.04,
+        "expectancy": -0.0217,
+        "profitFactor": 0.956,
+        "netR": -8.3,
+        "maxDrawdownR": 26.6,
+        "sharpe": -0.24,
+        "p": 0.6617,
+        "t": -0.4
+      },
+      "selectionScore": -0.0761
+    },
+    {
+      "stop": "volatility adjusted",
+      "target": "fixed 1.5 / 2.5 / 4R",
+      "dev": {
+        "trades": 635,
+        "winRate": 38.74,
+        "expectancy": -0.0992,
+        "profitFactor": 0.843,
+        "netR": -63,
+        "maxDrawdownR": 80.8,
+        "sharpe": -0.75,
+        "p": 0.9769,
+        "t": -2
+      },
+      "val": {
+        "trades": 292,
+        "winRate": 39.04,
+        "expectancy": -0.0482,
+        "profitFactor": 0.922,
+        "netR": -14.1,
+        "maxDrawdownR": 27.8,
+        "sharpe": -0.37,
+        "p": 0.7434,
+        "t": -0.64
+      },
+      "selectionScore": -0.0831
+    },
+    {
+      "stop": "volatility adjusted",
+      "target": "fixed 2 / 3 / 5R",
+      "dev": {
+        "trades": 524,
+        "winRate": 32.63,
+        "expectancy": -0.0733,
+        "profitFactor": 0.894,
+        "netR": -38.4,
+        "maxDrawdownR": 58.9,
+        "sharpe": -0.43,
+        "p": 0.8721,
+        "t": -1.14
+      },
+      "val": {
+        "trades": 243,
+        "winRate": 31.69,
+        "expectancy": -0.0376,
+        "profitFactor": 0.946,
+        "netR": -9.1,
+        "maxDrawdownR": 22.8,
+        "sharpe": -0.23,
+        "p": 0.6542,
+        "t": -0.39
+      },
+      "selectionScore": -0.062
+    },
+    {
+      "stop": "volatility adjusted",
+      "target": "fixed 1 / 1.5 / 2R",
+      "dev": {
+        "trades": 981,
+        "winRate": 48.93,
+        "expectancy": -0.0899,
+        "profitFactor": 0.829,
+        "netR": -88.2,
+        "maxDrawdownR": 98.1,
+        "sharpe": -1.06,
+        "p": 0.9974,
+        "t": -2.83
+      },
+      "val": {
+        "trades": 474,
+        "winRate": 49.37,
+        "expectancy": -0.0542,
+        "profitFactor": 0.895,
+        "netR": -25.7,
+        "maxDrawdownR": 39.9,
+        "sharpe": -0.68,
+        "p": 0.8768,
+        "t": -1.16
+      },
+      "selectionScore": -0.0782
+    },
+    {
+      "stop": "volatility adjusted",
+      "target": "fixed 0.75 / 1.5 / 2.5R",
+      "dev": {
+        "trades": 965,
+        "winRate": 54.72,
+        "expectancy": -0.0968,
+        "profitFactor": 0.791,
+        "netR": -93.4,
+        "maxDrawdownR": 101,
+        "sharpe": -1.26,
+        "p": 0.9994,
+        "t": -3.36
+      },
+      "val": {
+        "trades": 477,
+        "winRate": 59.12,
+        "expectancy": -0.0202,
+        "profitFactor": 0.951,
+        "netR": -9.6,
+        "maxDrawdownR": 23.7,
+        "sharpe": -0.29,
+        "p": 0.6935,
+        "t": -0.5
+      },
+      "selectionScore": -0.0714
+    },
+    {
+      "stop": "volatility adjusted",
+      "target": "structure levels",
+      "dev": {
+        "trades": 578,
+        "winRate": 38.06,
+        "expectancy": -0.0977,
+        "profitFactor": 0.847,
+        "netR": -56.4,
+        "maxDrawdownR": 80.4,
+        "sharpe": -0.64,
+        "p": 0.954,
+        "t": -1.71
+      },
+      "val": {
+        "trades": 258,
+        "winRate": 39.92,
+        "expectancy": -0.0045,
+        "profitFactor": 0.993,
+        "netR": -1.2,
+        "maxDrawdownR": 22.7,
+        "sharpe": -0.03,
+        "p": 0.5135,
+        "t": -0.05
+      },
+      "selectionScore": -0.0689
+    }
+  ],
+  "chosen": {
+    "stop": "production",
+    "target": "fixed 1.5 / 2.5 / 4R",
+    "selectionScore": 0.0458,
+    "finalTest": {
+      "trades": 219,
+      "winRate": 48.86,
+      "expectancy": 0.2222,
+      "profitFactor": 1.461,
+      "netR": 48.7,
+      "maxDrawdownR": 13.3,
+      "sharpe": 1.46,
+      "p": 0.0046,
+      "t": 2.52
+    },
+    "outOfSample": {
+      "trades": 360,
+      "winRate": 49.72,
+      "expectancy": 0.2128,
+      "profitFactor": 1.454,
+      "netR": 76.6,
+      "maxDrawdownR": 13.3,
+      "sharpe": 1.31,
+      "p": 0.0004,
+      "t": 3.18,
+      "ci95": [
+        0.084,
+        0.344
+      ]
+    }
+  },
+  "shipped": {
+    "selectionScore": 0.0299,
+    "finalTest": {
+      "trades": 221,
+      "winRate": 56.56,
+      "expectancy": 0.2099,
+      "profitFactor": 1.5,
+      "netR": 46.4,
+      "maxDrawdownR": 13.2,
+      "sharpe": 1.47,
+      "p": 0.0043,
+      "t": 2.54
+    }
+  }
+}

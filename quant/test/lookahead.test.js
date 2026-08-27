@@ -107,7 +107,8 @@ test('alignIndex only ever points at an already-closed higher-timeframe bar', ()
 });
 
 test('every trade is entered strictly after the bar that produced its signal', () => {
-  const ds = loadGoldDataset(DIR);
+  // 2019 is inside the legacy feed's span; the modern feed starts in 2020.
+  const ds = loadGoldDataset(DIR, 'legacy');
   const from = Date.UTC(2019, 0, 1), to = Date.UTC(2019, 6, 1);
   const ctx = buildContext({ m15: ds.m15, h1: ds.h1, h4: ds.h4, d1: ds.d1, macro: { dxy: ds.dxy } });
   const res = runBacktest({ ctx, strategy: productionSwing(), execution: 'realistic', fromMs: from, toMs: to });
@@ -124,7 +125,7 @@ test('every trade is entered strictly after the bar that produced its signal', (
 });
 
 test('TRUNCATION INVARIANCE: deleting the future does not change any past decision', () => {
-  const ds = loadGoldDataset(DIR);
+  const ds = loadGoldDataset(DIR, 'legacy');
   const from = Date.UTC(2018, 0, 1);
   const cut = Date.UTC(2019, 0, 1);
 

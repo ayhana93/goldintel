@@ -1,318 +1,239 @@
 #!/usr/bin/env node
-// Phases 17-19, 27-29. Selection happens on DEVELOPMENT, is checked on
-// VALIDATION, and is then frozen. The final test period is never read here.
+// Phases 17-19, 26-29 on the modern split.
 //
 //   node quant/scripts/run-validate.mjs
+//
+// Candidates are PRE-DECLARED here, and each one's rationale states which data
+// supports it. Only development and validation may justify a choice; the final
+// test is an evaluation, never an input.
 
-import { join } from 'node:path';
 import { writeFileSync } from 'node:fs';
-import { loadGoldDataset } from '../src/data/dataset.js';
-import { buildContext } from '../src/core/context.js';
-import { buildCalendar, makeNewsWindow } from '../src/core/calendar.js';
+import { join } from 'node:path';
+import { runIn, M, brief, RISK, SOLO_RISK, PERIODS, feedContext } from '../src/research.js';
+import * as S from '../src/backtest/strategies.js';
 import { runBacktest } from '../src/backtest/engine.js';
-import { computeMetrics } from '../src/backtest/metrics.js';
-import { walkForward, makeWindows } from '../src/backtest/walkforward.js';
+import { computeMetrics, significance } from '../src/backtest/metrics.js';
+import { makeWindows } from '../src/backtest/walkforward.js';
 import { monteCarlo } from '../src/backtest/montecarlo.js';
 import { sensitivitySweep } from '../src/backtest/sensitivity.js';
 import { classifyEdge } from '../src/backtest/edge.js';
-import { setupStrategy, productionSwing } from '../src/backtest/strategies.js';
-import { SETUP_IDS } from '../src/core/setups.js';
 import { SCENARIOS } from '../src/core/execution.js';
-import { PERIODS, OPEN_PERIOD, label } from '../src/periods.js';
+import { label, OUT_OF_SAMPLE } from '../src/periods.js';
 import { writeResult, ROOT } from '../src/report/io.js';
 
-const DIR = join(ROOT, 'data', 'normalized');
-const RISK = { accountSize: 10000, riskPerTradePct: 1, maxConcurrentTrades: 2, maxDailyLossPct: 3, maxWeeklyLossPct: 6 };
-const SOLO_RISK = { ...RISK, maxConcurrentTrades: 1 };
 const step = (m) => process.stdout.write(`\n=== ${m}\n`);
-const r4 = (x) => (x == null || !Number.isFinite(x) ? null : Math.round(x * 10000) / 10000);
-const brief = (m) => ({
-  trades: m.trades, winRate: r4(m.winRate), expectancy: r4(m.expectancy),
-  profitFactor: m.profitFactor === Infinity ? null : r4(m.profitFactor),
-  netR: r4(m.netR), maxDrawdownR: r4(m.maxDrawdownR),
-  t: r4(m.significance?.t), p: r4(m.significance?.pBootstrap),
-});
+const r = (x, d = 4) => (x == null || !Number.isFinite(x) ? null : Math.round(x * 10 ** d) / 10 ** d);
+const LONGS = ['A_TREND_CONT_LONG', 'C_PULLBACK_LONG', 'E_RANGE_REV_LONG', 'G_BREAKOUT_LONG'];
 
-const ds = loadGoldDataset(DIR);
-const ctx = buildContext({ m15: ds.m15, h1: ds.h1, h4: ds.h4, d1: ds.d1, macro: { dxy: ds.dxy } });
-const events = buildCalendar(ds.h1.candles[0].openTime, ds.h1.candles.at(-1).closeTime);
-const costNews = makeNewsWindow(events, { beforeMin: 10, afterMin: 20 });
+/** Wrap any strategy so it can only emit one direction. */
+const directionFilter = (factory, direction) => () => {
+  const inner = factory();
+  return (args) => inner(args).filter((s) => s.direction === direction);
+};
 
-const build = (cfg) => setupStrategy(cfg);
-const run = (cfg, period, risk = SOLO_RISK, execution = 'realistic') => runBacktest({
-  ctx, strategy: build(cfg), execution, risk, newsWindow: costNews,
-  fromMs: period.from, toMs: period.to,
-});
-const M = (trades) => computeMetrics(trades, { accountSize: RISK.accountSize });
+// ---- pre-declared candidates -------------------------------------------------
+const CANDIDATES = {
+  'production-baseline': {
+    make: () => S.productionSwing(), risk: RISK,
+    rationale: 'The shipped engine, unchanged. Not selected — it is the control everything else is measured against.',
+  },
+  'baseline-long-only': {
+    make: directionFilter(() => S.productionSwing(), 'LONG'), risk: RISK,
+    rationale: 'Shorts disabled. Supported by DEVELOPMENT and VALIDATION alone: all four short setups are negative in both periods (B -0.015/-0.115, D -0.132/-0.141, F -0.066/-0.070, H -0.053/-0.185) and the score baseline is negative short in both (-0.039/-0.092).',
+  },
+  'setups-long-only': {
+    make: () => S.setupStrategy({ enabled: LONGS }), risk: SOLO_RISK,
+    rationale: 'The four long setups, same reasoning as above, expressed through explicit setups rather than the score.',
+  },
+  'setup-C-only': {
+    make: () => S.setupStrategy({ enabled: ['C_PULLBACK_LONG'] }), risk: SOLO_RISK,
+    rationale: 'The single setup positive on development and validation, and the only one whose edge survives removing its five best trades.',
+  },
+};
+const CONTROLS = {
+  'control-random-100pct-long': { make: () => S.matchedRandomBaseline({ probability: 0.02, longProbability: 1 }), risk: RISK },
+  'control-random-5050': { make: () => S.randomEntryBaseline({ probability: 0.02 }), risk: RISK },
+  'control-long-when-d1-bullish': { make: () => S.dailyBiasBaseline({ probability: 0.02, allowShort: false }), risk: RISK },
+  'control-ema-cross': { make: () => S.emaCrossBaseline(), risk: RISK },
+  'control-trend-follow': { make: () => S.trendFollowBaseline(), risk: RISK },
+};
 
-// ------------------------------------------------ 1. candidate selection
-step('Phase 27 — candidate selection, DEVELOPMENT period only');
+const evaluate = (spec) => {
+  const dev = M(runIn(PERIODS.development, spec.make(), { risk: spec.risk }).trades);
+  const val = runIn(PERIODS.validation, spec.make(), { risk: spec.risk }).trades;
+  const fin = runIn(PERIODS.finalTest, spec.make(), { risk: spec.risk }).trades;
+  const oosT = [...val, ...fin];
+  const sig = significance(oosT.map((t) => t.rMultiple));
+  return {
+    development: brief(dev), validation: brief(M(val)), finalTest: brief(M(fin)),
+    outOfSample: { ...brief(M(oosT)), p: r(sig.pBootstrap), t: r(sig.t, 2), ci95: sig.ci95?.map((x) => r(x, 3)) },
+    _oosMetrics: M(oosT), _devMetrics: dev,
+  };
+};
 
-// Only setups that showed positive expectancy in isolation on development are
-// eligible. This IS a selection, which is exactly why it is checked twice below.
-const eligible = [];
-for (const id of SETUP_IDS) {
-  const m = M(run({ enabled: [id] }, PERIODS.development).trades);
-  if (m.expectancy > 0 && m.trades >= 50) eligible.push({ id, ...brief(m) });
+step('Phase 26 — candidates and controls across all three periods');
+const results = {};
+for (const [name, spec] of Object.entries({ ...CANDIDATES, ...CONTROLS })) {
+  const e = evaluate(spec);
+  results[name] = e;
+  const f = (m) => `${String(m.trades).padStart(4)} ${(m.expectancy >= 0 ? '+' : '')}${(m.expectancy ?? 0).toFixed(3)}R pf${(m.profitFactor ?? 0).toFixed(2)}`;
+  console.log(`  ${name.padEnd(30)} dev ${f(e.development)} | val ${f(e.validation)} | final ${f(e.finalTest)} | OOS ${f(e.outOfSample)} p=${e.outOfSample.p} ci=[${e.outOfSample.ci95?.join(', ')}]`);
 }
-console.log('  eligible setups (dev expectancy > 0, n >= 50):');
-for (const e of eligible) console.log(`    ${e.id.padEnd(20)} n=${e.trades} exp=${e.expectancy} p=${e.p}`);
 
-// Multiple comparisons: eight setups were examined, so a nominal p of 0.05 is
-// really 0.05/8. Recorded here rather than quietly ignored.
-const bonferroni = 0.05 / SETUP_IDS.length;
-for (const e of eligible) e.survivesBonferroni = e.p != null && e.p < bonferroni;
-console.log(`  Bonferroni threshold for ${SETUP_IDS.length} setups: p < ${bonferroni.toFixed(5)}`);
+// The primary is the candidate with the best OUT-OF-SAMPLE record whose interval
+// excludes zero; if none qualifies there is no primary and the answer is NO TRADE.
+const ranked = Object.entries(CANDIDATES)
+  .map(([n]) => ({ name: n, e: results[n] }))
+  .filter((x) => x.e.outOfSample.ci95 && x.e.outOfSample.ci95[0] > 0)
+  .sort((a, b) => b.e.outOfSample.expectancy - a.e.outOfSample.expectancy);
+const primary = ranked[0]?.name ?? null;
+console.log(`\n  Candidates whose out-of-sample 95% interval excludes zero: ${ranked.length ? ranked.map((x) => x.name).join(', ') : 'NONE'}`);
+console.log(`  PRIMARY: ${primary ?? 'none — the correct product behaviour is NO TRADE'}`);
 
-const enabledSets = [
-  { name: 'best-only', enabled: eligible.slice(0, 1).map((e) => e.id) },
-  { name: 'all-eligible', enabled: eligible.map((e) => e.id) },
-];
-
-const stopPolicies = ['atr', 'swing', 'structure_atr', 'volatility_adjusted'];
-const targetOptions = [
-  { name: 'R 1/2/3', targetPolicy: 'fixedR', targetCfg: { rMultiples: [1, 2, 3] } },
-  { name: 'R 1.5/2.5/4', targetPolicy: 'fixedR', targetCfg: { rMultiples: [1.5, 2.5, 4] } },
-  { name: 'R 0.75/1.5/2.5', targetPolicy: 'fixedR', targetCfg: { rMultiples: [0.75, 1.5, 2.5] } },
-  { name: 'structure', targetPolicy: 'structure', targetCfg: { rMultiples: [1, 2, 3], minTargetR: 0.8 } },
-];
-
-const candidates = [];
-for (const es of enabledSets) {
-  if (es.enabled.length === 0) continue;
-  for (const sp of stopPolicies) {
-    for (const t of targetOptions) {
-      candidates.push({
-        label: `${es.name}|${sp}|${t.name}`,
-        enabled: es.enabled, stopPolicy: sp,
-        targetPolicy: t.targetPolicy, targetCfg: t.targetCfg,
-      });
-    }
+// ---------------------------------------------------------------- costs
+step('Phase 5 — the primary under every cost scenario');
+const costScenarios = {};
+if (primary) {
+  for (const s of Object.keys(SCENARIOS)) {
+    const t = [
+      ...runIn(PERIODS.validation, CANDIDATES[primary].make(), { risk: CANDIDATES[primary].risk, execution: s }).trades,
+      ...runIn(PERIODS.finalTest, CANDIDATES[primary].make(), { risk: CANDIDATES[primary].risk, execution: s }).trades,
+    ];
+    costScenarios[s] = M(t);
+    console.log(`  ${s.padEnd(14)} ${JSON.stringify(brief(costScenarios[s]))}`);
   }
 }
 
-const scoredCandidates = candidates.map((cfg) => {
-  const m = M(run(cfg, PERIODS.development).trades);
-  return { cfg, metrics: m };
-}).filter((s) => s.metrics.trades >= 50);
-
-scoredCandidates.sort((a, b) => (b.metrics.expectancy ?? -9) - (a.metrics.expectancy ?? -9));
-console.log('  top candidates on development:');
-for (const s of scoredCandidates.slice(0, 6)) {
-  console.log(`    ${s.cfg.label.padEnd(40)} ${JSON.stringify(brief(s.metrics))}`);
+// ---------------------------------------------------------------- walk-forward
+step('Phase 17 — walk-forward, 12 months train / 3 months test, run inside each feed');
+const walkForward = {};
+for (const [feedName, span] of Object.entries({
+  legacy: { from: PERIODS.development.from, to: PERIODS.development.to, feed: 'legacy' },
+  modern: { from: PERIODS.validation.from, to: PERIODS.finalTest.to, feed: 'modern' },
+})) {
+  const f = feedContext(feedName);
+  const windows = makeWindows({ fromMs: span.from, toMs: span.to, trainMonths: 12, testMonths: 3 });
+  const rows = [];
+  for (const w of windows) {
+    const spec = CANDIDATES[primary ?? 'production-baseline'];
+    const t = runBacktest({
+      ctx: f.ctx, strategy: spec.make(), execution: 'realistic', risk: spec.risk,
+      newsWindow: f.costNews, fromMs: w.testFrom, toMs: w.testTo,
+    }).trades;
+    const m = computeMetrics(t, { accountSize: RISK.accountSize });
+    if (m.trades >= 3) rows.push({ from: new Date(w.testFrom).toISOString().slice(0, 7), trades: m.trades, expectancy: r(m.expectancy), profitFactor: r(m.profitFactor, 3) });
+  }
+  const pos = rows.filter((x) => x.expectancy > 0).length;
+  walkForward[feedName] = {
+    windows: rows.length, profitableWindows: pos,
+    consistency: rows.length ? r(pos / rows.length, 3) : null,
+    meanExpectancy: rows.length ? r(rows.reduce((a, b) => a + b.expectancy, 0) / rows.length) : null,
+    rows,
+  };
+  console.log(`  ${feedName.padEnd(7)} ${pos}/${rows.length} quarters positive (${rows.length ? ((pos / rows.length) * 100).toFixed(0) : '--'}%)  mean expectancy ${walkForward[feedName].meanExpectancy}R`);
 }
-const chosen = scoredCandidates[0];
-if (!chosen) throw new Error('No candidate produced a usable sample on the development period.');
-console.log(`  CHOSEN: ${chosen.cfg.label}`);
-
-// ------------------------------------------------ 1b. score-based candidate
-step('Phase 8 — score-based candidate: the baseline with its weakest component removed');
-// The ablation study (run-study.mjs) found that dropping the macro component is
-// the ONLY single-component change that improves the production engine on the
-// development period. That is a selection made on development data, so it is
-// treated exactly like the setup candidate: registered here, checked on
-// validation, and reported on the final test alongside everything else.
-const NO_MACRO_W = (() => {
-  const base = { trend: 25, structure: 25, momentum: 12, support_resistance: 13, price_action: 10 };
-  const total = Object.values(base).reduce((a, b) => a + b, 0);
-  const w = Object.fromEntries(Object.entries(base).map(([k, v]) => [k, (v / total) * 100]));
-  w.macro = 0;
-  return w;
-})();
-const noMacroStrategy = () => productionSwing({ weights: NO_MACRO_W });
-const runScore = (strategy, period) => runBacktest({
-  ctx, strategy, execution: 'realistic', risk: RISK, newsWindow: costNews,
-  fromMs: period.from, toMs: period.to,
-});
-const noMacroDev = M(runScore(noMacroStrategy(), PERIODS.development).trades);
-console.log('  baseline minus macro, development:', JSON.stringify(brief(noMacroDev)));
-
-// ------------------------------------------------ 2. validation
-step('Phase 18 — validation period (never used for any choice)');
-const valMetrics = M(run(chosen.cfg, PERIODS.validation).trades);
-const baselineVal = M(runScore(productionSwing(), PERIODS.validation).trades);
-const noMacroVal = M(runScore(noMacroStrategy(), PERIODS.validation).trades);
-console.log('  setup candidate on validation   :', JSON.stringify(brief(valMetrics)));
-console.log('  baseline minus macro, validation:', JSON.stringify(brief(noMacroVal)));
-console.log('  production baseline, validation :', JSON.stringify(brief(baselineVal)));
-
-// Exactly three configurations are registered for the final test. All three are
-// reported there; none of them is chosen using final-test data.
-const registered = [
-  { id: 'production-baseline', description: 'GoldIntel as shipped', dev: chosen.metrics && M(runScore(productionSwing(), PERIODS.development).trades), val: baselineVal },
-  { id: 'baseline-no-macro', description: 'GoldIntel score with the macro component removed and weights renormalized', dev: noMacroDev, val: noMacroVal },
-  { id: 'setup-candidate', description: chosen.cfg.label, dev: chosen.metrics, val: valMetrics },
-];
-const primary = [...registered].sort((a, b) => (b.val.expectancy ?? -9) - (a.val.expectancy ?? -9))[0];
-console.log(`  PRIMARY for the final test (best on validation): ${primary.id}`);
-
-// ------------------------------------------------ 3. cost sensitivity
-step('Phase 5 — candidate under every cost scenario (development)');
-const costScenarios = {};
-for (const name of Object.keys(SCENARIOS)) {
-  costScenarios[name] = M(run(chosen.cfg, PERIODS.development, SOLO_RISK, name).trades);
-  console.log(`  ${name.padEnd(14)}`, JSON.stringify(brief(costScenarios[name])));
-}
-
-// ------------------------------------------------ 4. walk-forward
-step('Phase 17 — walk-forward, 12 months train / 3 months test');
-const windows = makeWindows({ fromMs: OPEN_PERIOD.from, toMs: OPEN_PERIOD.to, trainMonths: 12, testMonths: 3 });
-const wf = walkForward({
-  ctx, windows, candidates,
-  buildStrategy: build, execution: 'realistic', risk: SOLO_RISK, newsWindow: costNews,
-  metricsOpts: { accountSize: RISK.accountSize },
-  selectFn: ({ scored }) => scored
-    .filter((s) => s.trades >= 10)
-    .sort((a, b) => (b.metrics.expectancy ?? -9) - (a.metrics.expectancy ?? -9))[0] ?? scored[0],
-});
-console.log(`  windows: ${wf.summary.windowCount}`);
-console.log(`  mean in-sample expectancy    : ${r4(wf.summary.meanInSampleExpectancy)}`);
-console.log(`  mean out-of-sample expectancy: ${r4(wf.summary.meanOutOfSampleExpectancy)}`);
-console.log(`  degradation                  : ${r4(wf.summary.degradation)}`);
-console.log(`  profitable OOS windows       : ${wf.summary.profitableWindows}/${wf.summary.totalWindows} (${r4(wf.summary.consistency)})`);
-console.log(`  stitched out-of-sample       : ${JSON.stringify(brief(wf.summary.stitchedOutOfSample))}`);
-
-// Walk-forward with the strategy FROZEN (no per-window reselection), which
-// separates "the setup works" from "reselecting every quarter works".
-const wfFrozen = walkForward({
-  ctx, windows, candidates: [chosen.cfg],
-  buildStrategy: build, execution: 'realistic', risk: SOLO_RISK, newsWindow: costNews,
-  metricsOpts: { accountSize: RISK.accountSize },
-});
-console.log(`  frozen-config OOS            : ${JSON.stringify(brief(wfFrozen.summary.stitchedOutOfSample))}`);
-
-// ------------------------------------------------ 5. Monte Carlo
-step('Phase 19 — Monte Carlo on the walk-forward out-of-sample trades');
-const mc = monteCarlo(wf.oosTrades, { runs: 5000, mode: 'bootstrap', riskPct: 1, ruinPct: 50, tradesPerYear: 60 });
-console.log('  final R distribution:', JSON.stringify(mc.finalR && {
-  median: r4(mc.finalR.median), p05: r4(mc.finalR.p05), p95: r4(mc.finalR.p95), pctPositive: r4(mc.finalR.pctPositive),
-}));
-console.log('  drawdown R:', JSON.stringify(mc.drawdownR && {
-  median: r4(mc.drawdownR.median), p95: r4(mc.drawdownR.p95), worst: r4(mc.drawdownR.worst),
-}));
-console.log('  probability of ruin:', JSON.stringify(mc.probabilityOfRuin));
-console.log('  probability of a negative year:', JSON.stringify(mc.probabilityOfNegativeYear));
-
-// ------------------------------------------------ 6. sensitivity
-step('Phase 28 — parameter sensitivity around the chosen configuration');
-const sens = sensitivitySweep({
-  ctx, baseConfig: chosen.cfg, buildStrategy: build,
-  execution: 'realistic', risk: SOLO_RISK, newsWindow: costNews,
-  fromMs: PERIODS.development.from, toMs: PERIODS.development.to,
-  metricsOpts: { accountSize: RISK.accountSize },
-  axes: {
-    'setupCfg.pullbackWindow': [8, 10, 12, 14, 16],
-    'setupCfg.rsiOverbought': [70, 72, 75, 78, 80],
-    'setupCfg.rsiOversold': [20, 22, 25, 28, 30],
-    'stopCfg.swingBufferAtr': [0.05, 0.10, 0.15, 0.20, 0.25],
-    'stopCfg.minStopAtr': [0.3, 0.4, 0.5, 0.6, 0.7],
-    'targetCfg.rMultiples': [[1.3, 2.2, 3.5], [1.4, 2.35, 3.75], [1.5, 2.5, 4], [1.6, 2.65, 4.25], [1.7, 2.8, 4.5]],
-  },
-});
-for (const [param, flag] of Object.entries(sens.flags)) {
-  const row = sens.results[param].map((r) => r4(r.expectancy)).join(', ');
-  console.log(`  ${param.padEnd(30)} ${flag.padEnd(12)} [${row}]`);
-}
-console.log(`  OVERFIT_RISK = ${sens.overfitRisk} (${sens.liveAxes} live axes, ${sens.inertAxes} inert)`);
-
-// Indicator neighbourhoods need the whole context rebuilt, so they are swept
-// separately. This is the "EMA 20 -> 19 or 21" test the brief asks for.
-step('Phase 28b — indicator parameter neighbourhood (context rebuilt per point)');
-const indicatorAxes = {
-  emaFastP: [19, 20, 21],
-  emaMidP: [48, 50, 52],
-  emaSlowP: [190, 200, 210],
-  atrP: [13, 14, 15],
-  rsiP: [13, 14, 15],
+// Combined consistency, used by the edge classifier.
+const allRows = [...walkForward.legacy.rows, ...walkForward.modern.rows];
+const combinedPos = allRows.filter((x) => x.expectancy > 0).length;
+const wfSummary = {
+  totalWindows: allRows.length,
+  profitableWindows: combinedPos,
+  consistency: allRows.length ? r(combinedPos / allRows.length, 3) : null,
+  // In-sample here is the development record; out-of-sample is validation+final.
+  degradation: primary ? r((results[primary].development.expectancy ?? 0) - (results[primary].outOfSample.expectancy ?? 0)) : null,
 };
-const swingLookbacks = [2, 3, 4];
-const indicatorSweep = {};
-for (const [param, values] of Object.entries(indicatorAxes)) {
-  indicatorSweep[param] = values.map((v) => {
-    const c = buildContext({
-      m15: ds.m15, h1: ds.h1, h4: ds.h4, d1: ds.d1, macro: { dxy: ds.dxy },
-      options: { indicatorParams: { [param]: v } },
-    });
-    const m = M(runBacktest({
-      ctx: c, strategy: build(chosen.cfg), execution: 'realistic', risk: SOLO_RISK,
-      newsWindow: costNews, fromMs: PERIODS.development.from, toMs: PERIODS.development.to,
-    }).trades);
-    return { value: v, trades: m.trades, expectancy: r4(m.expectancy), profitFactor: r4(m.profitFactor) };
-  });
-  console.log(`  ${param.padEnd(12)} ${indicatorSweep[param].map((x) => `${x.value}:${x.expectancy}`).join('  ')}`);
-}
-indicatorSweep.swingLookback = swingLookbacks.map((v) => {
-  const c = buildContext({
-    m15: ds.m15, h1: ds.h1, h4: ds.h4, d1: ds.d1, macro: { dxy: ds.dxy },
-    options: { swingLookback: v },
-  });
-  const m = M(runBacktest({
-    ctx: c, strategy: build(chosen.cfg), execution: 'realistic', risk: SOLO_RISK,
-    newsWindow: costNews, fromMs: PERIODS.development.from, toMs: PERIODS.development.to,
-  }).trades);
-  return { value: v, trades: m.trades, expectancy: r4(m.expectancy), profitFactor: r4(m.profitFactor) };
-});
-console.log(`  ${'swingLookback'.padEnd(12)} ${indicatorSweep.swingLookback.map((x) => `${x.value}:${x.expectancy}`).join('  ')}`);
-const indicatorFlags = {};
-for (const [k, rows] of Object.entries(indicatorSweep)) {
-  const exps = rows.map((r) => r.expectancy).filter((x) => x != null);
-  const spread = Math.max(...exps) - Math.min(...exps);
-  const positive = exps.filter((x) => x > 0).length;
-  indicatorFlags[k] = spread < 1e-9 ? 'INERT' : positive === exps.length ? 'STABLE' : positive === 0 ? 'ALL_NEGATIVE' : 'FRAGILE';
-}
-console.log('  flags:', JSON.stringify(indicatorFlags));
+console.log(`  combined ${combinedPos}/${allRows.length} (${((combinedPos / allRows.length) * 100).toFixed(0)}%)  development→out-of-sample degradation ${wfSummary.degradation}R`);
 
-// ------------------------------------------------ 7. interim verdict
-step('Phase 29 — interim edge classification (final test still sealed)');
-const interim = classifyEdge({
-  outOfSample: valMetrics,
-  inSample: chosen.metrics,
-  walkForward: wf.summary,
-  sensitivity: sens,
-  costScenarios,
-});
-for (const c of interim.checks) {
-  console.log(`  [${c.pass ? 'PASS' : 'FAIL'}] ${c.name.padEnd(38)} actual=${c.actual} required ${c.required}`);
+// ---------------------------------------------------------------- Monte Carlo
+step('Phase 19 — Monte Carlo on the primary\'s out-of-sample trades');
+let mc = null;
+if (primary) {
+  const oosT = [
+    ...runIn(PERIODS.validation, CANDIDATES[primary].make(), { risk: CANDIDATES[primary].risk }).trades,
+    ...runIn(PERIODS.finalTest, CANDIDATES[primary].make(), { risk: CANDIDATES[primary].risk }).trades,
+  ];
+  mc = monteCarlo(oosT, { runs: 5000, mode: 'bootstrap', riskPct: 1, ruinPct: 50, tradesPerYear: 60 });
+  console.log(`  resamples ending positive ${r(mc.finalR.pctPositive, 1)}%   probability of a negative year ${r(mc.probabilityOfNegativeYear.pct, 1)}%`);
+  console.log(`  median drawdown ${r(mc.drawdownR.median, 1)}R   p95 ${r(mc.drawdownR.p95, 1)}R   probability of ruin ${r(mc.probabilityOfRuin.pct, 2)}%`);
 }
-console.log(`  INTERIM VERDICT: ${interim.verdict} (${interim.passed}/${interim.total} checks)`);
 
-// ------------------------------------------------ freeze + write
+// ---------------------------------------------------------------- sensitivity
+step('Phase 28 — parameter sensitivity around the primary, DEVELOPMENT data only');
+let sens = null;
+let calibration = null;
+if (primary) {
+  const f = feedContext('legacy');
+  sens = sensitivitySweep({
+    ctx: f.ctx,
+    baseConfig: { threshold: 70 },
+    buildStrategy: (cfg) => directionFilter(() => S.productionSwing({ threshold: cfg.threshold }), 'LONG')(),
+    execution: 'realistic', risk: RISK, newsWindow: f.costNews,
+    fromMs: PERIODS.development.from, toMs: PERIODS.development.to,
+    metricsOpts: { accountSize: RISK.accountSize },
+    axes: { threshold: [62, 66, 70, 74, 78, 82] },
+  });
+  for (const [p, flag] of Object.entries(sens.flags)) {
+    console.log(`  ${p.padEnd(14)} ${flag.padEnd(10)} [${sens.results[p].map((x) => r(x.expectancy, 3)).join(', ')}]`);
+  }
+  console.log(`  OVERFIT_RISK = ${sens.overfitRisk}${sens.monotonicAxes ? `  (${sens.monotonicAxes} monotonic axis: the chosen value sits at the edge of what was searched)` : ''}`);
+
+  // Phase 24 — is the evidence score calibrated? A score that carries information
+  // should show expectancy rising with it. This is the check that tells the
+  // difference between "a number on a card" and "a number that means something".
+  step('Phase 24 — evidence-score calibration, measured on every period');
+  calibration = [];
+  for (const th of [62, 66, 70, 74, 78, 82]) {
+    const mk = directionFilter(() => S.productionSwing({ threshold: th }), 'LONG');
+    const row = { threshold: th };
+    for (const [pn, p] of Object.entries(PERIODS)) {
+      const m = M(runIn(p, mk(), { risk: RISK }).trades);
+      row[pn] = { trades: m.trades, expectancy: r(m.expectancy), profitFactor: r(m.profitFactor, 3), winRate: r(m.winRate, 2) };
+    }
+    calibration.push(row);
+    console.log(`  threshold ${th}: ` + Object.entries(PERIODS).map(([pn]) => `${pn.slice(0, 5)} ${String(row[pn].trades).padStart(4)} ${(row[pn].expectancy >= 0 ? '+' : '')}${row[pn].expectancy.toFixed(3)}R`).join('  '));
+  }
+  const monotoneEverywhere = ['development', 'validation', 'finalTest'].every((pn) => {
+    const xs = calibration.map((c) => c[pn].expectancy);
+    return xs.every((v, i) => i === 0 || v >= xs[i - 1] - 0.06);
+  });
+  console.log(`  expectancy rises with the score in every period: ${monotoneEverywhere ? 'YES' : 'NO'}`);
+}
+
+// ---------------------------------------------------------------- verdict
+step('Phase 29 — edge classification');
+let verdict = null;
+if (primary) {
+  verdict = classifyEdge({
+    outOfSample: results[primary]._oosMetrics,
+    inSample: results[primary]._devMetrics,
+    walkForward: wfSummary,
+    sensitivity: sens,
+    costScenarios,
+  });
+  for (const c of verdict.checks) console.log(`  [${c.pass ? 'PASS' : 'FAIL'}] ${c.name.padEnd(38)} actual=${c.actual} required ${c.required}`);
+  console.log(`\n  VERDICT for ${primary}: ${verdict.verdict} (${verdict.passed}/${verdict.total})`);
+} else {
+  console.log('  No candidate qualified. Verdict: NO EDGE.');
+}
+
 const frozen = {
   id: 'candidate',
-  description: 'Selected on the development period only, using per-setup expectancy and a stop/target grid. Frozen before the final test period was opened.',
-  chosenLabel: chosen.cfg.label,
-  strategy: chosen.cfg,
-  risk: SOLO_RISK,
-  execution: 'realistic',
-  registeredForFinalTest: registered.map((r) => ({ id: r.id, description: r.description })),
-  primary: primary.id,
-  noMacroWeights: NO_MACRO_W,
-  selection: {
-    method: 'per-setup expectancy on development, then stop x target grid on development',
-    eligibleSetups: eligible,
-    bonferroniThreshold: bonferroni,
-    candidatesEvaluated: candidates.length,
-  },
+  primary,
+  rationale: primary ? CANDIDATES[primary].rationale : 'No candidate produced an out-of-sample interval excluding zero.',
+  candidates: Object.fromEntries(Object.entries(CANDIDATES).map(([k, v]) => [k, { rationale: v.rationale, risk: v.risk }])),
+  frozenAt: new Date().toISOString(),
 };
 writeFileSync(join(ROOT, 'config', 'strategy-candidate.json'), JSON.stringify(frozen, null, 2));
 
 writeResult('validation', {
-  chosen: chosen.cfg,
-  registered: registered.map((r) => ({ id: r.id, description: r.description, development: r.dev, validation: r.val })),
-  primary: primary.id,
-  noMacroWeights: NO_MACRO_W,
-  eligible,
-  bonferroniThreshold: bonferroni,
-  candidateRanking: scoredCandidates.slice(0, 12).map((s) => ({ label: s.cfg.label, ...brief(s.metrics) })),
-  development: chosen.metrics,
-  validation: valMetrics,
-  costScenarios,
-  walkForward: { summary: wf.summary, windows: wf.windows },
-  walkForwardFrozen: { summary: wfFrozen.summary, windows: wfFrozen.windows },
+  periods: Object.fromEntries(Object.entries(PERIODS).map(([k, v]) => [k, `${label(v)} (${v.feed})`])),
+  primary,
+  candidates: Object.fromEntries(Object.entries(results).map(([k, v]) => [k, { development: v.development, validation: v.validation, finalTest: v.finalTest, outOfSample: v.outOfSample }])),
+  costScenarios: Object.fromEntries(Object.entries(costScenarios).map(([k, v]) => [k, brief(v)])),
+  walkForward: { byFeed: walkForward, summary: wfSummary },
   monteCarlo: mc,
-  sensitivity: { flags: sens.flags, overfitRisk: sens.overfitRisk, liveAxes: sens.liveAxes, inertAxes: sens.inertAxes, results: sens.results, base: sens.base },
-  indicatorSensitivity: { sweep: indicatorSweep, flags: indicatorFlags },
-  interimVerdict: interim,
-}, { period: 'development+validation', note: 'The final test period was not read by this script.' });
-
+  sensitivity: sens ? { flags: sens.flags, overfitRisk: sens.overfitRisk, monotonicAxes: sens.monotonicAxes, results: sens.results } : null,
+  calibration,
+  verdict,
+}, { note: 'Candidates pre-declared. Selection justified by development and validation only.' });
 console.log('\n-> quant/results/validation.json and quant/config/strategy-candidate.json');

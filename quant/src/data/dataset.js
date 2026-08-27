@@ -1,23 +1,25 @@
-// Assembles the research dataset from normalized CSVs.
+// Assembles the research datasets from normalized CSVs.
+//
+// Two feeds are kept separate on purpose (see quant/src/periods.js). Loading is
+// per-feed; nothing is spliced, so a result can always be attributed to one
+// publisher's bars.
 //
 // The macro leg is a documented compromise. The production engine reads DXY and
-// the US 10-year yield from Yahoo; neither is available in the historical archive
-// this study can reach, so the dollar leg is reconstructed as a synthetic index
-// from the five major pairs that ARE available, and the yield leg is absent.
-// Both facts are recorded in docs/DATA_SOURCES.md and the macro component is
-// additionally ablated in the comparison study so its contribution is measurable
-// rather than assumed.
+// the US 10-year yield from a live vendor; neither is in either historical
+// archive, so the dollar leg is reconstructed from the majors that ARE present
+// and the yield leg is absent entirely. The cost of that reconstruction is
+// measured rather than assumed — see quant/scripts/check-feeds.mjs.
 
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { makeSeries, aggregate } from '../core/candles.js';
 
-function readNormalized(dir, symbol, timeframe) {
-  const path = join(dir, `${symbol}_${timeframe}.csv`);
+function readNormalized(dir, feed, symbol, timeframe) {
+  const path = join(dir, `${feed}_${symbol}_${timeframe}.csv`);
   if (!existsSync(path)) {
     throw new Error(
       `Missing normalized data: ${path}\n` +
-      `The dataset is not committed (36 MB of vendor CSV). Rebuild it with:\n` +
+      `The vendor CSV is not committed. Rebuild it with:\n` +
       `  npm run quant:data\n` +
       `Checksums of the exact files every published result used are in quant/data/MANIFEST.json.`
     );
@@ -27,17 +29,15 @@ function readNormalized(dir, symbol, timeframe) {
   for (let i = 1; i < lines.length; i++) {
     if (!lines[i]) continue;
     const [ts, o, h, l, c, v] = lines[i].split(',');
-    candles.push({
-      openTime: Date.parse(ts), open: +o, high: +h, low: +l, close: +c, volume: +v || 0,
-    });
+    candles.push({ openTime: Date.parse(ts), open: +o, high: +h, low: +l, close: +c, volume: +v || 0 });
   }
   return candles;
 }
 
-export function loadSeries(dir, symbol, timeframe, source = 'csv-local') {
+export function loadSeries(dir, feed, symbol, timeframe) {
   return makeSeries({
-    symbol, timeframe, source,
-    candles: readNormalized(dir, symbol, timeframe),
+    symbol, timeframe, source: feed,
+    candles: readNormalized(dir, feed, symbol, timeframe),
     now: Number.POSITIVE_INFINITY,   // completed historical file: every bar is closed
     timezone: 'UTC',
   });
@@ -46,51 +46,44 @@ export function loadSeries(dir, symbol, timeframe, source = 'csv-local') {
 /**
  * Trade-weighted dollar index proxy.
  *
- * The real DXY is
+ * The published DXY is
  *   50.14348112 · EURUSD^-0.576 · USDJPY^0.136 · GBPUSD^-0.119 · USDCAD^0.091
  *                · USDSEK^0.042 · USDCHF^0.036
- * USDSEK is not in the archive, so its 4.2% weight is redistributed by
- * renormalizing the remaining exponents over 0.958. The level therefore differs
- * slightly from the published index; the strategy only ever reads its rate of
- * change, which is what this proxy preserves.
+ *
+ * Neither archive carries USDSEK. The modern feed also has no USDJPY, so its
+ * proxy is built from the four DXY members present and renormalized over their
+ * combined weight. That omission is not waved through: check-feeds.mjs builds
+ * BOTH the five-member and four-member proxies on the legacy feed (which does
+ * have USDJPY) and reports how often they disagree on the 10-day direction the
+ * strategy actually reads.
  */
-const DXY_LEGS = [
-  { symbol: 'EURUSD', exp: -0.576 },
-  { symbol: 'USDJPY', exp: 0.136 },
-  { symbol: 'GBPUSD', exp: -0.119 },
-  { symbol: 'USDCAD', exp: 0.091 },
-  { symbol: 'USDCHF', exp: 0.036 },
-];
-// Dropping USDSEK shifts the basket's level by a constant factor. Measured
-// against the published DXY at eight points spread across 2013-2022 the ratio is
-// 0.934 +/- 0.008, i.e. stable, so a single calibration constant restores the
-// familiar scale without touching the rate of change the strategy actually reads.
-const DXY_CONST = 50.14348112 / 0.934;
+const DXY_WEIGHTS = { EURUSD: -0.576, USDJPY: 0.136, GBPUSD: -0.119, USDCAD: 0.091, USDCHF: 0.036 };
+const DXY_CONST = 50.14348112;
 
-export function buildDollarProxy(dir) {
-  const legs = DXY_LEGS.map((leg) => ({ ...leg, candles: readNormalized(dir, leg.symbol, 'H1') }));
-  // USDSEK carries 4.2% of the basket and is absent, so scale every remaining
-  // exponent by 1/0.958 to restore unit weight.
-  const scaled = legs.map((l) => ({ ...l, exp: l.exp / 0.958 }));
+export function buildDollarProxy(dir, feed, legs = null) {
+  const available = legs ?? Object.keys(DXY_WEIGHTS).filter((s) => existsSync(join(dir, `${feed}_${s}_H1.csv`)));
+  if (available.length === 0) return null;
 
-  const maps = scaled.map((l) => {
+  // Renormalize the surviving exponents so the basket still carries unit weight.
+  const totalWeight = available.reduce((a, s) => a + Math.abs(DXY_WEIGHTS[s]), 0);
+  const scaled = available.map((s) => ({ symbol: s, exp: DXY_WEIGHTS[s] / totalWeight }));
+
+  const maps = scaled.map(({ symbol, exp }) => {
     const m = new Map();
-    for (const c of l.candles) m.set(c.openTime, c);
-    return { exp: l.exp, m };
+    for (const c of readNormalized(dir, feed, symbol, 'H1')) m.set(c.openTime, c);
+    return { exp, m };
   });
 
   const times = [...maps[0].m.keys()].sort((a, b) => a - b);
   const candles = [];
   for (const t of times) {
-    let open = DXY_CONST, high = DXY_CONST, low = DXY_CONST, close = DXY_CONST;
+    let open = 1, close = 1, high = 1, low = 1;
     let ok = true;
     for (const { exp, m } of maps) {
       const c = m.get(t);
       if (!c || !(c.open > 0) || !(c.close > 0)) { ok = false; break; }
       open *= Math.pow(c.open, exp);
       close *= Math.pow(c.close, exp);
-      // A basket's extreme is not the product of the legs' extremes; use the
-      // open/close envelope, widened by each leg's own range, as a bound.
       high *= Math.pow(exp > 0 ? c.high : c.low, exp);
       low *= Math.pow(exp > 0 ? c.low : c.high, exp);
     }
@@ -99,18 +92,28 @@ export function buildDollarProxy(dir) {
     const lo = Math.min(open, close, high, low);
     candles.push({ openTime: t, open, high: hi, low: lo, close, volume: 0 });
   }
+  if (candles.length === 0) return null;
+
+  // The level is arbitrary once exponents are renormalized; rescale so the first
+  // bar sits at 100. Only the rate of change is ever read by the strategy.
+  const k = 100 / candles[0].close;
+  for (const c of candles) { c.open *= k; c.high *= k; c.low *= k; c.close *= k; }
+
   return makeSeries({
-    symbol: 'DXY_PROXY', timeframe: 'H1', source: 'synthetic:fx-basket',
+    symbol: 'DXY_PROXY', timeframe: 'H1',
+    source: `synthetic:${feed}:${available.join('+')}`,
     candles, now: Number.POSITIVE_INFINITY, timezone: 'UTC',
   });
 }
 
-export function loadGoldDataset(dir) {
-  const m15 = loadSeries(dir, 'XAUUSD', 'M15');
-  const h1 = loadSeries(dir, 'XAUUSD', 'H1');
-  const h4 = loadSeries(dir, 'XAUUSD', 'H4');
-  const d1 = loadSeries(dir, 'XAUUSD', 'D1');
-  const dxyH1 = buildDollarProxy(dir);
-  const dxy = aggregate(dxyH1, 'D1', { minCoverage: 0.3 });
-  return { m15, h1, h4, d1, dxy, dxyH1 };
+export function loadGoldDataset(dir, feed = 'modern') {
+  const m15 = loadSeries(dir, feed, 'XAUUSD', 'M15');
+  const h1 = loadSeries(dir, feed, 'XAUUSD', 'H1');
+  const h4 = loadSeries(dir, feed, 'XAUUSD', 'H4');
+  const d1 = loadSeries(dir, feed, 'XAUUSD', 'D1');
+  const dxyH1 = buildDollarProxy(dir, feed);
+  const dxy = dxyH1 ? aggregate(dxyH1, 'D1', { minCoverage: 0.3 }) : null;
+  return { feed, m15, h1, h4, d1, dxy, dxyH1 };
 }
+
+export { DXY_WEIGHTS, DXY_CONST };

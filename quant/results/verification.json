@@ -1,0 +1,233 @@
+{
+  "_provenance": {
+    "generatedAt": "2026-08-27T16:10:26.571Z",
+    "codeRevision": "d3e51d6",
+    "dataFingerprint": "legacy:XAUUSD_M15:4a179fd4 legacy:XAUUSD_H1:4c9ff7b1 legacy:XAUUSD_H4:db5a98c6 legacy:XAUUSD_D1:d3da2122 legacy:EURUSD_H1:1b29ca23 legacy:USDJPY_H1:4bdca353 legacy:GBPUSD_H1:affda7b6 legacy:USDCAD_H1:ef4ff565 legacy:USDCHF_H1:82e3f4cb modern:XAUUSD_M15:97dc307a modern:XAUUSD_H1:aec7009a modern:XAUUSD_H4:8e924230 modern:XAUUSD_D1:1c66a195 modern:EURUSD_H1:3a129445 modern:GBPUSD_H1:76278930 modern:USDCAD_H1:64e4a8f6 modern:USDCHF_H1:759c2b6f modern:AUDUSD_H1:de481ada",
+    "note": "Independent reproduction of the previously committed statistics."
+  },
+  "verifiedAgainst": {
+    "generatedAt": "2026-08-27T09:46:33.828Z",
+    "verdict": "NO EDGE",
+    "periods": {
+      "development": "2012-05-15 → 2018-12-31",
+      "validation": "2019-01-01 → 2020-12-31",
+      "finalTest": "2021-01-01 → 2022-03-04"
+    }
+  },
+  "feed": "legacy",
+  "checks": [
+    {
+      "name": "baseline swing — trade count",
+      "published": 93,
+      "reproduced": 93,
+      "tolerance": 0,
+      "pass": true
+    },
+    {
+      "name": "baseline swing — expectancy",
+      "published": -0.0283,
+      "reproduced": -0.0283,
+      "tolerance": 0.0005,
+      "pass": true
+    },
+    {
+      "name": "baseline swing — profit factor",
+      "published": 0.945,
+      "reproduced": 0.9445,
+      "tolerance": 0.002,
+      "pass": true
+    },
+    {
+      "name": "baseline swing — win rate",
+      "published": 46.24,
+      "reproduced": 46.2366,
+      "tolerance": 0.02,
+      "pass": true
+    },
+    {
+      "name": "scalp — trade count",
+      "published": 726,
+      "reproduced": 726,
+      "tolerance": 0,
+      "pass": true
+    },
+    {
+      "name": "scalp — expectancy",
+      "published": -0.3511,
+      "reproduced": -0.3511,
+      "tolerance": 0.0005,
+      "pass": true
+    },
+    {
+      "name": "A_TREND_CONT_LONG — OOS trades",
+      "published": 257,
+      "reproduced": 257,
+      "tolerance": 0,
+      "pass": true
+    },
+    {
+      "name": "A_TREND_CONT_LONG — OOS expectancy",
+      "published": -0.0056,
+      "reproduced": -0.0056,
+      "tolerance": 0.0005,
+      "pass": true
+    },
+    {
+      "name": "A_TREND_CONT_LONG — OOS p(edge<=0)",
+      "published": 0.5357,
+      "reproduced": 0.5357,
+      "tolerance": 0.02,
+      "pass": true
+    },
+    {
+      "name": "B_TREND_CONT_SHORT — OOS trades",
+      "published": 81,
+      "reproduced": 81,
+      "tolerance": 0,
+      "pass": true
+    },
+    {
+      "name": "B_TREND_CONT_SHORT — OOS expectancy",
+      "published": -0.2869,
+      "reproduced": -0.2869,
+      "tolerance": 0.0005,
+      "pass": true
+    },
+    {
+      "name": "B_TREND_CONT_SHORT — OOS p(edge<=0)",
+      "published": 0.9939,
+      "reproduced": 0.9939,
+      "tolerance": 0.02,
+      "pass": true
+    },
+    {
+      "name": "C_PULLBACK_LONG — OOS trades",
+      "published": 101,
+      "reproduced": 101,
+      "tolerance": 0,
+      "pass": true
+    },
+    {
+      "name": "C_PULLBACK_LONG — OOS expectancy",
+      "published": 0.2137,
+      "reproduced": 0.2137,
+      "tolerance": 0.0005,
+      "pass": true
+    },
+    {
+      "name": "C_PULLBACK_LONG — OOS p(edge<=0)",
+      "published": 0.0237,
+      "reproduced": 0.0237,
+      "tolerance": 0.02,
+      "pass": true
+    },
+    {
+      "name": "D_PULLBACK_SHORT — OOS trades",
+      "published": 49,
+      "reproduced": 49,
+      "tolerance": 0,
+      "pass": true
+    },
+    {
+      "name": "D_PULLBACK_SHORT — OOS expectancy",
+      "published": -0.3354,
+      "reproduced": -0.3354,
+      "tolerance": 0.0005,
+      "pass": true
+    },
+    {
+      "name": "D_PULLBACK_SHORT — OOS p(edge<=0)",
+      "published": 0.9959,
+      "reproduced": 0.9959,
+      "tolerance": 0.02,
+      "pass": true
+    },
+    {
+      "name": "E_RANGE_REV_LONG — OOS trades",
+      "published": 240,
+      "reproduced": 240,
+      "tolerance": 0,
+      "pass": true
+    },
+    {
+      "name": "E_RANGE_REV_LONG — OOS expectancy",
+      "published": 0.0371,
+      "reproduced": 0.0371,
+      "tolerance": 0.0005,
+      "pass": true
+    },
+    {
+      "name": "E_RANGE_REV_LONG — OOS p(edge<=0)",
+      "published": 0.2921,
+      "reproduced": 0.2921,
+      "tolerance": 0.02,
+      "pass": true
+    },
+    {
+      "name": "F_RANGE_REV_SHORT — OOS trades",
+      "published": 151,
+      "reproduced": 151,
+      "tolerance": 0,
+      "pass": true
+    },
+    {
+      "name": "F_RANGE_REV_SHORT — OOS expectancy",
+      "published": -0.0475,
+      "reproduced": -0.0475,
+      "tolerance": 0.0005,
+      "pass": true
+    },
+    {
+      "name": "F_RANGE_REV_SHORT — OOS p(edge<=0)",
+      "published": 0.7138,
+      "reproduced": 0.7138,
+      "tolerance": 0.02,
+      "pass": true
+    },
+    {
+      "name": "G_BREAKOUT_LONG — OOS trades",
+      "published": 250,
+      "reproduced": 250,
+      "tolerance": 0,
+      "pass": true
+    },
+    {
+      "name": "G_BREAKOUT_LONG — OOS expectancy",
+      "published": 0.08,
+      "reproduced": 0.08,
+      "tolerance": 0.0005,
+      "pass": true
+    },
+    {
+      "name": "G_BREAKOUT_LONG — OOS p(edge<=0)",
+      "published": 0.1218,
+      "reproduced": 0.1218,
+      "tolerance": 0.02,
+      "pass": true
+    },
+    {
+      "name": "H_BREAKOUT_SHORT — OOS trades",
+      "published": 115,
+      "reproduced": 115,
+      "tolerance": 0,
+      "pass": true
+    },
+    {
+      "name": "H_BREAKOUT_SHORT — OOS expectancy",
+      "published": -0.292,
+      "reproduced": -0.292,
+      "tolerance": 0.0005,
+      "pass": true
+    },
+    {
+      "name": "H_BREAKOUT_SHORT — OOS p(edge<=0)",
+      "published": 0.9998,
+      "reproduced": 0.9998,
+      "tolerance": 0.02,
+      "pass": true
+    }
+  ],
+  "passed": 30,
+  "total": 30,
+  "conclusion": "Every published figure reproduced from source on the same feed and periods."
+}
