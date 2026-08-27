@@ -20,6 +20,19 @@ export default function Dashboard() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [intervalSec, setIntervalSec] = useState(60);
+
+  // Persist the auto-refresh interval on the user profile so it survives reload/close.
+  const updateInterval = useCallback(async (v) => {
+    setIntervalSec(v);
+    try { await base44.auth.updateMe({ refresh_interval: v }); } catch {}
+  }, []);
+
+  // Restore the saved interval once on mount.
+  useEffect(() => {
+    base44.auth.me()
+      .then((u) => { if (u?.refresh_interval) setIntervalSec(u.refresh_interval); })
+      .catch(() => {});
+  }, []);
   const loadHistory = useCallback(async () => {
     const rows = await base44.entities.Signal.list("-created_date", 25);
     setSignals(rows);
@@ -72,7 +85,7 @@ export default function Dashboard() {
         fetchedAt={gold?.fetchedAt}
         onRefresh={refresh}
         intervalSec={intervalSec}
-        onIntervalChange={setIntervalSec}
+        onIntervalChange={updateInterval}
       />
       <div className="mx-auto max-w-[1400px] space-y-3 p-3 lg:p-4">
           <ActiveSignalsPanel signals={signals} onUpdated={loadHistory} />
