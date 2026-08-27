@@ -53,24 +53,49 @@ export function sensitivitySweep({
     if (spread < 1e-9) { flags[param] = 'INERT'; continue; }
     const positive = exps.filter((x) => x > 0).length;
     const best = Math.max(...exps);
-    const others = exps.filter((x) => x !== best);
-    const meanOthers = others.reduce((a, b) => a + b, 0) / others.length;
-    const spike = best > 0 && meanOthers <= 0;                     // only one value works
+    const bestIdx = exps.indexOf(best);
+
+    // A MONOTONIC response and a SPIKE look similar to a naive "best value beats
+    // the average" test, but they mean opposite things. If expectancy rises
+    // steadily with the parameter, the parameter has a consistent, interpretable
+    // effect and the best value simply sits at the end of the range — that is a
+    // relationship, not a magic number. A spike is an isolated peak with worse
+    // values on BOTH sides, which is the signature of fitting noise.
+    const rising = exps.every((v, i) => i === 0 || v >= exps[i - 1] - 1e-12);
+    const falling = exps.every((v, i) => i === 0 || v <= exps[i - 1] + 1e-12);
+    const monotonic = rising || falling;
+    const isolatedPeak = bestIdx > 0 && bestIdx < exps.length - 1
+      && exps[bestIdx - 1] < best && exps[bestIdx + 1] < best
+      && Math.max(exps[bestIdx - 1], exps[bestIdx + 1]) <= 0;
+
     const fragile = positive / exps.length < 0.5;                  // most of the neighbourhood loses
-    flags[param] = spike ? 'SPIKE' : fragile ? 'FRAGILE' : 'STABLE';
+    flags[param] = isolatedPeak ? 'SPIKE'
+      : monotonic ? (positive === 0 ? 'MONOTONIC_NEGATIVE' : 'MONOTONIC')
+      : fragile ? 'FRAGILE'
+      : 'STABLE';
   }
 
   const live = Object.values(flags).filter((f) => f !== 'INERT' && f !== 'INSUFFICIENT');
   const spikes = live.filter((f) => f === 'SPIKE').length;
   const fragiles = live.filter((f) => f === 'FRAGILE').length;
+  // A monotonic axis is not fragile, but it IS a warning that the chosen value
+  // sits at the edge of what was searched: the honest reading is "this parameter
+  // was not optimised far enough to know where it turns over".
+  const monotonic = live.filter((f) => f === 'MONOTONIC').length;
   // With nothing live to test, robustness is unknown rather than proven.
   const overfitRisk = live.length === 0 ? 'UNKNOWN'
     : spikes > 0 ? 'HIGH'
     : fragiles >= 2 ? 'ELEVATED'
     : fragiles === 1 ? 'MODERATE'
+    : monotonic > 0 ? 'MODERATE'
     : 'LOW';
 
-  return { base, results, flags, overfitRisk, liveAxes: live.length, inertAxes: Object.values(flags).filter((f) => f === 'INERT').length };
+  return {
+    base, results, flags, overfitRisk,
+    liveAxes: live.length,
+    monotonicAxes: monotonic,
+    inertAxes: Object.values(flags).filter((f) => f === 'INERT').length,
+  };
 }
 
 function setDeep(obj, path, value) {
