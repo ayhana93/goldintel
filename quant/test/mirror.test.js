@@ -22,6 +22,7 @@ const PAIRS = [
   ['base44/shared/signalEngine.ts', 'src/lib/signalEngine.js'],
   ['base44/shared/marketFeed.ts', 'src/lib/marketFeed.js'],
   ['base44/shared/paperExecution.ts', 'src/lib/paperExecution.js'],
+  ['base44/shared/tradingMode.ts', 'src/lib/tradingMode.js'],
   ['base44/shared/edgeStats.ts', 'src/lib/edgeStats.js'],
 ];
 
@@ -74,5 +75,54 @@ test('the live engine and the backtester define the same eight setups', async ()
   for (const id of SETUP_IDS) {
     assert.match(engine, new RegExp(`'${id}'`),
       `${id} is measured by the backtester but the live engine never emits it`);
+  }
+});
+
+/**
+ * Strip comments, so these assertions read the CODE and not the prose about it —
+ * several of the comments below quote the exact strings being asserted against.
+ */
+function code(text) {
+  return text
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .split('\n')
+    .filter((line) => !/^\s*\/\//.test(line))
+    .join('\n');
+}
+
+// The backend and the browser must agree on WHICH setups are tradable, not only
+// on the shared modules. They did not: generateSignals filtered on
+// `tier !== 'NO_TRADE'` while the dashboard filtered on the gates, so the screen
+// could read NO TRADE while an email went out for the same setup. The mirror test
+// above could never catch that — the function is server-only.
+test('the signal backend decides tradability with the same gate the UI reads', () => {
+  const fn = code(readFileSync(join(REPO, 'base44/functions/generateSignals/entry.ts'), 'utf8'));
+  assert.match(fn, /gate\?\.marketTradable/,
+    'generateSignals must take its decision from the gate result, not from the tier');
+  assert.doesNotMatch(fn, /tier !== 'NO_TRADE'/,
+    'filtering on the tier bypasses every other gate');
+  assert.match(fn, /resolveMode\(/, 'the backend must resolve the presentation mode explicitly');
+});
+
+// buildEmail returned an undefined `body`, so every email threw and took the whole
+// invocation down with it — for however long it had been that way. Nothing linted
+// this tree and no test called the function. The lint config now covers it; this
+// asserts the specific shape, cheaply.
+test('the signal email builds a body', () => {
+  const fn = code(readFileSync(join(REPO, 'base44/functions/generateSignals/entry.ts'), 'utf8'));
+  assert.match(fn, /const body = \[/, 'the email body must be assigned before it is returned');
+  assert.match(fn, /return \{ subject, body \}/);
+});
+
+// A measured historical hit rate is not the probability of the next trade. Rule 6.
+test('no user-facing surface calls a score or a hit rate a probability', () => {
+  const surfaces = [
+    'base44/functions/generateSignals/entry.ts',
+    'src/components/terminal/SignalCard.jsx',
+  ];
+  for (const f of surfaces) {
+    const text = code(readFileSync(join(REPO, f), 'utf8'));
+    assert.doesNotMatch(text, /Вероятност да се реализира/,
+      `${f} presents a historical hit rate as the probability of an individual trade`);
   }
 });

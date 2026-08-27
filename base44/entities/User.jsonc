@@ -7,6 +7,18 @@
         "admin",
         "user"
       ]
+    },
+    "trading_mode": {
+      "type": "string",
+      "enum": [
+        "PAPER",
+        "ADVISORY"
+      ],
+      "description": "How signals are presented. PAPER records and simulates them as research; ADVISORY presents them as actionable. Neither connects a broker. When unset, the mode is derived from the backtest verdict: ADVISORY only for PROVEN EDGE, PAPER otherwise."
+    },
+    "refresh_interval": {
+      "type": "number",
+      "description": "Dashboard auto-refresh interval in seconds"
     }
   },
   "required": [

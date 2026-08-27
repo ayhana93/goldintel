@@ -6,7 +6,6 @@
 // evidence agreeing" — it represents one fact counted three times, and the
 // number it produces is confidently wrong rather than confidently right.
 
-import { alignedIndices } from '../core/context.js';
 import { buildFeatures } from '../core/evidence.js';
 import { getLevels } from './engine.js';
 

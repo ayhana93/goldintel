@@ -18,7 +18,7 @@ import { monteCarlo } from '../src/backtest/montecarlo.js';
 import { sensitivitySweep } from '../src/backtest/sensitivity.js';
 import { classifyEdge } from '../src/backtest/edge.js';
 import { SCENARIOS } from '../src/core/execution.js';
-import { label, OUT_OF_SAMPLE } from '../src/periods.js';
+import { label } from '../src/periods.js';
 import { writeResult, ROOT } from '../src/report/io.js';
 
 const step = (m) => process.stdout.write(`\n=== ${m}\n`);

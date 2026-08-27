@@ -92,6 +92,20 @@ const feedChecks = readResult('feed-checks');
 const primary = validation?.primary ?? null;
 const verdict = validation?.verdict?.verdict ?? 'UNKNOWN';
 
+// The presentation default, derived from the measured verdict by the same rule the
+// live code applies (shared/tradingMode.ts): advisory is earned by a PROVEN EDGE,
+// everything weaker is recorded on paper.
+const defaultMode = verdict === 'PROVEN EDGE' ? 'ADVISORY' : 'PAPER';
+const eraConsistency = (era) => {
+  const c = validation?.walkForward?.byFeed?.[era]?.consistency;
+  return c == null ? null : Math.round(c * 100);
+};
+const legacyPct = eraConsistency('legacy');
+const modernPct = eraConsistency('modern');
+const eraNote = legacyPct != null && modernPct != null
+  ? ` Its out-of-sample record is positive, but ${legacyPct}% of quarters are profitable in the earlier era against ${modernPct}% in the recent one, so the evidence is era-specific.`
+  : '';
+
 const doc = {
   generatedAt: new Date().toISOString(),
   verdict,
@@ -128,11 +142,15 @@ const doc = {
   multipleTesting: decomposition?.conditionalScreen?.screen ?? null,
   measured,
   gating: {
-    emitLiveSignals: false,
-    paperTradingOnly: true,
-    reason: verdict === 'PROVEN EDGE'
-      ? 'Reserved for a proven edge; paper trading continues until live results match backtested expectations.'
-      : `The best configuration is rated ${verdict}. Its out-of-sample record is positive, but 35% of quarters are profitable in the 2012-2019 era against 75% in the 2020-2025 era, so the evidence is era-specific. Signals are recorded and simulated, not recommended.`,
+    // Derived from the verdict, not hardcoded. The rule lives in one place —
+    // shared/tradingMode.ts — and the owner can override the default in the app;
+    // what is written here is only what the measured evidence supports.
+    defaultMode,
+    emitLiveSignals: defaultMode === 'ADVISORY',
+    paperTradingOnly: defaultMode === 'PAPER',
+    reason: defaultMode === 'ADVISORY'
+      ? 'The out-of-sample record cleared every criterion in the edge classifier.'
+      : `The best configuration is rated ${verdict}.${eraNote} Signals are recorded and simulated, not recommended.`,
     allowedDirections,
     directionReason: allShortNegative
       ? 'Every short setup is negative on BOTH development and validation, with out-of-sample profit factors of 0.71-0.80. Supported without reference to the final test.'

@@ -97,6 +97,39 @@ export default function PaperTradingPanel() {
               );
             })}
           </div>
+
+          {/* The control group. Every setup whose conditions held but which a gate
+              refused is recorded too, so the gates can be judged by what they cost
+              and not only by what they prevent. Shown whichever way it reads. */}
+          {monitor.blockedStream?.n > 0 && (
+            <div className="border-b border-[#1c2230] px-4 py-2.5">
+              <div className="mb-1 font-mono text-[10px] uppercase tracking-widest text-slate-500">
+                Refused by a gate — what they went on to do
+              </div>
+              <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1 font-mono text-[11px]">
+                <span className={monitor.blockedStream.expectancy > 0 ? "text-amber-400" : "text-slate-400"}>
+                  {rr(monitor.blockedStream.expectancy)} / trade
+                </span>
+                <span className="text-slate-400">{pct(monitor.blockedStream.winRate)} · PF {fmt(monitor.blockedStream.profitFactor)}</span>
+                <span className="text-slate-600">n = {monitor.blockedStream.n}</span>
+                {Object.entries(monitor.blockedStream.byReason ?? {}).map(([reason, st]) => (
+                  <span key={reason} className="text-slate-600">
+                    {reason}: {rr(st.expectancy)} over {st.n}
+                  </span>
+                ))}
+              </div>
+              <div className="mt-1 font-mono text-[10px] leading-relaxed text-slate-600">
+                Never counted in the headline above. If this stream beats the gated one over a real sample, a gate is
+                costing money and belongs back in the research, not in the live path.
+              </div>
+            </div>
+          )}
+          {monitor.unlabelledTrades?.n > 0 && (
+            <div className="border-b border-[#1c2230] px-4 py-2 font-mono text-[10px] leading-relaxed text-slate-600">
+              {monitor.unlabelledTrades.n} earlier trade(s) carry no gate verdict — recorded before it was stored, so they
+              are counted in neither stream.
+            </div>
+          )}
         </>
       )}
 
@@ -105,7 +138,7 @@ export default function PaperTradingPanel() {
           <table className="w-full font-mono text-[11px]">
             <thead>
               <tr className="border-b border-[#1c2230] text-left text-slate-500">
-                {["Signal (UTC)", "Setup", "Tier", "Dir", "Entry", "Exit", "MAE", "MFE", "Result", "Expected"].map((h) => (
+                {["Signal (UTC)", "Setup", "Tier", "Dir", "Gate", "Entry", "Exit", "MAE", "MFE", "Result", "Expected"].map((h) => (
                   <th key={h} className="px-3 py-2 font-normal uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
@@ -119,6 +152,11 @@ export default function PaperTradingPanel() {
                   <td className="px-3 py-1.5 text-slate-400">{t.setup_id}</td>
                   <td className="px-3 py-1.5">{t.tier}</td>
                   <td className={`px-3 py-1.5 ${t.direction === "LONG" ? "text-emerald-400" : "text-red-400"}`}>{t.direction}</td>
+                  <td className="px-3 py-1.5" title={(t.blocked_by ?? []).join(", ")}>
+                    {t.gate_passed === true ? <span className="text-emerald-400">passed</span>
+                      : t.gate_passed === false ? <span className="text-slate-500">{(t.blocked_by ?? []).length ? t.blocked_by[0].toLowerCase().replace(/_/g, " ") : "blocked"}</span>
+                      : <span className="text-slate-700">—</span>}
+                  </td>
                   <td className="px-3 py-1.5">{fmt(t.entry_price, 1)}</td>
                   <td className="px-3 py-1.5">{t.exit_price != null ? `${fmt(t.exit_price, 1)} (${t.exit_reason})` : "open"}</td>
                   <td className="px-3 py-1.5 text-red-400/80">{fmt(t.mae_r)}</td>
@@ -135,8 +173,9 @@ export default function PaperTradingPanel() {
       ) : (
         !loading && (
           <div className="px-4 py-4 text-xs leading-relaxed text-slate-600">
-            No paper trades recorded yet. Every signal that clears its evidence tier opens one automatically, with the
-            same spread, slippage and commission assumptions the backtest used ({EDGE_STATS.execution}).
+            No paper trades recorded yet. Every setup whose conditions hold opens one automatically — gate-passing or
+            refused, with the reason stored — using the same spread, slippage and commission assumptions the backtest
+            used ({EDGE_STATS.execution}).
           </div>
         )
       )}

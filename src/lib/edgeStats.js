@@ -8,7 +8,7 @@
 // probability attached to any individual live signal.
 
 export const EDGE_STATS = {
-  "generatedAt": "2026-08-27T16:23:37.970Z",
+  "generatedAt": "2026-08-27T17:21:57.997Z",
   "verdict": "POSSIBLE EDGE",
   "primaryConfiguration": "baseline-long-only",
   "periods": {
@@ -1272,9 +1272,10 @@ export const EDGE_STATS = {
     }
   },
   "gating": {
+    "defaultMode": "PAPER",
     "emitLiveSignals": false,
     "paperTradingOnly": true,
-    "reason": "The best configuration is rated POSSIBLE EDGE. Its out-of-sample record is positive, but 35% of quarters are profitable in the 2012-2019 era against 75% in the 2020-2025 era, so the evidence is era-specific. Signals are recorded and simulated, not recommended.",
+    "reason": "The best configuration is rated POSSIBLE EDGE. Its out-of-sample record is positive, but 35% of quarters are profitable in the earlier era against 75% in the recent one, so the evidence is era-specific. Signals are recorded and simulated, not recommended.",
     "allowedDirections": [
       "LONG"
     ],

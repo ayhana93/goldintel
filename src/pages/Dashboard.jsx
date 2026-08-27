@@ -13,6 +13,7 @@ import PositionCalculator from "@/components/terminal/PositionCalculator";
 import FeedbackPanel from "@/components/terminal/FeedbackPanel";
 import ActiveSignalsPanel from "@/components/terminal/ActiveSignalsPanel";
 import PaperTradingPanel from "@/components/terminal/PaperTradingPanel";
+import TradingModePanel from "@/components/terminal/TradingModePanel";
 import { Link } from "react-router-dom";
 
 export default function Dashboard() {
@@ -22,6 +23,9 @@ export default function Dashboard() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [intervalSec, setIntervalSec] = useState(60);
+  // undefined = not loaded yet, null = never set (use the evidence-derived default).
+  const [tradingMode, setTradingMode] = useState(null);
+  const [modeError, setModeError] = useState(null);
 
   // Persist the auto-refresh interval on the user profile so it survives reload/close.
   const updateInterval = useCallback(async (v) => {
@@ -29,10 +33,27 @@ export default function Dashboard() {
     try { await base44.auth.updateMe({ refresh_interval: v }); } catch {}
   }, []);
 
-  // Restore the saved interval once on mount.
+  // The presentation mode is a user setting; the engine falls back to the
+  // evidence-derived default when it is unset. Persist it the same way.
+  const updateTradingMode = useCallback(async (m) => {
+    const previous = tradingMode;
+    setTradingMode(m);
+    setModeError(null);
+    try {
+      await base44.auth.updateMe({ trading_mode: m });
+    } catch (e) {
+      setTradingMode(previous);
+      setModeError(e?.message ?? "unknown error");
+    }
+  }, [tradingMode]);
+
+  // Restore the saved settings once on mount.
   useEffect(() => {
     base44.auth.me()
-      .then((u) => { if (u?.refresh_interval) setIntervalSec(u.refresh_interval); })
+      .then((u) => {
+        if (u?.refresh_interval) setIntervalSec(u.refresh_interval);
+        if (u?.trading_mode) setTradingMode(u.trading_mode);
+      })
       .catch(() => {});
   }, []);
   const loadHistory = useCallback(async () => {
@@ -56,10 +77,7 @@ export default function Dashboard() {
     setLoading(true);
     try {
       const res = await base44.functions.invoke("marketData", {});
-      const d = res.data;
-      setData(d);
-      const a = analyze(d);
-      setAnalysis(a);
+      setData(res.data);
       // Signal generation, dedup and email alerts run server-side (generateSignals + scheduled
       // workflow) so signals arrive even when this page is closed. Here we only refresh the list.
       await loadHistory();
@@ -67,6 +85,12 @@ export default function Dashboard() {
       setLoading(false);
     }
   }, [loadHistory]);
+
+  // Re-analyse whenever the data or the mode changes. Switching mode must not
+  // refetch the market — the analysis is a pure function of the two.
+  useEffect(() => {
+    setAnalysis(data ? analyze(data, { tradingMode }) : null);
+  }, [data, tradingMode]);
 
   useEffect(() => {
     loadHistory();
@@ -100,6 +124,9 @@ export default function Dashboard() {
           </div>
           <ActiveSignalsPanel signals={signals} onUpdated={loadHistory} />
           <SignalCard analysis={analysis} />
+          {analysis?.mode && (
+            <TradingModePanel mode={analysis.mode} onChange={updateTradingMode} error={modeError} />
+          )}
           <div className="grid gap-3 lg:grid-cols-3">
             <div className="space-y-3 lg:col-span-2">
               {analysis?.available && (
@@ -121,7 +148,8 @@ export default function Dashboard() {
             Market data comes from a development-grade provider ({gold?.symbol === "GC=F" ? "COMEX gold futures as a spot proxy" : "spot feed"}, ICE DXY, US 10Y Treasury),
             normalised to UTC. Analysis runs on CLOSED candles only, so the same rules produce the same answer at any point within the hour.
             Nothing here is fabricated: unavailable feeds are shown as DATA UNAVAILABLE and signal generation stops without them.
-            The system is in paper-trading mode — see the <Link to="/backtest" className="text-amber-500 underline">backtest report</Link> for
+            {analysis?.mode?.mode === "ADVISORY" ? "The system is in advisory mode" : "The system is in paper-trading mode"} and
+            places no orders in either — see the <Link to="/backtest" className="text-amber-500 underline">backtest report</Link> for
             what the strategy actually achieved and why. Research output, not financial advice.
           </p>
         </div>

@@ -11,7 +11,7 @@
 import { runIn, M, brief, RISK, PERIODS, feedContext } from '../src/research.js';
 import * as S from '../src/backtest/strategies.js';
 import { runBacktest } from '../src/backtest/engine.js';
-import { computeMetrics, groupMetrics, maeMfeStudy } from '../src/backtest/metrics.js';
+import { groupMetrics, maeMfeStudy } from '../src/backtest/metrics.js';
 import { featureCorrelation } from '../src/backtest/correlation.js';
 import { SCENARIOS } from '../src/core/execution.js';
 import { label } from '../src/periods.js';

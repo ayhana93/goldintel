@@ -11,7 +11,6 @@
 // report about the pipeline, and it is printed as one.
 
 import { join } from 'node:path';
-import { readFileSync } from 'node:fs';
 import { loadGoldDataset } from '../src/data/dataset.js';
 import { buildContext } from '../src/core/context.js';
 import { buildCalendar, makeNewsWindow } from '../src/core/calendar.js';

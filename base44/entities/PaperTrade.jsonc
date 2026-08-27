@@ -54,7 +54,11 @@
     "expected_r": { "type": "number", "description": "Out-of-sample expectancy of this setup at signal time - the backtested expectation this trade will be scored against" },
     "historical_win_rate": { "type": "number" },
     "historical_sample": { "type": "number" },
-    "last_checked": { "type": "string", "format": "date-time" }
+    "last_checked": { "type": "string", "format": "date-time" },
+
+    "gate_passed": { "type": "boolean", "description": "Whether every evidence gate passed at signal time. Trades are recorded either way so the record accumulates; only gate-passing ones are notified." },
+    "blocked_by": { "type": "array", "items": { "type": "string" }, "description": "Which gates blocked this setup, empty when it passed" },
+    "trading_mode": { "type": "string", "enum": ["PAPER", "ADVISORY"], "description": "The presentation mode in force when this was recorded" }
   },
   "required": ["setup_id", "direction", "signal_time", "signal_price"]
 }

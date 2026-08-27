@@ -25,39 +25,61 @@ export default function SignalCard({ analysis }) {
   }
 
   const {
-    primary, setups = [], evidence, regime, volState, session, newsRisk,
+    primary, candidate, heldBackByMode, mode, setups = [], evidence, regime, volState, session, newsRisk,
     price, livePrice, priceDrift, dataQuality, reasonsFor, reasonsAgainst,
     signalValidUntil, verdict, gating, gateSummary,
   } = analysis;
 
-  const isLong = primary?.direction === "LONG";
-  const isShort = primary?.direction === "SHORT";
-  const border = isLong ? "border-emerald-500/40" : isShort ? "border-red-500/40" : "border-[#2a3348]";
-  const oos = primary?.history?.outOfSample;
+  // `shown` is whatever the evidence qualified, even when the mode is holding it
+  // back. Without this the card said NO TRADE in paper mode regardless of the
+  // market, which reads as a verdict on the market when it is really a switch.
+  const shown = primary ?? candidate ?? null;
+  const isLong = shown?.direction === "LONG";
+  const isShort = shown?.direction === "SHORT";
+  const border = heldBackByMode ? "border-amber-500/40"
+    : isLong ? "border-emerald-500/40" : isShort ? "border-red-500/40" : "border-[#2a3348]";
+  const oos = shown?.history?.outOfSample;
 
   return (
     <div className={`border ${border} bg-[#0b0f17]`}>
-      {/* Mode banner: the system is in research / paper mode and says so first. */}
+      {/* Mode banner. The mode is a setting, not a market judgement, so it says
+          which it is and where to change it. */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-amber-500/30 bg-amber-500/5 px-5 py-2">
         <span className="border border-amber-500/50 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-amber-400">
-          Paper trading only
+          {mode?.mode === "ADVISORY" ? "Advisory mode" : "Paper trading"}
         </span>
         <span className="font-mono text-[11px] text-slate-400">
-          Backtest verdict on this strategy: <span className="text-amber-300">{verdict}</span>
+          Backtest verdict: <span className="text-amber-300">{verdict}</span>
         </span>
-        <span className="font-mono text-[10px] text-slate-600">Signals are recorded and simulated, not recommended.</span>
+        {mode?.overridden && (
+          <span className="border border-red-500/40 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-red-400">
+            set by you{mode.aheadOfEvidence ? " — ahead of the evidence" : ""}
+          </span>
+        )}
+        <span className="font-mono text-[10px] text-slate-600">Change it in Settings below. No broker is connected in either mode.</span>
       </div>
 
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#1c2230] px-5 py-4">
         <div className="flex items-center gap-4">
-          <span className={`font-mono text-2xl font-bold tracking-widest ${isLong ? "text-emerald-400" : isShort ? "text-red-400" : "text-slate-300"}`}>
-            {isLong ? "● LONG" : isShort ? "● SHORT" : "○ NO TRADE"}
-          </span>
-          {primary && (
+          <div className="flex flex-col gap-0.5">
+            <span className={`font-mono text-2xl font-bold tracking-widest ${
+              heldBackByMode ? "text-amber-400" : isLong ? "text-emerald-400" : isShort ? "text-red-400" : "text-slate-300"
+            }`}>
+              {shown ? (isLong ? "● LONG" : "● SHORT") : "○ NO TRADE"}
+            </span>
+            <span className="font-mono text-[10px] uppercase tracking-wider text-slate-500">
+              {heldBackByMode
+                ? "would be a signal — recorded on paper, not recommended"
+                : shown
+                  ? "all evidence gates passed"
+                  : "the evidence does not support a trade right now"}
+            </span>
+          </div>
+          {shown && (
             <div className="flex flex-col gap-0.5">
-              <span className="font-mono text-sm text-slate-200">{primary.name}</span>
-              <span className={`w-fit border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider ${TIER_STYLE[primary.tier]}`}>
-                Tier {primary.tier}
+              <span className="font-mono text-sm text-slate-200">{shown.name}</span>
+              <span className={`w-fit border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider ${TIER_STYLE[shown.tier]}`}>
+                Tier {shown.tier}
               </span>
             </div>
           )}
@@ -75,7 +97,7 @@ export default function SignalCard({ analysis }) {
       </div>
 
       {/* What the history says — measured, out of sample, with its sample size. */}
-      {primary && (
+      {shown && (
         <div className="border-b border-[#1c2230] bg-[#0d121c] px-5 py-3">
           <div className="mb-2 font-mono text-[10px] uppercase tracking-widest text-slate-500">
             Measured history for this setup · out of sample, after realistic costs
@@ -93,25 +115,25 @@ export default function SignalCard({ analysis }) {
             <div className="text-xs text-slate-500">This setup has no measured out-of-sample history.</div>
           )}
           <div className="mt-2 font-mono text-[10px] leading-relaxed text-slate-600">
-            {primary.tierReason}
+            {shown.tierReason}
           </div>
         </div>
       )}
 
       <div className="grid grid-cols-2 gap-px bg-[#1c2230] sm:grid-cols-4 lg:grid-cols-8">
-        <Cell label="Entry (ref close)" value={fmt(price)} />
-        <Cell label="Stop loss" value={primary ? fmt(primary.plan.sl) : "—"} accent="text-red-400" />
-        <Cell label="TP1 (1R)" value={primary ? fmt(primary.plan.tp1) : "—"} accent="text-emerald-400" />
-        <Cell label="TP2 (2R)" value={primary ? fmt(primary.plan.tp2) : "—"} accent="text-emerald-400" />
-        <Cell label="TP3 (3R)" value={primary ? fmt(primary.plan.tp3) : "—"} accent="text-emerald-400" />
-        <Cell label="Expected value" value={rMult(primary?.expectedValueR)} accent={primary?.expectedValueR > 0 ? "text-emerald-400" : "text-red-400"} small />
+        <Cell label={shown ? "Entry (ref close)" : "Reference close"} value={fmt(price)} />
+        <Cell label="Stop loss" value={shown ? fmt(shown.plan.sl) : "—"} accent="text-red-400" />
+        <Cell label="TP1 (1R)" value={shown ? fmt(shown.plan.tp1) : "—"} accent="text-emerald-400" />
+        <Cell label="TP2 (2R)" value={shown ? fmt(shown.plan.tp2) : "—"} accent="text-emerald-400" />
+        <Cell label="TP3 (3R)" value={shown ? fmt(shown.plan.tp3) : "—"} accent="text-emerald-400" />
+        <Cell label="Expected value" value={rMult(shown?.expectedValueR)} accent={shown?.expectedValueR > 0 ? "text-emerald-400" : "text-red-400"} small />
         <Cell label="Regime" value={`${regime.replace(/_/g, " ")}`} small />
         <Cell label="Session · vol · news" value={`${session} · ${volState} · ${newsRisk?.level ?? "—"}`} small />
       </div>
 
-      {primary && (
+      {shown && (
         <div className="flex flex-wrap gap-x-6 gap-y-1 border-t border-[#1c2230] px-5 py-2.5 font-mono text-xs">
-          <span className="text-amber-300">{primary.invalidation}</span>
+          <span className="text-amber-300">{shown.invalidation}</span>
           <span className="text-slate-500">
             Valid until {new Date(signalValidUntil).toISOString().slice(11, 16)} UTC — re-evaluated on the next H1 close
           </span>
@@ -163,6 +185,9 @@ export default function SignalCard({ analysis }) {
             profit factor ≥ {gateSummary.thresholds?.minOutOfSampleProfitFactor} ·
             95% interval excluding zero · evidence ≥ {gateSummary.thresholds?.minEvidenceScore}/100.
             The evidence score is necessary and never sufficient.
+          </div>
+          <div className="mt-1 font-mono text-[10px] leading-relaxed text-slate-600">
+            Mode <span className="text-amber-500">{gateSummary.mode}</span> — {gateSummary.modeReason}
           </div>
         </div>
       )}
