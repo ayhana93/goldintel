@@ -1,4 +1,47 @@
-# Base44 Project
+# GoldIntel
+
+XAU/USD decision-support terminal, plus the research stack that measures whether
+its strategy actually works.
+
+**Current verdict on the strategy: NO EDGE.** The system is in paper-trading
+mode. See [`docs/EDGE_REPORT.md`](docs/EDGE_REPORT.md) for the numbers and
+[`docs/STRATEGY.md`](docs/STRATEGY.md) for what it does in plain language.
+
+## Documentation
+
+| Document | What it covers |
+| --- | --- |
+| [`docs/EDGE_REPORT.md`](docs/EDGE_REPORT.md) | Does GoldIntel make money? The full answer, with the losing results included. |
+| [`docs/STRATEGY.md`](docs/STRATEGY.md) | The strategy for a non-quant: what fires, what invalidates it, when it says no. |
+| [`docs/BACKTESTING.md`](docs/BACKTESTING.md) | How the backtester works and what it assumes. |
+| [`docs/WALK_FORWARD.md`](docs/WALK_FORWARD.md) | The validation protocol and the anti-data-snooping rules. |
+| [`docs/RISK_MANAGEMENT.md`](docs/RISK_MANAGEMENT.md) | Position sizing and the kill switches. |
+| [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md) | Where the data comes from and what is wrong with it. |
+| [`docs/TRADING_SYSTEM_AUDIT.md`](docs/TRADING_SYSTEM_AUDIT.md) | The Phase 0 audit of the original system. |
+| [`quant/README.md`](quant/README.md) | The research stack. |
+
+## Layout
+
+```
+src/            React frontend (live terminal at /, backtest report at /backtest)
+base44/         backend functions, entities, shared strategy code, workflow
+quant/          research stack: backtester, validation, results
+docs/           the documents above
+```
+
+## Commands
+
+```bash
+npm run dev          # frontend against the hosted backend
+base44 dev           # full local environment
+npm test             # 81 tests
+npm run lint
+npm run quant:data   # rebuild the research dataset (36 MB, not committed)
+```
+
+---
+
+## Base44 project setup
 
 Use this repository to run and edit the app locally, then publish changes back through Base44.
 

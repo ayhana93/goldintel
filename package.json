@@ -10,7 +10,7 @@
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
     "preview": "vite preview",
-    "test": "node --test quant/test/",
+    "test": "node --test \"quant/test/**/*.test.js\"",
     "quant:data": "node quant/scripts/fetch-data.mjs"
   },
   "dependencies": {
