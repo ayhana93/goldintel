@@ -9,7 +9,10 @@ returns +0.171R per trade with a profit factor of 1.40 and a 95% interval of
 [+0.048, +0.298]. It was flat across 2012–2019.
 
 Shorts and the scalp tier are disabled in code, both with the numbers attached.
-The system remains in paper trading; no broker is connected.
+The system remains in paper trading — the default a POSSIBLE EDGE verdict earns —
+and no broker is connected in any mode. The mode is a setting on the dashboard,
+derived from the verdict and overridable; see
+[`docs/STRATEGY.md`](docs/STRATEGY.md#the-presentation-mode-is-not-one-of-these-gates).
 
 See [`docs/EDGE_REPORT.md`](docs/EDGE_REPORT.md) for the numbers and
 [`docs/STRATEGY.md`](docs/STRATEGY.md) for what it does in plain language.

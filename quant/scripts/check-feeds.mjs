@@ -9,9 +9,7 @@
 // 3. Measures what dropping USDJPY costs the dollar-index proxy.
 
 import { join } from 'node:path';
-import { readFileSync } from 'node:fs';
 import { loadSeries, buildDollarProxy } from '../src/data/dataset.js';
-import { toIso } from '../src/core/time.js';
 import { FEED_OVERLAP, COVID_DISLOCATION } from '../src/periods.js';
 import { writeResult, ROOT } from '../src/report/io.js';
 

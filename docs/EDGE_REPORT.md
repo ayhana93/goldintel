@@ -337,9 +337,18 @@ consistent with a strategy that will disappoint the moment gold stops rising.
 
 ### What should happen next
 
-1. **Keep it in paper trading.** The system records every signal as a simulated
-   trade and compares live results against these expectations
-   (`performanceMonitor` raises `EDGE_DECAY` at two standard errors below).
+1. **Keep it in paper trading.** That is now the *derived* default rather than a
+   hardcoded flag: `PAPER` for every verdict except `PROVEN EDGE`, in
+   `base44/shared/tradingMode.ts`. The owner can override it from the dashboard,
+   and an override towards advisory is recorded as `aheadOfEvidence` and shown as
+   such wherever the mode appears. Neither mode places an order.
+
+   The system records every non-quarantined setup as a simulated trade — including
+   the ones its gates *refused*, with the blocking reasons stored — and compares
+   live results against these expectations (`performanceMonitor` raises
+   `EDGE_DECAY` at two standard errors below). The headline comparison uses only
+   the gated stream; the refused stream is reported beside it as a control group,
+   so a gate that turns out to be costing money is visible rather than invisible.
 2. **Shorts and scalp stay off.** Both are quarantined in code with the numbers
    attached; both remain available for research.
 3. **2026 is the next real test**, and the only one that is genuinely untouched.

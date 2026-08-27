@@ -9,7 +9,7 @@
 //
 // No claim is made that any of these work. The backtester decides.
 
-import { scoreEvidence, buildFeatures } from './evidence.js';
+import { scoreEvidence } from './evidence.js';
 
 export const SETUP_IDS = [
   'A_TREND_CONT_LONG', 'B_TREND_CONT_SHORT',

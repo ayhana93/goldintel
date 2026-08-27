@@ -131,6 +131,39 @@ passes, and the card shows you which one failed when it doesn't:
 Plus the ordinary refusals: no setup condition holds, market data is unavailable
 or stale (shown as `DATA UNAVAILABLE`), or fewer than 60 closed candles on H1/D1.
 
+### The presentation mode is not one of these gates
+
+Every gate above is a statement about the market and the measured record. How the
+result is *shown* is a separate question, and mixing the two was a real defect:
+`paperTradingOnly` sat in the same list, so the dashboard said NO TRADE whether
+the evidence had refused the trade or the app was simply in paper mode, and there
+was no way to tell which — or to change it.
+
+They are now separate values:
+
+| Field | Question it answers |
+| --- | --- |
+| `gate.marketTradable` | Would this have been a signal, on the evidence alone? |
+| `gate.tradable` | Is it presented as actionable? |
+| `gate.paperOnly` | Did the evidence qualify, with only the mode holding it back? |
+
+The mode itself is derived from the backtest verdict by one rule, in
+`base44/shared/tradingMode.ts`:
+
+- **PAPER** — signals are recorded and simulated. The default for every verdict
+  except one.
+- **ADVISORY** — signals are presented as actionable. Requires `PROVEN EDGE`.
+
+The owner can override the default from **Settings · how signals are presented**
+on the dashboard. An override towards ADVISORY is recorded as `aheadOfEvidence`
+and labelled as such on the card, in the settings panel and in the signal email,
+for as long as it is in force. **Neither mode places an order**; automatic
+execution is not implemented (Phase 32).
+
+Because the mode is not a market gate, the card now shows LONG or SHORT in amber
+with "would be a signal — recorded on paper" when paper mode is the only thing in
+the way, and reserves NO TRADE for when the evidence genuinely says no.
+
 A high evidence score cannot rescue a setup that fails the statistical bar. There
 is a test that asserts a score of 100 still produces NO TRADE when the measured
 record is bad.
@@ -182,7 +215,10 @@ independent data vendor.
 **Scalping is switched off.** It loses about 0.2–0.4R per trade after costs, on
 over 4,000 out-of-sample trades.
 
-The system remains in paper trading. It records what its own signals would have
-done so this judgement can be revisited with evidence rather than hope.
+The system remains in paper trading — the default that a POSSIBLE EDGE verdict
+earns, not a hardcoded flag. It records what its own signals would have done, and
+also what the setups its gates *refused* went on to do, so the gates can be judged
+by what they cost as well as by what they prevent. Both streams are reported
+separately; the headline comparison uses only the gated one.
 
 Read `docs/EDGE_REPORT.md` for the numbers.

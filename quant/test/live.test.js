@@ -4,10 +4,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { markCandleStates, closedCandles, developingCandle, aggregateH4, TF_MS } from '../../base44/shared/marketFeed.ts';
-import { analyze, detectSetups, buildPlan, classifyRegime } from '../../base44/shared/signalEngine.ts';
-import { resolvePaperTrade, positionSize, entryFill, PAPER_EXECUTION } from '../../base44/shared/paperExecution.ts';
+import { analyze, buildPlan, classifyRegime } from '../../base44/shared/signalEngine.ts';
+import { resolvePaperTrade, positionSize, entryFill } from '../../base44/shared/paperExecution.ts';
 import { buildCalendar, newsRiskAt, sessionOf } from '../../base44/shared/calendar.ts';
 import { EDGE_STATS } from '../../base44/shared/edgeStats.ts';
+import { defaultModeFor } from '../../base44/shared/tradingMode.ts';
 import { SETUP_IDS } from '../src/core/setups.js';
 
 const HOUR = 3_600_000;
@@ -248,9 +249,15 @@ test('the scalp tier is disabled, and the reason is recorded with the numbers be
   assert.ok(EDGE_STATS.measured.strategies.BASELINE_SCALP.outOfSample.expectancy < -0.2);
 });
 
-test('live signal emission is gated off while the verdict says there is no edge', () => {
-  assert.equal(EDGE_STATS.gating.emitLiveSignals, false);
-  assert.equal(EDGE_STATS.gating.paperTradingOnly, true);
+test('the presentation default is derived from the verdict rather than hardcoded', () => {
+  // This used to assert a constant `true`, which is exactly what the flag was: a
+  // hardcoded value in a generated file. Now it must follow the rule.
+  const expected = EDGE_STATS.verdict === 'PROVEN EDGE' ? 'ADVISORY' : 'PAPER';
+  assert.equal(EDGE_STATS.gating.defaultMode, expected);
+  assert.equal(EDGE_STATS.gating.emitLiveSignals, expected === 'ADVISORY');
+  assert.equal(EDGE_STATS.gating.paperTradingOnly, expected === 'PAPER');
+  assert.equal(defaultModeFor(EDGE_STATS), EDGE_STATS.gating.defaultMode,
+    'the generated file and the rule the live code applies must agree');
   assert.ok(['PROVEN EDGE', 'POSSIBLE EDGE', 'NO EDGE', 'OVERFIT', 'UNKNOWN'].includes(EDGE_STATS.verdict));
 });
 

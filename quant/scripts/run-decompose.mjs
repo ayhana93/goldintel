@@ -15,10 +15,10 @@
 // The goal is a handful of robust conditions, not a decision tree that explains
 // history perfectly.
 
-import { runIn, outOfSample, M, brief, RISK, SOLO_RISK, PERIODS, feedContext } from '../src/research.js';
+import { runIn, outOfSample, M, brief, RISK, SOLO_RISK, PERIODS } from '../src/research.js';
 import { setupStrategy } from '../src/backtest/strategies.js';
 import { SETUP_IDS } from '../src/core/setups.js';
-import { groupMetrics, significance, maeMfeStudy } from '../src/backtest/metrics.js';
+import { groupMetrics, maeMfeStudy } from '../src/backtest/metrics.js';
 import { screenSummary, bonferroni } from '../src/backtest/multipletesting.js';
 import { makeWindows } from '../src/backtest/walkforward.js';
 import { label } from '../src/periods.js';

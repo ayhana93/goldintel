@@ -28,6 +28,7 @@ import { closedCandles, developingCandle } from './marketFeed.ts';
 import { buildCalendar, newsRiskAt, sessionOf } from './calendar.ts';
 import { EDGE_STATS } from './edgeStats.ts';
 import { evaluateGates } from './gating.ts';
+import { resolveMode } from './tradingMode.ts';
 
 export const WEIGHTS = {
   trend: 25, structure: 25, momentum: 12, support_resistance: 13, price_action: 10, macro: 15,
@@ -39,6 +40,9 @@ const SIGNAL_VALID_MS = 3_600_000;   // one H1 bar: re-evaluated on the next clo
 
 export function analyze(data, options = {}) {
   const now = options.now ?? data?.fetchedAt ?? Date.now();
+  // How signals are presented. Derived from the measured evidence unless the
+  // owner has chosen otherwise; see base44/shared/tradingMode.ts.
+  const mode = resolveMode(EDGE_STATS, options.tradingMode);
   const gold = data?.gold;
   if (!gold || gold.status !== 'ok') {
     return { available: false, reason: 'Market data unavailable', verdict: EDGE_STATS.verdict };
@@ -199,6 +203,7 @@ export function analyze(data, options = {}) {
         plan, atr: atrH1,
       },
       stats: EDGE_STATS,
+      mode,
     });
     return {
       ...s,
@@ -225,22 +230,25 @@ export function analyze(data, options = {}) {
     };
   });
 
-  // The default is NO TRADE. Only a setup that clears every gate becomes the
-  // primary signal; among those, the best measured expectancy wins.
+  // The default is NO TRADE. `candidate` is what the MARKET evidence supports;
+  // `primary` is what is actually presented as actionable. In paper mode the two
+  // differ, and saying so is the point: "NO TRADE" should mean the market was
+  // judged, not that the system was switched off.
   const TIER_RANK = { 'A+': 0, A: 1, B: 2, C: 3, NO_TRADE: 4 };
-  const tradable = setups.filter((s) => s.plan && s.gate.tradable);
-  tradable.sort((a, b) => TIER_RANK[a.tier] - TIER_RANK[b.tier] || (b.expectedValueR ?? -9) - (a.expectedValueR ?? -9));
-  const primary = tradable[0] ?? null;
+  const rank = (a, b) => TIER_RANK[a.tier] - TIER_RANK[b.tier] || (b.expectedValueR ?? -9) - (a.expectedValueR ?? -9);
+  const marketQualified = setups.filter((s) => s.plan && s.gate.marketTradable).sort(rank);
+  const candidate = marketQualified[0] ?? null;
+  const primary = candidate && candidate.gate.tradable ? candidate : null;
 
-  if (setups.length > 0 && tradable.length === 0) {
+  if (setups.length > 0 && marketQualified.length === 0) {
     // Report WHY, not just that. The blocking reasons are the useful output when
     // the answer is no, and the answer is usually no.
     const blocks = new Map();
     for (const s of setups) {
-      for (const b of s.gate.blockedBy) blocks.set(b, (blocks.get(b) ?? 0) + 1);
+      for (const b of s.gate.marketBlockedBy) blocks.set(b, (blocks.get(b) ?? 0) + 1);
     }
     reasonsAgainst.push(
-      `${setups.length} setup condition(s) hold but none is tradable — blocked by: ` +
+      `${setups.length} setup condition(s) hold but none clears the evidence gates — blocked by: ` +
       [...blocks.entries()].map(([k, n]) => `${k}${n > 1 ? ` (${n})` : ''}`).join(', ')
     );
   }
@@ -266,12 +274,20 @@ export function analyze(data, options = {}) {
     // Legacy field names the existing UI still reads. Same numbers, honest names above.
     longScore, shortScore, breakdown, conflict,
     direction: primary?.direction ?? 'NO_TRADE',
+    // What the evidence supports, regardless of how it is presented. When this is
+    // set but `primary` is null, the market DID qualify and only the mode is
+    // holding the signal back.
+    candidate,
+    heldBackByMode: !!candidate && !primary,
+    mode,
     // Present even when a signal fires, so the UI can always show what was checked.
     gateSummary: {
       allowedDirections: EDGE_STATS.gating.allowedDirections,
-      paperTradingOnly: EDGE_STATS.gating.paperTradingOnly,
+      mode: mode.mode,
+      modeReason: mode.reason,
+      modeOverridden: mode.overridden,
       thresholds: EDGE_STATS.gating.thresholds,
-      blocked: setups.filter((s) => !s.gate.tradable).map((s) => ({ id: s.id, direction: s.direction, blockedBy: s.gate.blockedBy, reasons: s.gate.reasons })),
+      blocked: setups.filter((s) => !s.gate.marketTradable).map((s) => ({ id: s.id, direction: s.direction, blockedBy: s.gate.marketBlockedBy, reasons: s.gate.reasons })),
     },
     regime: regime.regime,
     volState: regime.volState,

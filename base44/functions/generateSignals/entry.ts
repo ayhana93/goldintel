@@ -3,14 +3,22 @@ import { fetchAllMarketData } from '../../shared/marketFeed.ts';
 import { analyze } from '../../shared/signalEngine.ts';
 import { EDGE_STATS } from '../../shared/edgeStats.ts';
 import { PAPER_EXECUTION, PAPER_RISK, entryFill, positionSize } from '../../shared/paperExecution.ts';
+import { resolveMode } from '../../shared/tradingMode.ts';
 
 // Runs the signal pipeline: fetch -> analyse on CLOSED candles -> persist -> open
 // a PAPER trade -> notify.
 //
-// The system is in PAPER TRADING mode (Phase 30/32). Backtesting found no edge
-// that survives realistic costs out of sample, so signals are recorded and
-// simulated rather than presented as trades to take. Emails say so explicitly.
-// Nothing here connects to a broker.
+// Two decisions are kept apart here, because collapsing them is what made the
+// dashboard say NO TRADE for reasons that had nothing to do with the market:
+//
+//   1. Did the setup clear the evidence gates?  -> gate.marketTradable
+//   2. How is the result presented?             -> shared/tradingMode.ts
+//
+// Every non-quarantined setup is recorded as a paper trade with its gate verdict
+// and blocking reasons attached, so the blocked ones become the control group for
+// the gates themselves. Only gate-passing setups produce an email.
+//
+// Nothing here connects to a broker, in either mode (Phase 32).
 
 const OPEN = ['WATCHING', 'PENDING', 'ACTIVE'];
 const SIGNAL_STALE_MIN = 60;      // one H1 bar: after that the decision is re-made
@@ -19,25 +27,29 @@ function recipientFor(user) {
   return user?.email ?? null;
 }
 
-function buildEmail(a, setup) {
+function buildEmail(a, setup, mode) {
   const f = (v) => (v != null ? v.toFixed(1) : '—');
   const emoji = setup.direction === 'LONG' ? '🟢' : '🔴';
   const plan = setup.plan;
   const oos = setup.history?.outOfSample;
   const tierLabel = String(setup.tier).toUpperCase() === 'SCALP' ? 'Scalp' : 'Swing';
 
-  // Probability the setup plays out as described. Prefer the measured out-of-sample
-  // win rate (real historical hit rate); fall back to the evidence score with an
-  // honest note when no history exists.
-  let probLine;
-  if (oos && oos.trades > 0) {
-    probLine = `Вероятност да се реализира: ${oos.winRate.toFixed(0)}%  (на база ${oos.trades} исторически теста)`;
-  } else {
-    probLine = `Вероятност да се реализира: не може да се оцени (няма исторически данни). Сигнал скор: ${setup.evidence}/100`;
-  }
+  // What the measured record says, named for what it is. This used to be headed
+  // "Вероятност да се реализира" — a historical hit rate presented as the
+  // probability of THIS trade. It is not one: it is the share of past trades in
+  // this setup that reached TP1, over the sample quoted beside it.
+  const rateLabel = 'Историческа успеваемост (не е вероятност за тази сделка)';
+  const rateValue = oos && oos.trades > 0
+    ? `${oos.winRate.toFixed(0)}% от ${oos.trades} сделки извън извадката`
+    : `няма измерена история · тежест на доказателствата ${setup.evidence}/100`;
 
-  const subject = `${tierLabel} ${emoji} XAU/USD ${setup.direction}`;
-  const lines = [
+  const modeTag = mode?.mode === 'ADVISORY' ? '⚠️ ADVISORY' : '📝 PAPER';
+  const modeFooter = mode?.mode === 'ADVISORY'
+    ? `Advisory · ${mode?.aheadOfEvidence ? 'режимът е избран ръчно, пред доказателствата. ' : ''}Няма автоматично изпълнение. Не е финансов съвет.`
+    : 'Paper trading · сигналът се записва и симулира, не е препоръка. Не е финансов съвет.';
+
+  const subject = `${modeTag} ${tierLabel} ${emoji} XAU/USD ${setup.direction}`;
+  const body = [
     '<div style="font-family: -apple-system, Segoe UI, Roboto, sans-serif; color:#1a1a1a; max-width:480px;">',
     `<div style="font-size:12px; letter-spacing:2px; color:#888; margin-bottom:18px;">GOLD SIGNAL — XAU/USD</div>`,
     `<div style="font-size:20px; font-weight:600; margin-bottom:4px;">${tierLabel}</div>`,
@@ -51,8 +63,8 @@ function buildEmail(a, setup) {
     `<div style="border-top:1px solid #eee; padding-top:12px; margin-bottom:6px;">`,
     `<span style="color:#666; font-size:15px;">STOP LOSS&nbsp;&nbsp;</span><span style="font-weight:700; color:#dc2626; font-size:16px;">${f(plan.sl)}</span>`,
     `</div>`,
-    `<div style="margin-top:18px; padding:14px 16px; background:#f5f5f4; border-radius:8px; font-size:16px; color:#1a1a1a; line-height:1.5;"><span style="color:#666;">Вероятност да се реализира:</span><br/><span style="font-size:22px; font-weight:700;">${probLine.replace(/^Вероятност да се реализира: ?/, '')}</span></div>`,
-    `<div style="margin-top:20px; font-size:12px; color:#999;">Paper trading · не е финансов съвет.</div>`,
+    `<div style="margin-top:18px; padding:14px 16px; background:#f5f5f4; border-radius:8px; font-size:16px; color:#1a1a1a; line-height:1.5;"><span style="color:#666;">${rateLabel}:</span><br/><span style="font-size:22px; font-weight:700;">${rateValue}</span></div>`,
+    `<div style="margin-top:20px; font-size:12px; color:#999;">${modeFooter}</div>`,
     '</div>',
   ].join('');
   return { subject, body };
@@ -69,7 +81,11 @@ export default async function (req) {
     if (data.gold?.status !== 'ok') {
       return Response.json({ created: [], reason: 'Market data unavailable' });
     }
-    const a = analyze(data, { now });
+    // The owner's presentation setting, defaulting to whatever the evidence
+    // supports. Read here so the backend and the browser cannot disagree about
+    // which mode is in force.
+    const mode = resolveMode(EDGE_STATS, user.trading_mode);
+    const a = analyze(data, { now, tradingMode: user.trading_mode });
     if (!a.available) {
       return Response.json({ created: [], reason: a.reason ?? 'Analysis unavailable' });
     }
@@ -90,17 +106,27 @@ export default async function (req) {
     open = open.filter((s) => OPEN.includes(s.status));
 
     const created = [];
+    const notified = [];
     const skipped = [];
 
-    // Only setups the out-of-sample statistics rate above NO_TRADE are recorded.
-    const tradable = (a.setups ?? []).filter((s) => s.plan && s.tier !== 'NO_TRADE');
-    if (tradable.length === 0) {
+    // Record a paper trade for every setup that is not quarantined, whether or
+    // not it cleared the gates, and store WHY it was blocked. The point of paper
+    // mode is to accumulate evidence, and a blocked setup's outcome is exactly
+    // the evidence that would justify loosening or tightening a gate later.
+    //
+    // Notification is separate and stricter: only gate-passing setups produce an
+    // email, so the inbox does not fill with signals the system itself refused.
+    // Previously this function filtered on `tier !== 'NO_TRADE'` while the UI
+    // filtered on the gates, so the screen could read NO TRADE while an email
+    // went out for the same setup.
+    const recordable = (a.setups ?? []).filter((s) => s.plan && s.state !== 'DISABLED_NEGATIVE_EDGE');
+    if (recordable.length === 0) {
       skipped.push(a.setups?.length
-        ? `${a.setups.length} setup condition(s) hold but none clears the NO_TRADE threshold`
+        ? `${a.setups.length} setup condition(s) hold but all are quarantined`
         : 'no setup conditions hold');
     }
 
-    for (const setup of tradable) {
+    for (const setup of recordable) {
       if (open.some((s) => s.setup_id === setup.id && s.direction === setup.direction)) {
         skipped.push(`${setup.id}: an open signal already exists`);
         continue;
@@ -108,13 +134,13 @@ export default async function (req) {
       const plan = setup.plan;
       const oos = setup.history?.outOfSample ?? null;
 
+      const gatePassed = !!setup.gate?.marketTradable;
       const record = await db.Signal.create({
         setup_key: `${setup.id}-${a.regime}-${Math.round(plan.sl)}`,
         setup_id: setup.id,
         setup_name: setup.name,
         tier: setup.tier,
         direction: setup.direction,
-        status: 'WATCHING',
         price_at_signal: a.price,
         reference_time: new Date(a.dataQuality.referenceTime).toISOString(),
         live_price_at_signal: a.livePrice,
@@ -139,6 +165,7 @@ export default async function (req) {
         invalidation: setup.invalidation,
         valid_until: new Date(a.signalValidUntil).toISOString(),
         data_source: a.dataQuality.source,
+        status: gatePassed ? 'WATCHING' : 'INVALIDATED',
       });
       open.push(record);
 
@@ -177,22 +204,31 @@ export default async function (req) {
         exit_reason: 'OPEN',
         mae_r: 0, mfe_r: 0, realized_pnl: 0,
         last_checked: new Date(now).toISOString(),
+        gate_passed: gatePassed,
+        blocked_by: setup.gate?.marketBlockedBy ?? [],
+        trading_mode: mode.mode,
       });
 
+      created.push(`${setup.id} ${setup.direction} @ ${a.price}${gatePassed ? '' : ' (blocked: ' + (setup.gate?.marketBlockedBy ?? []).join(', ') + ')'}`);
+
+      // Only a setup that cleared every evidence gate is worth an email.
+      if (!gatePassed) continue;
       const to = recipientFor(user);
       if (to) {
-        const { subject, body } = buildEmail(a, setup);
+        const { subject, body } = buildEmail(a, setup, mode);
         await base44.asServiceRole.integrations.Core.SendEmail({
-          to, from_name: 'Gold Intelligence (paper trading)', subject, body,
+          to, from_name: `Gold Intelligence (${mode.mode.toLowerCase()})`, subject, body,
         });
+        notified.push(`${setup.id} ${setup.direction}`);
       }
-      created.push(`${setup.id} ${setup.direction} @ ${a.price}`);
     }
 
     return Response.json({
-      mode: 'PAPER_TRADING',
+      mode: mode.mode,
+      modeReason: mode.reason,
+      modeOverridden: mode.overridden,
       verdict: EDGE_STATS.verdict,
-      created, skipped,
+      created, notified, skipped,
       referencePrice: a.price,
       livePrice: a.livePrice,
       referenceTime: new Date(a.dataQuality.referenceTime).toISOString(),
@@ -200,7 +236,10 @@ export default async function (req) {
       regime: a.regime,
       session: a.session,
       newsRisk: a.newsRisk?.level,
-      setupsDetected: (a.setups ?? []).map((s) => ({ id: s.id, direction: s.direction, tier: s.tier })),
+      setupsDetected: (a.setups ?? []).map((s) => ({
+        id: s.id, direction: s.direction, tier: s.tier, state: s.state,
+        gatePassed: !!s.gate?.marketTradable, blockedBy: s.gate?.marketBlockedBy ?? [],
+      })),
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });

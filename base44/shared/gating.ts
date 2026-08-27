@@ -45,16 +45,17 @@ const NEWS_ORDER = { LOW: 0, MEDIUM: 1, HIGH: 2 };
  * Returns tradable, blockedBy and reasons. The reasons always explain the
  * verdict, including when it is positive, so the UI never has to guess.
  */
-export function evaluateGates({ setup, context, stats, gates = {} }) {
+export function evaluateGates({ setup, context, stats, gates = {}, mode = null }) {
   const g = { ...DEFAULT_GATES, ...(stats?.gating?.thresholds ?? {}), ...gates };
   const blockedBy = [];
   const reasons = [];
 
-  // --- 0. system-level kill switch -------------------------------------------
-  if (stats?.gating?.paperTradingOnly) {
-    blockedBy.push('PAPER_TRADING_ONLY');
-    reasons.push(`The system is in paper-trading mode: ${stats.gating.reason ?? 'no configuration has demonstrated a durable edge.'}`);
-  }
+  // Gates 1-6 are about the MARKET and the evidence. The trading mode is a
+  // separate question — how the result is presented — and is deliberately kept
+  // out of them, so `marketTradable` still answers "would this have been a
+  // signal" while the system is in paper mode. Conflating the two made the card
+  // read NO TRADE as if the market had been judged, when the system was simply
+  // switched off.
 
   // --- 1. the setup must be enabled ------------------------------------------
   const record = stats?.measured?.setups?.[setup.id] ?? null;
@@ -123,11 +124,34 @@ export function evaluateGates({ setup, context, stats, gates = {} }) {
     }
   }
 
-  const tradable = blockedBy.length === 0;
-  if (tradable) {
-    reasons.push(`All gates passed: ${oos.trades} out-of-sample trades, expectancy ${fmt(oos.expectancy)}R, profit factor ${fmt(oos.profitFactor, 2)}, interval [${oos.ci95.join(', ')}].`);
+  const marketTradable = blockedBy.length === 0;
+  if (marketTradable) {
+    reasons.push(`Every market gate passed: ${oos.trades} out-of-sample trades, expectancy ${fmt(oos.expectancy)}R, profit factor ${fmt(oos.profitFactor, 2)}, interval [${oos.ci95.join(', ')}].`);
   }
-  return { tradable, blockedBy, reasons, gates: g };
+
+  // --- 7. presentation mode --------------------------------------------------
+  const paper = mode ? mode.mode === 'PAPER' : !!stats?.gating?.paperTradingOnly;
+  const modeBlocked = [...blockedBy];
+  if (paper) {
+    modeBlocked.push('PAPER_TRADING_ONLY');
+    if (marketTradable) {
+      reasons.push(`Recorded as a paper trade rather than a recommendation: ${mode?.reason ?? stats?.gating?.reason ?? 'the system is in paper-trading mode.'}`);
+    }
+  }
+
+  return {
+    /** Would this have been a signal on the evidence alone? */
+    marketTradable,
+    /** Is it presented as actionable? False in paper mode, by design. */
+    tradable: marketTradable && !paper,
+    /** True when only the mode stands between this and a recommendation. */
+    paperOnly: marketTradable && paper,
+    blockedBy: modeBlocked,
+    marketBlockedBy: blockedBy,
+    reasons,
+    gates: g,
+    mode: mode?.mode ?? (paper ? 'PAPER' : 'ADVISORY'),
+  };
 }
 
 function fmt(x, d = 3) {

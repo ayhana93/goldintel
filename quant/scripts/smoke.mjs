@@ -2,7 +2,7 @@ import { loadGoldDataset } from '../src/data/dataset.js';
 import { buildContext } from '../src/core/context.js';
 import { runBacktest } from '../src/backtest/engine.js';
 import { computeMetrics } from '../src/backtest/metrics.js';
-import { productionSwing, productionScalp } from '../src/backtest/strategies.js';
+import { productionSwing } from '../src/backtest/strategies.js';
 import { buildCalendar, makeNewsWindow } from '../src/core/calendar.js';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
