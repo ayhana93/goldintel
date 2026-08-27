@@ -18,6 +18,47 @@ function stdev(xs, mean) {
   return Math.sqrt(xs.reduce((a, x) => a + (x - mean) ** 2, 0) / (xs.length - 1));
 }
 
+/**
+ * Is the mean R different from zero, or is this the number of samples talking?
+ *
+ * Reports the t statistic of mean/SE and a two-sided bootstrap p-value for
+ * "expectancy <= 0". A strategy with 89 trades and a flattering average has no
+ * business being called an edge until this says so.
+ */
+export function significance(rs, { bootstrap = 10000, seed = 7 } = {}) {
+  const n = rs.length;
+  if (n < 10) return { n, t: null, se: null, pBootstrap: null, ci95: null, note: 'sample too small' };
+  const mean = rs.reduce((a, b) => a + b, 0) / n;
+  const sd = stdev(rs, mean);
+  const se = sd / Math.sqrt(n);
+
+  let state = seed >>> 0;
+  const rnd = () => {
+    state ^= state << 13; state >>>= 0;
+    state ^= state >> 17;
+    state ^= state << 5; state >>>= 0;
+    return state / 4294967296;
+  };
+  const means = new Array(bootstrap);
+  for (let b = 0; b < bootstrap; b++) {
+    let sum = 0;
+    for (let i = 0; i < n; i++) sum += rs[Math.floor(rnd() * n)];
+    means[b] = sum / n;
+  }
+  means.sort((a, b) => a - b);
+  const atOrBelowZero = means.filter((m) => m <= 0).length / bootstrap;
+
+  return {
+    n,
+    mean,
+    se,
+    t: se > 0 ? mean / se : null,
+    // One-sided: the share of resamples in which the edge disappears.
+    pBootstrap: atOrBelowZero,
+    ci95: [means[Math.floor(bootstrap * 0.025)], means[Math.floor(bootstrap * 0.975)]],
+  };
+}
+
 /** Peak-to-trough drawdown of a cumulative series. */
 export function maxDrawdown(cumulative) {
   let peak = -Infinity, worst = 0, peakIdx = 0, troughIdx = 0, curPeakIdx = 0;
@@ -111,6 +152,7 @@ export function computeMetrics(trades, opts = {}) {
     years,
     tradesPerYear,
     costsR,
+    significance: significance(rs),
     rQuantiles: {
       p05: quantile(sorted, 0.05), p25: quantile(sorted, 0.25),
       p75: quantile(sorted, 0.75), p95: quantile(sorted, 0.95),

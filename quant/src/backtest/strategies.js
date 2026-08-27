@@ -60,11 +60,21 @@ export function setupStrategy(cfg = {}) {
     stopCfg = {}, targetCfg = { rMultiples: [1, 2, 3] },
     minRR = 0, rrLeg = 'rr1',
     blockDirections = [], blockSessions = [], blockRegimes = [],
-    newsBlock = false, setupCfg = {}, minEvidence = null, evidenceFn = null,
+    setupCfg = {}, minEvidence = null, evidenceFn = null,
+    // News filtering is deliberately independent of the news window the ENGINE
+    // uses to widen spreads: costs around a release are a fact of the market,
+    // whereas refusing to trade near one is a strategy choice being tested.
+    newsFilter = null, newsBlockAheadHours = null, newsEvents = null,
   } = cfg;
 
-  return ({ ctx, idx, features, levels, regime, price, atr, inNews, time }) => {
-    if (newsBlock && inNews) return [];
+  return ({ ctx, idx, features, levels, regime, price, atr, time }) => {
+    if (newsFilter && newsFilter.contains(time)) return [];
+    if (newsBlockAheadHours != null && newsEvents) {
+      const mins = newsFilter
+        ? newsFilter.minutesToNext(time, newsEvents)
+        : minutesToNextEvent(newsEvents, time);
+      if (mins <= newsBlockAheadHours * 60) return [];
+    }
     const found = detectSetups({ ctx, idx, features, levels, cfg: setupCfg });
     const out = [];
     for (const s of found) {
@@ -150,6 +160,20 @@ export function randomEntryBaseline(cfg = {}) {
     const plan = buildPlan({ price, direction, atr, volRatio: features.volRatio, levels, stopPolicy: 'atr', targetPolicy: 'fixedR', stopCfg, targetCfg });
     return plan ? [{ setupId: 'CTRL_RANDOM', direction, tier: 'swing', plan }] : [];
   };
+}
+
+/**
+ * Minutes until the next event at or after `t`. Binary search, so a filter that
+ * runs on every bar of a decade does not become the cost of the study.
+ */
+export function minutesToNextEvent(events, t) {
+  let lo = 0, hi = events.length - 1, ans = -1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (events[mid].time >= t) { ans = mid; hi = mid - 1; }
+    else lo = mid + 1;
+  }
+  return ans < 0 ? Infinity : (events[ans].time - t) / 60000;
 }
 
 /** Combine several strategies into one signal stream. */
