@@ -34,3 +34,7 @@ base44/.app.jsonc
 # quant research data: raw vendor files are re-fetchable via quant/scripts/fetch-data.mjs
 quant/data/cache/
 quant/data/normalized/
+
+# Trade-level development output: 2 MB, regenerable with run-study.mjs, and
+# read by nothing. The summary statistics it feeds are committed in study.json.
+quant/results/trades-development.json
