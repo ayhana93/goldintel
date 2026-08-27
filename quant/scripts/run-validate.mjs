@@ -105,14 +105,46 @@ const chosen = scoredCandidates[0];
 if (!chosen) throw new Error('No candidate produced a usable sample on the development period.');
 console.log(`  CHOSEN: ${chosen.cfg.label}`);
 
+// ------------------------------------------------ 1b. score-based candidate
+step('Phase 8 — score-based candidate: the baseline with its weakest component removed');
+// The ablation study (run-study.mjs) found that dropping the macro component is
+// the ONLY single-component change that improves the production engine on the
+// development period. That is a selection made on development data, so it is
+// treated exactly like the setup candidate: registered here, checked on
+// validation, and reported on the final test alongside everything else.
+const NO_MACRO_W = (() => {
+  const base = { trend: 25, structure: 25, momentum: 12, support_resistance: 13, price_action: 10 };
+  const total = Object.values(base).reduce((a, b) => a + b, 0);
+  const w = Object.fromEntries(Object.entries(base).map(([k, v]) => [k, (v / total) * 100]));
+  w.macro = 0;
+  return w;
+})();
+const noMacroStrategy = () => productionSwing({ weights: NO_MACRO_W });
+const runScore = (strategy, period) => runBacktest({
+  ctx, strategy, execution: 'realistic', risk: RISK, newsWindow: costNews,
+  fromMs: period.from, toMs: period.to,
+});
+const noMacroDev = M(runScore(noMacroStrategy(), PERIODS.development).trades);
+console.log('  baseline minus macro, development:', JSON.stringify(brief(noMacroDev)));
+
 // ------------------------------------------------ 2. validation
 step('Phase 18 — validation period (never used for any choice)');
 const valMetrics = M(run(chosen.cfg, PERIODS.validation).trades);
-console.log('  candidate on validation:', JSON.stringify(brief(valMetrics)));
-console.log('  baseline  on validation:', JSON.stringify(brief(M(runBacktest({
-  ctx, strategy: productionSwing(), execution: 'realistic', risk: RISK, newsWindow: costNews,
-  fromMs: PERIODS.validation.from, toMs: PERIODS.validation.to,
-}).trades))));
+const baselineVal = M(runScore(productionSwing(), PERIODS.validation).trades);
+const noMacroVal = M(runScore(noMacroStrategy(), PERIODS.validation).trades);
+console.log('  setup candidate on validation   :', JSON.stringify(brief(valMetrics)));
+console.log('  baseline minus macro, validation:', JSON.stringify(brief(noMacroVal)));
+console.log('  production baseline, validation :', JSON.stringify(brief(baselineVal)));
+
+// Exactly three configurations are registered for the final test. All three are
+// reported there; none of them is chosen using final-test data.
+const registered = [
+  { id: 'production-baseline', description: 'GoldIntel as shipped', dev: chosen.metrics && M(runScore(productionSwing(), PERIODS.development).trades), val: baselineVal },
+  { id: 'baseline-no-macro', description: 'GoldIntel score with the macro component removed and weights renormalized', dev: noMacroDev, val: noMacroVal },
+  { id: 'setup-candidate', description: chosen.cfg.label, dev: chosen.metrics, val: valMetrics },
+];
+const primary = [...registered].sort((a, b) => (b.val.expectancy ?? -9) - (a.val.expectancy ?? -9))[0];
+console.log(`  PRIMARY for the final test (best on validation): ${primary.id}`);
 
 // ------------------------------------------------ 3. cost sensitivity
 step('Phase 5 — candidate under every cost scenario (development)');
@@ -252,6 +284,9 @@ const frozen = {
   strategy: chosen.cfg,
   risk: SOLO_RISK,
   execution: 'realistic',
+  registeredForFinalTest: registered.map((r) => ({ id: r.id, description: r.description })),
+  primary: primary.id,
+  noMacroWeights: NO_MACRO_W,
   selection: {
     method: 'per-setup expectancy on development, then stop x target grid on development',
     eligibleSetups: eligible,
@@ -263,6 +298,9 @@ writeFileSync(join(ROOT, 'config', 'strategy-candidate.json'), JSON.stringify(fr
 
 writeResult('validation', {
   chosen: chosen.cfg,
+  registered: registered.map((r) => ({ id: r.id, description: r.description, development: r.dev, validation: r.val })),
+  primary: primary.id,
+  noMacroWeights: NO_MACRO_W,
   eligible,
   bonferroniThreshold: bonferroni,
   candidateRanking: scoredCandidates.slice(0, 12).map((s) => ({ label: s.cfg.label, ...brief(s.metrics) })),

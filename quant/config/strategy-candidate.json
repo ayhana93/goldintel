@@ -26,6 +26,29 @@
     "maxWeeklyLossPct": 6
   },
   "execution": "realistic",
+  "registeredForFinalTest": [
+    {
+      "id": "production-baseline",
+      "description": "GoldIntel as shipped"
+    },
+    {
+      "id": "baseline-no-macro",
+      "description": "GoldIntel score with the macro component removed and weights renormalized"
+    },
+    {
+      "id": "setup-candidate",
+      "description": "all-eligible|swing|R 1.5/2.5/4"
+    }
+  ],
+  "primary": "production-baseline",
+  "noMacroWeights": {
+    "trend": 29.411764705882355,
+    "structure": 29.411764705882355,
+    "momentum": 14.117647058823529,
+    "support_resistance": 15.294117647058824,
+    "price_action": 11.76470588235294,
+    "macro": 0
+  },
   "selection": {
     "method": "per-setup expectancy on development, then stop x target grid on development",
     "eligibleSetups": [
