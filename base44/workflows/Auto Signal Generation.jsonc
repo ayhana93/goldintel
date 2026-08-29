@@ -45,15 +45,29 @@
             "function_name": "resolvePaperTrades",
             "args": {}
           },
-          "then": "end",
+          "then": "track_positions",
           "x-base44": {
             "title": "Resolve paper trades",
             "description": "Walk open paper trades forward through closed candles and record MAE, MFE and realized R"
           }
         }
+      },
+      {
+        "track_positions": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "trackPositions",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Track the user's own positions",
+            "description": "Update hold/close advice on positions the user says they actually opened, so the answer is waiting when they next look rather than computed only while the page is open"
+          }
+        }
       }
     ]
   },
-  "description": "Runs two minutes after each hour, once the H1 candle has closed. Decisions only change on a closed H1 bar, so running more often produced repaints rather than information. Generates signals, then resolves open paper trades so the system accumulates falsifiable evidence about itself.",
+  "description": "Runs two minutes after each hour, once the H1 candle has closed. Decisions only change on a closed H1 bar, so running more often produced repaints rather than information. Generates signals, resolves open paper trades so the system accumulates falsifiable evidence about itself, then refreshes the advice on the user's own open positions.",
   "name": "Auto Signal Generation"
 }

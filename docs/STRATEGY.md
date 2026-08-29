@@ -131,6 +131,36 @@ passes, and the card shows you which one failed when it doesn't:
 Plus the ordinary refusals: no setup condition holds, market data is unavailable
 or stale (shown as `DATA UNAVAILABLE`), or fewer than 60 closed candles on H1/D1.
 
+### Which unit the statistical bar applies to
+
+The first four rows of that table — sample size, expectancy, profit factor and
+the confidence interval — are a statement about the **portfolio**: the long-only
+strategy as a whole. That distinction decides whether the system can ever say
+yes, and getting it wrong made the app silent.
+
+Taken one at a time, not one component setup has a 95% interval that excludes
+zero:
+
+| Setup | Trades | Expectancy | 95% interval |
+| --- | --- | --- | --- |
+| A_TREND_CONT_LONG | 490 | +0.072R | [−0.030, +0.171] |
+| C_PULLBACK_LONG | 194 | +0.107R | [−0.046, +0.259] |
+| G_BREAKOUT_LONG | 464 | +0.088R | [−0.011, +0.189] |
+| E_RANGE_REV_LONG | 480 | +0.027R | [−0.064, +0.121] |
+| **Long-only portfolio** | **355** | **+0.171R** | **[+0.048, +0.298]** |
+
+Each setup is individually too small a sample to prove itself; the portfolio is
+not. While the interval test was applied per setup, every setup failed it and the
+live engine could not emit a signal in any market, ever — not conservatism but a
+category error, demanding of each part a proof only ever established for the
+whole.
+
+So the bar is applied where it was established, and a component is held to a
+separate, weaker test: it must not be a drag — positive out-of-sample expectancy
+and a profit factor above 1 (`COMPONENT_NEGATIVE`). Nothing was loosened to
+produce signals: the strict test still has to pass on the portfolio, the
+quarantine still removes any setup that lost money, and shorts stay disabled.
+
 ### The presentation mode is not one of these gates
 
 Every gate above is a statement about the market and the measured record. How the

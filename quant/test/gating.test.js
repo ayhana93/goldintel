@@ -238,3 +238,109 @@ test('a quarantined setup stays refused in advisory mode', () => {
   assert.equal(g.tradable, false);
   assert.ok(g.blockedBy.includes('DISABLED_NEGATIVE_EDGE'));
 });
+
+// --- which unit carries the proof -------------------------------------------
+// The bar used to be applied to each setup individually. No setup has a 95%
+// interval excluding zero, so every setup failed INTERVAL_INCLUDES_ZERO and the
+// engine could not emit a signal in any market, ever. The proof belongs to the
+// portfolio that was actually validated; the component gets a weaker bar.
+
+/** Stats with a validated portfolio and a component that rides it. */
+const portfolioStats = (over = {}) => ({
+  gating: {
+    paperTradingOnly: false,
+    allowedDirections: ['LONG', 'SHORT'],
+    portfolioKey: 'PORTFOLIO',
+    thresholds: DEFAULT_GATES,
+    ...over.gating,
+  },
+  measured: {
+    strategies: {
+      PORTFOLIO: {
+        state: 'ACTIVE',
+        outOfSample: { trades: 355, expectancy: 0.171, profitFactor: 1.405, ci95: [0.048, 0.298] },
+        ...over.portfolio,
+      },
+    },
+    setups: {
+      GOOD: {
+        state: 'ACTIVE',
+        // Positive but individually unprovable: the interval spans zero, exactly
+        // like every real setup in the shipped statistics.
+        outOfSample: { trades: 490, expectancy: 0.072, profitFactor: 1.148, ci95: [-0.030, 0.171] },
+        ...over.setup,
+      },
+    },
+  },
+});
+
+test('a component whose own interval spans zero still trades on the portfolio proof', () => {
+  const g = evaluateGates({ setup: { id: 'GOOD' }, context: ctx(), stats: portfolioStats() });
+  assert.equal(g.marketTradable, true, g.reasons.join('; '));
+  assert.deepEqual(g.marketBlockedBy, []);
+  assert.equal(g.provenBy?.key, 'PORTFOLIO', 'the UI must be able to name what carried the proof');
+  assert.match(g.reasons.join(' '), /validated portfolio/);
+});
+
+test('the strict bar still has to pass — on the portfolio', () => {
+  const cases = {
+    INSUFFICIENT_SAMPLE: { trades: 40, expectancy: 0.171, profitFactor: 1.405, ci95: [0.048, 0.298] },
+    EXPECTANCY_BELOW_MINIMUM: { trades: 355, expectancy: 0.001, profitFactor: 1.405, ci95: [0.048, 0.298] },
+    PROFIT_FACTOR_BELOW_MINIMUM: { trades: 355, expectancy: 0.171, profitFactor: 1.02, ci95: [0.048, 0.298] },
+    INTERVAL_INCLUDES_ZERO: { trades: 355, expectancy: 0.171, profitFactor: 1.405, ci95: [-0.01, 0.298] },
+  };
+  for (const [expected, outOfSample] of Object.entries(cases)) {
+    const g = evaluateGates({
+      setup: { id: 'GOOD' }, context: ctx(),
+      stats: portfolioStats({ portfolio: { state: 'ACTIVE', outOfSample } }),
+    });
+    assert.equal(g.marketTradable, false, `${expected} on the portfolio should have blocked the signal`);
+    assert.ok(g.marketBlockedBy.includes(expected), `expected ${expected}, got ${g.marketBlockedBy.join(', ')}`);
+  }
+});
+
+test('a losing component may not ride a winning portfolio', () => {
+  for (const outOfSample of [
+    { trades: 200, expectancy: -0.05, profitFactor: 1.2, ci95: [-0.2, 0.1] },   // negative expectancy
+    { trades: 200, expectancy: 0.01, profitFactor: 0.9, ci95: [-0.2, 0.2] },    // profit factor below 1
+  ]) {
+    const g = evaluateGates({
+      setup: { id: 'GOOD' }, context: ctx(),
+      stats: portfolioStats({ setup: { state: 'ACTIVE', outOfSample } }),
+    });
+    assert.equal(g.marketTradable, false);
+    assert.ok(g.marketBlockedBy.includes('COMPONENT_NEGATIVE'), g.marketBlockedBy.join(', '));
+  }
+});
+
+test('a quarantined portfolio blocks every component under it', () => {
+  const g = evaluateGates({
+    setup: { id: 'GOOD' }, context: ctx(),
+    stats: portfolioStats({ portfolio: { state: 'DISABLED_NEGATIVE_EDGE', stateReason: 'negative out of sample', outOfSample: { trades: 355, expectancy: 0.171, profitFactor: 1.405, ci95: [0.048, 0.298] } } }),
+  });
+  assert.equal(g.marketTradable, false);
+  assert.ok(g.marketBlockedBy.includes('PORTFOLIO_DISABLED'));
+});
+
+test('without a named portfolio the bar falls back to the setup itself', () => {
+  // Older statistics documents and any caller that does not name a portfolio must
+  // keep the original, stricter behaviour rather than silently trading unproven.
+  const g = evaluateGates({ setup: { id: 'GOOD' }, context: ctx(), stats: goodStats() });
+  assert.equal(g.marketTradable, true);
+  assert.equal(g.provenBy, null);
+});
+
+test('the shipped statistics can actually emit a signal', () => {
+  // The regression that motivated all of the above: with the bar applied per
+  // setup, this loop found zero tradable setups no matter what the market did.
+  const tradable = SETUP_IDS.filter((id) => evaluateGates({
+    setup: { id },
+    context: ctx({ direction: id.endsWith('_SHORT') ? 'SHORT' : 'LONG' }),
+    stats: EDGE_STATS,
+  }).marketTradable);
+  assert.ok(tradable.length > 0,
+    'no setup in the shipped statistics can ever pass the gates — the live engine is mute');
+  for (const id of tradable) {
+    assert.ok(id.endsWith('_LONG'), `${id} passed the gate but shorts are disabled`);
+  }
+});

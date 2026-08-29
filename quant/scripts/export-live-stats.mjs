@@ -106,6 +106,24 @@ const eraNote = legacyPct != null && modernPct != null
   ? ` Its out-of-sample record is positive, but ${legacyPct}% of quarters are profitable in the earlier era against ${modernPct}% in the recent one, so the evidence is era-specific.`
   : '';
 
+// Which measured record carries the statistical proof the live gate applies.
+//
+// The verdict was earned by a whole strategy, not by any one setup: taken alone,
+// no setup has a 95% interval excluding zero. Naming that unit here is what lets
+// the live gate test the thing that was actually validated. Fail loudly rather
+// than silently falling back to per-setup gating, which emits nothing at all.
+const PORTFOLIO_KEYS = {
+  'baseline-long-only': 'BASELINE_SWING_LONG_ONLY',
+  'baseline-swing': 'BASELINE_SWING',
+};
+const portfolioKey = PORTFOLIO_KEYS[primary] ?? null;
+if (primary && !portfolioKey) {
+  throw new Error(`validation names primary configuration "${primary}" but no measured strategy is mapped to it; add it to PORTFOLIO_KEYS.`);
+}
+if (portfolioKey && !measured.strategies[portfolioKey]) {
+  throw new Error(`portfolio key "${portfolioKey}" is not present in measured.strategies.`);
+}
+
 const doc = {
   generatedAt: new Date().toISOString(),
   verdict,
@@ -148,6 +166,9 @@ const doc = {
     defaultMode,
     emitLiveSignals: defaultMode === 'ADVISORY',
     paperTradingOnly: defaultMode === 'PAPER',
+    // The unit the live statistical bar is applied to: the configuration the
+    // verdict was actually reached on, not its individual setups.
+    portfolioKey,
     reason: defaultMode === 'ADVISORY'
       ? 'The out-of-sample record cleared every criterion in the edge classifier.'
       : `The best configuration is rated ${verdict}.${eraNote} Signals are recorded and simulated, not recommended.`,
