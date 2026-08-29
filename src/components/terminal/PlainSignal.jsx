@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { explain } from "@/lib/explain";
 
@@ -16,8 +16,7 @@ import { explain } from "@/lib/explain";
 
 const n1 = (v) => (v != null && Number.isFinite(v) ? v.toFixed(1) : "—");
 
-export default function PlainSignal({ analysis, sizing, onEnter, entering }) {
-  const [detail, setDetail] = useState(false);
+export default function PlainSignal({ analysis, sizing, onEnter, entering, detailed = false }) {
   const setup = analysis?.primary ?? analysis?.candidate ?? null;
   const brief = explain(analysis, setup);
   const act = !!setup;
@@ -53,8 +52,8 @@ export default function PlainSignal({ analysis, sizing, onEnter, entering }) {
         </div>
       )}
 
-      <div className="flex flex-wrap items-center gap-3 border-t border-[#1c2230] px-6 py-4">
-        {act && (
+      {act && (
+        <div className="border-t border-[#1c2230] px-6 py-4">
           <button
             type="button"
             onClick={onEnter}
@@ -63,17 +62,10 @@ export default function PlainSignal({ analysis, sizing, onEnter, entering }) {
           >
             {entering ? "записва се…" : "Влязох"}
           </button>
-        )}
-        <button
-          type="button"
-          onClick={() => setDetail((v) => !v)}
-          className="ml-auto font-mono text-xs uppercase tracking-wider text-slate-500 transition-colors hover:text-amber-400"
-        >
-          {detail ? "скрий" : "подробно"}
-        </button>
-      </div>
+        </div>
+      )}
 
-      {detail && (
+      {detailed && (
         <div className="space-y-4 border-t border-[#1c2230] bg-[#0d121c] px-6 py-5">
           <Block title="Защо">
             <ul className="space-y-1">
