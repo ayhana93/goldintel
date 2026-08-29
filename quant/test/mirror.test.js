@@ -23,6 +23,10 @@ const PAIRS = [
   ['base44/shared/marketFeed.ts', 'src/lib/marketFeed.js'],
   ['base44/shared/paperExecution.ts', 'src/lib/paperExecution.js'],
   ['base44/shared/tradingMode.ts', 'src/lib/tradingMode.js'],
+  // The gates decide whether anything reaches a user at all, and they were the
+  // one shared module this list had never covered.
+  ['base44/shared/gating.ts', 'src/lib/gating.js'],
+  ['base44/shared/explain.ts', 'src/lib/explain.js'],
   ['base44/shared/edgeStats.ts', 'src/lib/edgeStats.js'],
 ];
 

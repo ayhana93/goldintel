@@ -8,7 +8,7 @@
 // probability attached to any individual live signal.
 
 export const EDGE_STATS = {
-  "generatedAt": "2026-08-27T17:21:57.997Z",
+  "generatedAt": "2026-08-29T08:52:52.485Z",
   "verdict": "POSSIBLE EDGE",
   "primaryConfiguration": "baseline-long-only",
   "periods": {
@@ -1275,6 +1275,7 @@ export const EDGE_STATS = {
     "defaultMode": "PAPER",
     "emitLiveSignals": false,
     "paperTradingOnly": true,
+    "portfolioKey": "BASELINE_SWING_LONG_ONLY",
     "reason": "The best configuration is rated POSSIBLE EDGE. Its out-of-sample record is positive, but 35% of quarters are profitable in the earlier era against 75% in the recent one, so the evidence is era-specific. Signals are recorded and simulated, not recommended.",
     "allowedDirections": [
       "LONG"
@@ -1287,6 +1288,8 @@ export const EDGE_STATS = {
       "minOutOfSampleExpectancy": 0.02,
       "minOutOfSampleProfitFactor": 1.1,
       "requireIntervalAboveZero": true,
+      "minComponentExpectancy": 0,
+      "minComponentProfitFactor": 1,
       "allowedDirections": [
         "LONG",
         "SHORT"

@@ -1,0 +1,54 @@
+{
+  "name": "UserPosition",
+  "type": "object",
+  "description": "A position the user says they actually opened, on a signal the system gave. Kept separate from PaperTrade on purpose: PaperTrade is the system's own unbiased record of every setup it saw, and is what the edge is measured on. This is the user's real behaviour - they may enter late, at a different price, or on a signal they were told to skip - and mixing the two would corrupt the measurement.",
+  "properties": {
+    "signal_id": { "type": "string", "description": "The Signal this was opened on, when there was one" },
+    "setup_id": { "type": "string", "description": "Which of the named setups fired, e.g. C_PULLBACK_LONG" },
+    "setup_name": { "type": "string" },
+    "direction": { "type": "string", "enum": ["LONG", "SHORT"] },
+    "status": { "type": "string", "enum": ["OPEN", "CLOSED"], "default": "OPEN" },
+
+    "signal_time": { "type": "string", "format": "date-time", "description": "Close time of the H1 bar the plan was built from (UTC)" },
+    "signal_price": { "type": "number", "description": "Reference close the plan was built from" },
+    "entry_time": { "type": "string", "format": "date-time", "description": "When the user confirmed they were in" },
+    "entry_price": { "type": "number", "description": "The price the user actually got, which is not necessarily the planned entry" },
+
+    "stop_loss": { "type": "number" },
+    "tp1": { "type": "number" },
+    "tp2": { "type": "number" },
+    "tp3": { "type": "number" },
+    "risk_price": { "type": "number", "description": "Stop distance in dollars per ounce, from the user's real entry" },
+    "units": { "type": "number", "description": "Ounces, sized from account risk / stop distance" },
+    "account_size": { "type": "number" },
+    "risk_pct": { "type": "number" },
+    "risk_amount": { "type": "number" },
+
+    "advice": { "type": "string", "enum": ["HOLD", "CLOSE", "PARTIAL"], "default": "HOLD", "description": "What the system currently says to do with this position" },
+    "advice_reason": { "type": "string", "description": "Plain-language reason for the current advice" },
+    "advice_at": { "type": "string", "format": "date-time" },
+
+    "tp1_hit": { "type": "boolean", "default": false },
+    "tp2_hit": { "type": "boolean", "default": false },
+    "tp3_hit": { "type": "boolean", "default": false },
+    "mae_r": { "type": "number", "description": "Worst point reached, in R" },
+    "mfe_r": { "type": "number", "description": "Best point reached, in R" },
+
+    "exit_time": { "type": "string", "format": "date-time" },
+    "exit_price": { "type": "number" },
+    "exit_reason": { "type": "string", "enum": ["TP1", "TP2", "TP3", "SL", "EXPIRED", "MANUAL", "OPEN"] },
+    "realized_r": { "type": "number" },
+    "outcome_note": { "type": "string", "description": "Plain-language account of why it worked or did not, attributed to what was stated at entry" },
+
+    "entry_reasons": { "type": "array", "items": { "type": "string" }, "description": "The reasons shown to the user at entry, stored verbatim so the outcome can be attributed to them rather than reconstructed afterwards" },
+    "evidence_score": { "type": "number" },
+    "regime": { "type": "string" },
+    "vol_state": { "type": "string" },
+    "session": { "type": "string" },
+    "news_risk": { "type": "string" },
+    "expected_r": { "type": "number", "description": "Out-of-sample expectancy at entry - what this trade is scored against" },
+    "gate_passed": { "type": "boolean", "description": "Whether the signal had cleared every gate. False means the user entered against the system's advice, which is recorded rather than hidden." },
+    "last_checked": { "type": "string", "format": "date-time" }
+  },
+  "required": ["setup_id", "direction", "entry_time", "entry_price", "stop_loss"]
+}

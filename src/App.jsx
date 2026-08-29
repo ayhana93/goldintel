@@ -14,7 +14,10 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
-import Dashboard from './pages/Dashboard';
+import Trade from './pages/Trade';
+// The research terminal. It is no longer the landing page: it answers "is this
+// defensible", which is a different question from "what do I do".
+const Dashboard = lazy(() => import('./pages/Dashboard'));
 // The backtest report bundles the generated result set, so it is code-split:
 // the live terminal should not pay for a page most visits never open.
 const BacktestDashboard = lazy(() => import('./pages/BacktestDashboard'));
@@ -51,7 +54,15 @@ const AuthenticatedApp = () => {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/" element={<Trade />} />
+        <Route
+          path="/research"
+          element={
+            <Suspense fallback={<div className="min-h-screen bg-[#070a10] p-6 font-mono text-xs text-slate-500">Зарежда…</div>}>
+              <Dashboard />
+            </Suspense>
+          }
+        />
         <Route
           path="/backtest"
           element={

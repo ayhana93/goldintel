@@ -17,6 +17,18 @@ derived from the verdict and overridable; see
 See [`docs/EDGE_REPORT.md`](docs/EDGE_REPORT.md) for the numbers and
 [`docs/STRATEGY.md`](docs/STRATEGY.md) for what it does in plain language.
 
+## Two screens
+
+`/` is the trade screen: direction, entry, stop, three targets, position size,
+and a few sentences of why — in Bulgarian, because the person who uses it reads
+Bulgarian. Confirming an entry there tracks the position and answers the only
+question that matters while it is open: hold, take part off, or close.
+
+`/research` is the terminal that answers a different question — whether any of
+this is defensible — and it needs its tables to do that. It was the landing page,
+which is why the app looked complicated to someone who only wanted to know what
+to do.
+
 ## Documentation
 
 | Document | What it covers |

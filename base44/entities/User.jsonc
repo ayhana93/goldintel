@@ -19,6 +19,14 @@
     "refresh_interval": {
       "type": "number",
       "description": "Dashboard auto-refresh interval in seconds"
+    },
+    "account_size": {
+      "type": "number",
+      "description": "Account size used to size positions on the trade screen. Position size is derived from this and the stop distance, never from how confident the signal looks."
+    },
+    "risk_pct": {
+      "type": "number",
+      "description": "Percent of the account risked per trade, used with the stop distance to compute position size"
     }
   },
   "required": [
