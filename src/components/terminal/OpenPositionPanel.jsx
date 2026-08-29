@@ -51,18 +51,16 @@ export default function OpenPositionPanel({ positions, onClose, closing }) {
               <Cell label="Най-добре" value={rr(p.mfe_r)} />
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 border-t border-[#1c2230] px-5 py-3">
+            <div className="border-t border-[#1c2230] px-5 py-3">
               <button
                 type="button"
                 onClick={() => onClose(p)}
                 disabled={closing === p.id}
-                className="border border-[#2a3348] px-4 py-1.5 font-mono text-xs uppercase tracking-wider text-slate-400 hover:border-red-500/50 hover:text-red-300 disabled:opacity-40"
+                title="Натисни когато наистина си затворил. Иначе системата продължава да я следи до стоп, цел или изтичане на времето."
+                className="border border-[#2a3348] px-4 py-1.5 font-mono text-xs uppercase tracking-wider text-slate-400 transition-transform duration-150 ease-out hover:border-red-500/50 hover:text-red-300 active:scale-[0.97] disabled:opacity-40"
               >
                 {closing === p.id ? "записва се…" : "Затворих я"}
               </button>
-              <span className="text-[11px] text-slate-600">
-                Натисни когато наистина си затворил. Ако не я затвориш, системата продължава да я следи до стоп, цел или изтичане на времето.
-              </span>
             </div>
           </div>
         );

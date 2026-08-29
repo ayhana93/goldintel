@@ -26,6 +26,7 @@ export default function Trade() {
   const [tradingMode, setTradingMode] = useState(null);
   const [busy, setBusy] = useState(null);
   const [error, setError] = useState(null);
+  const [settings, setSettings] = useState(false);
 
   useEffect(() => {
     base44.auth.me()
@@ -159,27 +160,27 @@ export default function Trade() {
             <span className="font-mono text-sm text-red-400">НЯМА ДАННИ</span>
           )}
         </div>
-        <Link to="/research" className="border border-[#2a3348] px-3 py-1 font-mono text-[11px] uppercase tracking-wider text-slate-500 hover:border-amber-500/50 hover:text-amber-400">
-          Подробният екран →
-        </Link>
+        <div className="flex items-center gap-4 font-mono text-[11px] uppercase tracking-wider text-slate-600">
+          <button type="button" onClick={() => setSettings((v) => !v)} className="transition-colors hover:text-amber-400">
+            сметка
+          </button>
+          <Link to="/research" className="transition-colors hover:text-amber-400">подробно →</Link>
+        </div>
       </div>
 
-      <div className="mx-auto max-w-3xl space-y-4 p-4">
+      <div className="mx-auto max-w-xl space-y-3 p-4">
         {error && <div className="border border-red-500/40 bg-red-500/5 px-4 py-3 text-sm text-red-300">{error}</div>}
+
+        {settings && <AccountBox account={account} onChange={setAccount} />}
 
         <OpenPositionPanel positions={positions} onClose={closePosition} closing={busy} />
 
         <PlainSignal analysis={analysis} sizing={sizing} onEnter={enterPosition} entering={busy === "enter"} />
 
-        <AccountBox account={account} onChange={setAccount} />
-
         <LearnedPanel learned={learned} positions={positions} />
 
-        <p className="px-1 pb-6 text-[11px] leading-relaxed text-slate-600">
-          Анализът работи само върху затворени свещи, така че отговорът не се променя в рамките на часа.
-          Присъда на стратегията: <span className="text-amber-500">{analysis?.verdict ?? "—"}</span>.
-          Никой режим не изпраща поръчки към брокер — решението и изпълнението са твои.
-          Това е изследователски резултат, не финансов съвет.
+        <p className="px-1 pb-6 text-[11px] leading-relaxed text-slate-700">
+          Само затворени свещи · няма връзка с брокер · изследователски резултат, не финансов съвет
         </p>
       </div>
     </div>
