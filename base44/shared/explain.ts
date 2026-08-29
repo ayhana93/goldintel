@@ -23,6 +23,28 @@ const SETUP_BG = {
   H_BREAKOUT_SHORT: 'Пробив надолу.',
 };
 
+/** The same eight patterns as a clause, for the one-line summary. */
+const SHORT_BG = {
+  A_TREND_CONT_LONG: 'Трендът нагоре продължава',
+  B_TREND_CONT_SHORT: 'Трендът надолу продължава',
+  C_PULLBACK_LONG: 'Отскок нагоре след спад',
+  D_PULLBACK_SHORT: 'Отскок надолу след покачване',
+  E_RANGE_REV_LONG: 'Обръщане от дъното на диапазон',
+  F_RANGE_REV_SHORT: 'Обръщане от върха на диапазон',
+  G_BREAKOUT_LONG: 'Пробив нагоре',
+  H_BREAKOUT_SHORT: 'Пробив надолу',
+};
+
+/** The strongest supporting component, as a trailing clause. */
+const LEAD_BG = {
+  trend: (up) => (up ? 'по посока на дневния тренд' : 'по посока на дневния тренд надолу'),
+  structure: (up) => (up ? 'със структура от по-високи дъна' : 'със структура от по-ниски върхове'),
+  momentum: (up) => 'с инерция в същата посока',
+  support_resistance: (up) => (up ? 'над ниво, което вече е задържало' : 'под ниво, което вече е отблъсквало'),
+  price_action: (up) => 'потвърден от последните свещи',
+  macro: (up) => 'подкрепен от долара и лихвите',
+};
+
 const REGIME_BG = {
   TRENDING_BULLISH: 'възходящ тренд',
   TRENDING_BEARISH: 'низходящ тренд',
@@ -120,9 +142,17 @@ export function explain(analysis, setup) {
     risks.push(`Присъдата върху стратегията е ${analysis.verdict} — предимството е измерено, но не е доказано напълно.`);
   }
 
+  // One sentence, because that is what actually gets read. Everything above is
+  // still returned for the detail view, but a screen that opens with six bullet
+  // points is a screen nobody finishes.
+  const short = SHORT_BG[setup.id] ?? 'Условията отговарят на тестван модел';
+  const lead = parts[0] ? LEAD_BG[parts[0].key]?.(up) : null;
+  const summary = lead ? `${short}, ${lead}.` : `${short}.`;
+
   return {
-    action: up ? 'ОТВОРИ LONG' : 'ОТВОРИ SHORT',
+    action: up ? 'LONG' : 'SHORT',
     headline: setup.name,
+    summary,
     why,
     history,
     proofNote,
@@ -148,9 +178,18 @@ function explainNoTrade(analysis) {
   }
   why.push('Изчакването е позиция. Повечето часове не предлагат нищо и системата не измисля сделка, за да има какво да покаже.');
 
+  // One reason, not a list of them. The first blocking code is the one to show;
+  // the rest are in the detail view for anyone who wants them.
+  const summary = (analysis.setups ?? []).length === 0
+    ? 'Нито един тестван модел не е налице.'
+    : codes.length > 0
+      ? cap(`${BLOCK_BG[codes[0]] ?? codes[0]}.`)
+      : 'Условията не отговарят на тестван модел.';
+
   return {
     action: 'ИЗЧАКАЙ',
     headline: 'Няма сделка в момента',
+    summary,
     why,
     history: null,
     proofNote: null,
@@ -198,6 +237,10 @@ export function explainOutcome(trade) {
     won,
     why,
   };
+}
+
+function cap(s) {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 }
 
 /** Bulgarian takes "във" rather than "в" before a word starting with в or ф. */

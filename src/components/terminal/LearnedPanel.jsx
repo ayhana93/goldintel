@@ -20,30 +20,48 @@ const KIND_STYLE = {
 
 export default function LearnedPanel({ learned, positions }) {
   const [open, setOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const closed = (positions ?? []).filter((p) => p.status === "CLOSED");
   if (!learned && closed.length === 0) return null;
 
+  // With nothing closed there is nothing to say, so this collapses to a single
+  // line rather than an empty framed box competing with the signal above it.
+  if (closed.length === 0) {
+    return (
+      <p className="px-1 font-mono text-[11px] text-slate-600">
+        Още няма затворени сделки. Резултатите се появяват тук.
+      </p>
+    );
+  }
+
   return (
     <div className="border border-[#1c2230] bg-[#0b0f17]">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1c2230] px-5 py-3">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="flex w-full flex-wrap items-center justify-between gap-2 px-5 py-3 text-left"
+      >
         <span className="font-mono text-[11px] uppercase tracking-widest text-slate-400">
-          Какво показват твоите сделки
+          Твоите сделки
         </span>
         <span className="font-mono text-[11px] text-slate-500">
           {learned?.closedTrades ?? closed.length} затворени
-          {learned?.overall?.n > 0 && <> · общо {rr(learned.overall.netR)}</>}
+          {learned?.overall?.n > 0 && <> · {rr(learned.overall.netR)}</>}
+          <span className="ml-3 text-slate-600">{expanded ? "скрий" : "виж"}</span>
         </span>
-      </div>
+      </button>
 
-      <div className="space-y-2 px-5 py-3">
+      {expanded && (
+      <div className="space-y-2 border-t border-[#1c2230] px-5 py-3">
         {(learned?.findings ?? []).map((f, i) => (
           <div key={i} className={`border px-4 py-2.5 text-[13px] leading-relaxed ${KIND_STYLE[f.kind] ?? KIND_STYLE.NOTE}`}>
             {f.text}
           </div>
         ))}
       </div>
+      )}
 
-      {closed.length > 0 && (
+      {expanded && closed.length > 0 && (
         <div className="border-t border-[#1c2230]">
           <button
             type="button"
@@ -80,7 +98,7 @@ export default function LearnedPanel({ learned, positions }) {
         </div>
       )}
 
-      {learned?.note && (
+      {expanded && learned?.note && (
         <div className="border-t border-[#1c2230] px-5 py-3 text-[11px] leading-relaxed text-slate-600">
           {learned.note}
         </div>

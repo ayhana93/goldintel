@@ -67,10 +67,30 @@ test('an unknown blocking code still reaches the user rather than vanishing', ()
 
 test('a qualifying setup produces prices, a reason and an invalidation', () => {
   const b = explain(analysis(), setup());
-  assert.equal(b.action, 'ОТВОРИ LONG');
+  assert.equal(b.action, 'LONG');
   assert.ok(b.why.length >= 2);
   assert.match(b.invalidation, /1985\.0/);
   assert.match(b.invalidation, /под/);
+});
+
+test('the summary is one sentence, because that is what gets read', () => {
+  const b = explain(analysis(), setup());
+  assert.ok(b.summary, 'the card leads with this, so it must always exist');
+  assert.equal(b.summary.split('.').filter((s) => s.trim()).length, 1,
+    `expected a single sentence, got: ${b.summary}`);
+  assert.ok(b.summary.length < 90, `too long to scan: ${b.summary}`);
+  // It must still be specific — a generic sentence is no better than none.
+  assert.match(b.summary, /Трендът нагоре продължава/);
+  assert.match(b.summary, /дневния тренд/, 'the strongest component should carry the clause');
+});
+
+test('a refusal also gets one sentence, naming one reason', () => {
+  const b = explain(analysis({
+    setups: [{ id: 'A_TREND_CONT_LONG' }],
+    gateSummary: { blocked: [{ id: 'A_TREND_CONT_LONG', blockedBy: ['EVIDENCE_BELOW_THRESHOLD', 'NEWS_RISK'] }] },
+  }), null);
+  assert.equal(b.summary.split('.').filter((s) => s.trim()).length, 1);
+  assert.match(b.summary, /^Доказателствата/, 'it must start with the reason, capitalised');
 });
 
 test('the historical rate is never called a probability for this trade', () => {
