@@ -15,7 +15,7 @@ const ADVICE = {
 const n1 = (v) => (v != null && Number.isFinite(v) ? v.toFixed(1) : "—");
 const rr = (v) => (v != null && Number.isFinite(v) ? `${v >= 0 ? "+" : ""}${v.toFixed(2)}R` : "—");
 
-export default function OpenPositionPanel({ positions, onClose, closing }) {
+export default function OpenPositionPanel({ positions, onClose, closing, detailed = false }) {
   const open = (positions ?? []).filter((p) => p.status === "OPEN");
   if (open.length === 0) return null;
 
@@ -50,6 +50,24 @@ export default function OpenPositionPanel({ positions, onClose, closing }) {
               <Cell label="Най-зле" value={rr(p.mae_r != null ? -p.mae_r : null)} />
               <Cell label="Най-добре" value={rr(p.mfe_r)} />
             </div>
+
+            {detailed && p.entry_reasons?.length > 0 && (
+              <div className="border-t border-[#1c2230] px-5 py-3">
+                <div className="mb-1 font-mono text-[10px] uppercase tracking-widest text-slate-500">
+                  Казано при влизането
+                </div>
+                <ul className="space-y-0.5">
+                  {p.entry_reasons.map((r, i) => (
+                    <li key={i} className="text-[12px] leading-relaxed text-slate-500">{r}</li>
+                  ))}
+                </ul>
+                <div className="mt-2 font-mono text-[10px] text-slate-600">
+                  влязъл {p.entry_time ? new Date(p.entry_time).toISOString().replace("T", " ").slice(0, 16) : "—"} UTC
+                  {p.expected_r != null && <> · очаквано {rr(p.expected_r)}</>}
+                  {p.regime && <> · {String(p.regime).replace(/_/g, " ").toLowerCase()}</>}
+                </div>
+              </div>
+            )}
 
             <div className="border-t border-[#1c2230] px-5 py-3">
               <button

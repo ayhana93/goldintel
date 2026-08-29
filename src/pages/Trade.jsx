@@ -26,12 +26,20 @@ export default function Trade() {
   const [tradingMode, setTradingMode] = useState(null);
   const [busy, setBusy] = useState(null);
   const [error, setError] = useState(null);
-  const [settings, setSettings] = useState(false);
+  const [detailed, setDetailed] = useState(false);
+
+  // Which view the user prefers is a preference, not a per-visit decision, so it
+  // is stored the same way the refresh interval and the trading mode are.
+  const saveDetailed = useCallback(async (next) => {
+    setDetailed(next);
+    try { await base44.auth.updateMe({ detailed_view: next }); } catch { /* still applied on screen */ }
+  }, []);
 
   useEffect(() => {
     base44.auth.me()
       .then((u) => {
         if (u?.trading_mode) setTradingMode(u.trading_mode);
+        if (u?.detailed_view != null) setDetailed(!!u.detailed_view);
         setAccount({
           accountSize: u?.account_size ?? DEFAULTS.accountSize,
           riskPct: u?.risk_pct ?? DEFAULTS.riskPct,
@@ -160,29 +168,121 @@ export default function Trade() {
             <span className="font-mono text-sm text-red-400">НЯМА ДАННИ</span>
           )}
         </div>
-        <div className="flex items-center gap-4 font-mono text-[11px] uppercase tracking-wider text-slate-600">
-          <button type="button" onClick={() => setSettings((v) => !v)} className="transition-colors hover:text-amber-400">
-            сметка
+        {/* One switch for the whole screen. Three separate toggles — one per
+            panel — was itself part of what made this confusing. */}
+        <div className="flex items-center gap-4 font-mono text-[11px] uppercase tracking-wider">
+          <button
+            type="button"
+            onClick={() => saveDetailed(!detailed)}
+            aria-pressed={detailed}
+            className={`border px-3 py-1 transition-transform duration-150 ease-out active:scale-[0.97] ${
+              detailed
+                ? "border-amber-500/60 bg-amber-500/10 text-amber-400"
+                : "border-[#2a3348] text-slate-500 hover:border-amber-500/40 hover:text-amber-400"
+            }`}
+          >
+            {detailed ? "просто" : "подробно"}
           </button>
-          <Link to="/research" className="transition-colors hover:text-amber-400">подробно →</Link>
+          <Link to="/research" className="text-slate-600 transition-colors hover:text-amber-400">изследване →</Link>
         </div>
       </div>
 
       <div className="mx-auto max-w-xl space-y-3 p-4">
         {error && <div className="border border-red-500/40 bg-red-500/5 px-4 py-3 text-sm text-red-300">{error}</div>}
 
-        {settings && <AccountBox account={account} onChange={setAccount} />}
+        <OpenPositionPanel positions={positions} onClose={closePosition} closing={busy} detailed={detailed} />
 
-        <OpenPositionPanel positions={positions} onClose={closePosition} closing={busy} />
+        <PlainSignal
+          analysis={analysis}
+          sizing={sizing}
+          onEnter={enterPosition}
+          entering={busy === "enter"}
+          detailed={detailed}
+        />
 
-        <PlainSignal analysis={analysis} sizing={sizing} onEnter={enterPosition} entering={busy === "enter"} />
+        {detailed && <MarketState analysis={analysis} gold={gold} />}
 
-        <LearnedPanel learned={learned} positions={positions} />
+        {detailed && <AccountBox account={account} onChange={setAccount} />}
+
+        <LearnedPanel learned={learned} positions={positions} detailed={detailed} />
 
         <p className="px-1 pb-6 text-[11px] leading-relaxed text-slate-700">
           Само затворени свещи · няма връзка с брокер · изследователски резултат, не финансов съвет
         </p>
       </div>
+    </div>
+  );
+}
+
+/**
+ * The market as the engine currently reads it. Only shown in detail mode,
+ * because none of it is needed to act on a signal — but all of it is needed to
+ * argue with one, and that argument was previously only possible on /research.
+ */
+function MarketState({ analysis, gold }) {
+  if (!analysis?.available) return null;
+  const ev = analysis.evidence ?? {};
+  const drift = analysis.priceDrift;
+  const blocked = analysis.gateSummary?.blocked ?? [];
+
+  return (
+    <div className="border border-[#1c2230] bg-[#0b0f17]">
+      <div className="border-b border-[#1c2230] px-5 py-2.5 font-mono text-[10px] uppercase tracking-widest text-slate-500">
+        Състояние на пазара
+      </div>
+
+      <div className="grid grid-cols-2 gap-px bg-[#1c2230] sm:grid-cols-4">
+        <Fact label="Режим" value={String(analysis.regime ?? "—").replace(/_/g, " ").toLowerCase()} />
+        <Fact label="Сесия" value={analysis.session ?? "—"} />
+        <Fact label="Волатилност" value={(analysis.volState ?? "—").toLowerCase()} />
+        <Fact label="Новини" value={(analysis.newsRisk?.level ?? "—").toLowerCase()} />
+      </div>
+
+      <div className="border-t border-[#1c2230] px-5 py-3">
+        <div className="flex items-baseline justify-between font-mono text-xs">
+          <span className="text-slate-500">Тежест на доказателствата</span>
+          <span className="text-slate-300">
+            <span className="text-emerald-400">{ev.longScore ?? "—"}</span>
+            {" / "}
+            <span className="text-red-400">{ev.shortScore ?? "—"}</span>
+            <span className="ml-2 text-slate-600">long / short</span>
+          </span>
+        </div>
+        <p className="mt-1 font-mono text-[10px] leading-relaxed text-slate-600">
+          Двете винаги сумират 100, затова 50 значи никаква информация. Това не е вероятност.
+        </p>
+      </div>
+
+      <div className="border-t border-[#1c2230] px-5 py-3 font-mono text-[11px] leading-relaxed text-slate-500">
+        Цена за сметките: {analysis.price?.toFixed(2) ?? "—"} — затварянето на последната завършена свещ
+        {drift != null && <> · живата котировка е {drift >= 0 ? "+" : ""}{drift.toFixed(2)} от нея</>}
+        {gold?.source && <> · източник {gold.source}</>}
+      </div>
+
+      {blocked.length > 0 && (
+        <div className="border-t border-[#1c2230] px-5 py-3">
+          <div className="mb-1.5 font-mono text-[10px] uppercase tracking-widest text-slate-500">
+            Разпознати модели, които не минават
+          </div>
+          <div className="space-y-1">
+            {blocked.map((b) => (
+              <div key={b.id} className="font-mono text-[11px] text-slate-600">
+                <span className={b.direction === "LONG" ? "text-emerald-400/70" : "text-red-400/70"}>{b.direction}</span>{" "}
+                {b.id} — {b.blockedBy?.join(", ")}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Fact({ label, value }) {
+  return (
+    <div className="bg-[#0b0f17] px-4 py-2.5">
+      <div className="font-mono text-[9px] uppercase tracking-wider text-slate-500">{label}</div>
+      <div className="mt-0.5 font-mono text-xs text-slate-300">{value}</div>
     </div>
   );
 }

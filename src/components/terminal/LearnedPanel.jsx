@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 
 // What the closed positions have taught — and, far more often, what they have
 // not taught yet.
@@ -18,9 +18,7 @@ const KIND_STYLE = {
   NOTE: "border-[#2a3348] text-slate-400",
 };
 
-export default function LearnedPanel({ learned, positions }) {
-  const [open, setOpen] = useState(false);
-  const [expanded, setExpanded] = useState(false);
+export default function LearnedPanel({ learned, positions, detailed = false }) {
   const closed = (positions ?? []).filter((p) => p.status === "CLOSED");
   if (!learned && closed.length === 0) return null;
 
@@ -36,22 +34,18 @@ export default function LearnedPanel({ learned, positions }) {
 
   return (
     <div className="border border-[#1c2230] bg-[#0b0f17]">
-      <button
-        type="button"
-        onClick={() => setExpanded((v) => !v)}
-        className="flex w-full flex-wrap items-center justify-between gap-2 px-5 py-3 text-left"
-      >
+      <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-3">
         <span className="font-mono text-[11px] uppercase tracking-widest text-slate-400">
           Твоите сделки
         </span>
         <span className="font-mono text-[11px] text-slate-500">
           {learned?.closedTrades ?? closed.length} затворени
           {learned?.overall?.n > 0 && <> · {rr(learned.overall.netR)}</>}
-          <span className="ml-3 text-slate-600">{expanded ? "скрий" : "виж"}</span>
         </span>
-      </button>
+      </div>
 
-      {expanded && (
+      {/* The headline findings are the point of this panel, so they show in both
+          views. Only the per-trade log is detail. */}
       <div className="space-y-2 border-t border-[#1c2230] px-5 py-3">
         {(learned?.findings ?? []).map((f, i) => (
           <div key={i} className={`border px-4 py-2.5 text-[13px] leading-relaxed ${KIND_STYLE[f.kind] ?? KIND_STYLE.NOTE}`}>
@@ -59,19 +53,13 @@ export default function LearnedPanel({ learned, positions }) {
           </div>
         ))}
       </div>
-      )}
 
-      {expanded && closed.length > 0 && (
+      {detailed && closed.length > 0 && (
         <div className="border-t border-[#1c2230]">
-          <button
-            type="button"
-            onClick={() => setOpen((v) => !v)}
-            className="w-full px-5 py-2 text-left font-mono text-[11px] uppercase tracking-wider text-slate-500 hover:text-amber-400"
-          >
-            {open ? "скрий" : "виж"} всяка затворена сделка ({closed.length})
-          </button>
-          {open && (
-            <div className="divide-y divide-[#1c2230] border-t border-[#1c2230]">
+          <div className="px-5 py-2 font-mono text-[11px] uppercase tracking-wider text-slate-500">
+            всяка затворена сделка ({closed.length})
+          </div>
+          <div className="divide-y divide-[#1c2230] border-t border-[#1c2230]">
               {closed.map((p) => (
                 <div key={p.id} className="px-5 py-3">
                   <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
@@ -93,12 +81,11 @@ export default function LearnedPanel({ learned, positions }) {
                   )}
                 </div>
               ))}
-            </div>
-          )}
+          </div>
         </div>
       )}
 
-      {expanded && learned?.note && (
+      {detailed && learned?.note && (
         <div className="border-t border-[#1c2230] px-5 py-3 text-[11px] leading-relaxed text-slate-600">
           {learned.note}
         </div>

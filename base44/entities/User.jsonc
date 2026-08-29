@@ -27,6 +27,10 @@
     "risk_pct": {
       "type": "number",
       "description": "Percent of the account risked per trade, used with the stop distance to compute position size"
+    },
+    "detailed_view": {
+      "type": "boolean",
+      "description": "Whether the trade screen shows its detailed view: the reasoning, measured history, risks, market state and per-trade log. One switch drives every panel, and the choice is a preference rather than a per-visit decision, so it is stored here."
     }
   },
   "required": [
